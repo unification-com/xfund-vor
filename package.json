@@ -1,0 +1,22 @@
+{
+  "name": "xfund-vor",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "truffle test",
+    "build": "truffle compile",
+    "lint": "solhint contracts/**/*.sol",
+    "coverage": "node --max-old-space-size=4096 ./node_modules/.bin/truffle run coverage"
+  },
+  "devDependencies": {
+    "@openzeppelin/test-helpers": "^0.5.10",
+    "chai": "^4.3.0",
+    "chai-as-promised": "^7.1.1",
+    "ganache-cli": "^6.12.2",
+    "solhint": "^3.3.2",
+    "solidity-coverage": "^0.7.15",
+    "truffle": "^5.2.1"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^3.4.0"
+  }
+}
