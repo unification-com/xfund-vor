@@ -41,7 +41,6 @@ contract VORCoordinator is VOR, VORRequestIDBase {
         // Tracks oracle commitments to VOR service
         address vOROracle; // Oracle committing to respond with VOR service
         uint96 fee; // Minimum payment for oracle response. Total xFUND=1e9*1e18<2^96
-        bytes32 jobID; // ID of corresponding job in oracle's DB
     }
 
     /* (provingKey, seed) */
@@ -55,13 +54,9 @@ contract VORCoordinator is VOR, VORRequestIDBase {
     /* consumer */
     mapping(bytes32 => mapping(address => uint256)) private nonces;
 
-    // The oracle only needs the jobID to look up the VOR, but specifying public
-    // key as well prevents a malicious oracle from inducing VOR outputs from
-    // another oracle by reusing the jobID.
     event RandomnessRequest(
         bytes32 keyHash,
         uint256 seed,
-        bytes32 indexed jobID,
         address sender,
         uint256 fee,
         bytes32 requestID
@@ -69,31 +64,42 @@ contract VORCoordinator is VOR, VORRequestIDBase {
 
     event NewServiceAgreement(bytes32 keyHash, uint256 fee);
 
+    event ChangeFee(bytes32 keyHash, uint256 fee);
+
     event RandomnessRequestFulfilled(bytes32 requestId, uint256 output);
 
     /**
      * @notice Commits calling address to serve randomness
      * @param _fee minimum xFUND payment required to serve randomness
-     * @param _oracle the address of the node with the proving key and job
+     * @param _oracle the address of the node with the proving key
      * @param _publicProvingKey public key used to prove randomness
-     * @param _jobID ID of the corresponding job in the oracle's db
      */
     function registerProvingKey(
         uint256 _fee,
         address _oracle,
-        uint256[2] calldata _publicProvingKey,
-        bytes32 _jobID
+        uint256[2] calldata _publicProvingKey
     ) external {
         bytes32 keyHash = hashOfKey(_publicProvingKey);
         address oldVOROracle = serviceAgreements[keyHash].vOROracle;
         require(oldVOROracle == address(0), "please register a new key");
         require(_oracle != address(0), "_oracle must not be 0x0");
         serviceAgreements[keyHash].vOROracle = _oracle;
-        serviceAgreements[keyHash].jobID = _jobID;
         // Yes, this revert message doesn't fit in a word
         require(_fee <= 1e9 ether, "you can't charge more than all the xFUND in the world, greedy");
         serviceAgreements[keyHash].fee = uint96(_fee);
         emit NewServiceAgreement(keyHash, _fee);
+    }
+
+    /**
+     * @notice Changes the provider's commission
+     * @param _publicProvingKey public key used to prove randomness
+     * @param _fee minimum xFUND payment required to serve randomness
+     */
+    function changeFee(uint256[2] calldata _publicProvingKey, uint256 _fee) external {
+        bytes32 keyHash = hashOfKey(_publicProvingKey);
+        require(_fee <= 1e9 ether, "you can't charge more than all the xFUND in the world, greedy");
+        serviceAgreements[keyHash].fee = uint96(_fee);
+        emit ChangeFee(keyHash, _fee);
     }
 
     /**
@@ -137,7 +143,7 @@ contract VORCoordinator is VOR, VORRequestIDBase {
         assert(_feePaid < 1e27); // Total xFUND fits in uint96
         callbacks[requestId].randomnessFee = uint96(_feePaid);
         callbacks[requestId].seedAndBlockNum = keccak256(abi.encodePacked(preSeed, block.number));
-        emit RandomnessRequest(_keyHash, preSeed, serviceAgreements[_keyHash].jobID, _sender, _feePaid, requestId);
+        emit RandomnessRequest(_keyHash, preSeed, _sender, _feePaid, requestId);
         nonces[_keyHash][_sender] = nonces[_keyHash][_sender].add(1);
     }
 
@@ -254,14 +260,6 @@ contract VORCoordinator is VOR, VORRequestIDBase {
      */
     modifier sufficientXFUND(uint256 _feePaid, bytes32 _keyHash) {
         require(_feePaid >= serviceAgreements[_keyHash].fee, "Below agreed payment");
-        _;
-    }
-
-    /**
-     * @dev Reverts if not sent from the xFUND token
-     */
-    modifier onlyXFUND() {
-        require(msg.sender == address(xFUND), "Must use xFUND token");
         _;
     }
 

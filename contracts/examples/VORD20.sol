@@ -2,14 +2,14 @@
 pragma solidity 0.6.6;
 
 import "../VORConsumerBase.sol";
-import "../Owned.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @notice A VOR consumer which uses randomness to mimic the rolling
  * of a 20 sided die
  * @dev This is only an example implementation and not necessarily suitable for mainnet.
  */
-contract VORD20 is VORConsumerBase, Owned {
+contract VORD20 is VORConsumerBase, Ownable {
     using SafeMath for uint256;
 
     uint256 private constant _ROLL_IN_PROGRESS = 42;
@@ -28,7 +28,7 @@ contract VORD20 is VORConsumerBase, Owned {
      *
      * @param vorCoordinator address of the VOR Coordinator
      * @param xfund address of the xFUND token
-     * @param keyHash bytes32 representing the hash of the VOR job
+     * @param keyHash bytes32 representing the hash of the VOR provider
      * @param fee uint256 fee to pay the VOR oracle
      */
     constructor(address vorCoordinator, address xfund, bytes32 keyHash, uint256 fee)
