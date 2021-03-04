@@ -9,7 +9,7 @@ const VORD20 = artifacts.require('VORD20');
 const VORCoordinator = artifacts.require('VORCoordinatorMock');
 const BlockhashStore = artifacts.require('BlockhashStore');
 
-contract('VORD20', ([owner, alice, bob, carol]) => {
+contract('VORD20', ([owner, alice]) => {
     beforeEach(async () => {
         this.fee = web3.utils.toWei('0.1', 'ether');
         this.keyHash = web3.utils.fromAscii('keyHash');
