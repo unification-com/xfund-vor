@@ -28,7 +28,7 @@ contract('VORD20', ([owner, alice, bob, carol]) => {
     describe('#withdrawXFUND', () => {
         describe('failure', () => {
             it('reverts when called by a non-owner', async () => {
-                await expectRevert(this.vorD20.withdrawXFUND(alice, this.deposit, { from: alice }), 'Only callable by owner');
+                await expectRevert(this.vorD20.withdrawXFUND(alice, this.deposit, { from: alice }), 'Ownable: caller is not the owner');
             });
 
             it('reverts when not enough xFUND in the contract', async () => {
@@ -52,7 +52,7 @@ contract('VORD20', ([owner, alice, bob, carol]) => {
 
         describe('failure', () => {
             it('reverts when called by a non-owner', async () => {
-                await expectRevert(this.vorD20.setKeyHash(newHash, { from: alice }), 'Only callable by owner');
+                await expectRevert(this.vorD20.setKeyHash(newHash, { from: alice }), 'Ownable: caller is not the owner');
             });
         });
 
@@ -70,7 +70,7 @@ contract('VORD20', ([owner, alice, bob, carol]) => {
         
         describe('failure', () => {
             it('reverts when called by a non-owner', async () => {
-                await expectRevert(this.vorD20.setFee(newFee, { from: alice }), 'Only callable by owner');
+                await expectRevert(this.vorD20.setFee(newFee, { from: alice }), 'Ownable: caller is not the owner');
             });
         });
 
@@ -121,7 +121,7 @@ contract('VORD20', ([owner, alice, bob, carol]) => {
             });
 
             it('reverts when called by a non-owner', async () => {
-                await expectRevert(this.vorD20.rollDice(this.seed, alice, { from: alice }), 'Only callable by owner');
+                await expectRevert(this.vorD20.rollDice(this.seed, alice, { from: alice }), 'Ownable: caller is not the owner');
             });
 
             it('reverts when the roller rolls more than once', async () => {
