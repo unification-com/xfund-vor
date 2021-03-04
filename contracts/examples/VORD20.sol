@@ -28,7 +28,7 @@ contract VORD20 is VORConsumerBase, Ownable {
      *
      * @param vorCoordinator address of the VOR Coordinator
      * @param xfund address of the xFUND token
-     * @param keyHash bytes32 representing the hash of the VOR job
+     * @param keyHash bytes32 representing the hash of the VOR provider
      * @param fee uint256 fee to pay the VOR oracle
      */
     constructor(address vorCoordinator, address xfund, bytes32 keyHash, uint256 fee)
