@@ -264,14 +264,6 @@ contract VORCoordinator is VOR, VORRequestIDBase {
     }
 
     /**
-     * @dev Reverts if not sent from the xFUND token
-     */
-    modifier onlyXFUND() {
-        require(msg.sender == address(xFUND), "Must use xFUND token");
-        _;
-    }
-
-    /**
      * @dev Reverts if amount requested is greater than withdrawable balance
      * @param _amount The given amount to compare to `withdrawableTokens`
      */
