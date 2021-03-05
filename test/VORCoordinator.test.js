@@ -7,14 +7,21 @@ const { expect } = chai;
 const MockERC20 = artifacts.require('MockERC20');
 const BlockhashStore = artifacts.require('BlockhashStore');
 const VORCoordinator = artifacts.require('VORCoordinator');
+const VORD20 = artifacts.require('VORD20');
 
-contract('VORCoordinator', ([owner, oracle, contractSender]) => {
+contract('VORCoordinator', ([owner, oracle, alice]) => {
     beforeEach(async () => {
+        this.keyHash = web3.utils.fromAscii('keyHash');
         this.fee = web3.utils.toWei('0.1', 'ether');
+
+        this.deposit = web3.utils.toWei('1', 'ether');
 
         this.xFund = await MockERC20.new('xFUND', 'xFUND', web3.utils.toWei('1000000000', 'ether'), { from: owner });
         this.blockhashStore = await BlockhashStore.new({ from: owner });
         this.vorCoordinator = await VORCoordinator.new(this.xFund.address, this.blockhashStore.address, { from: owner });
+
+        this.vorD20 = await VORD20.new(this.vorCoordinator.address, this.xFund.address, this.keyHash, this.fee, { from: owner });
+        await this.xFund.transfer(this.vorD20.address, this.deposit, { from: owner });
     });
 
     it('returns the correct serviceAgreements', async () => {
@@ -53,33 +60,28 @@ contract('VORCoordinator', ([owner, oracle, contractSender]) => {
         const newServiceAgreement = await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey);
         expectEvent(newServiceAgreement, 'NewServiceAgreement', { keyHash, fee: this.fee });
 
-        const changeFee = await this.vorCoordinator.changeFee(publicProvingKey, newFee);
+        const changeFee = await this.vorCoordinator.changeFee(publicProvingKey, newFee, { from: oracle });
         expectEvent(changeFee, 'ChangeFee', { keyHash, fee: newFee });
 
         await expectRevert(
             this.vorCoordinator.changeFee(publicProvingKey, web3.utils.toWei('10000000000', 'ether')),
+            `only oracle can change the commission`
+        );
+
+        await expectRevert(
+            this.vorCoordinator.changeFee(publicProvingKey, web3.utils.toWei('10000000000', 'ether'), { from: oracle }),
             `you can't charge more than all the xFUND in the world, greedy`
         );
     });
 
     it('returns the correct callbacks', async () => {
-        await this.xFund.transfer(contractSender, this.fee, { from: owner });
-        await this.xFund.approve(this.vorCoordinator.address, this.fee, { from: contractSender });
-
-        const keyHash = web3.utils.fromAscii('keyHash');
         const seed = 12345;
+        const rollResult = await this.vorD20.rollDice(seed, alice);
 
-        const randomnessRequest = await this.vorCoordinator.randomnessRequest(keyHash, seed, this.fee, contractSender, { from: contractSender });
-        expectEvent(
-            randomnessRequest,
-            'RandomnessRequest',
-            { keyHash: keyHash.padEnd(66, '0'), fee: this.fee, sender: contractSender }
-        );
-
-        const requestId = randomnessRequest.logs[0].args.requestID;
+        const requestId = rollResult.logs[0].args.requestId;
         
         const callbacks = await this.vorCoordinator.callbacks.call(requestId);
-        expect(callbacks.callbackContract).to.be.equal(contractSender);
+        expect(callbacks.callbackContract).to.be.equal(this.vorD20.address);
         expect(callbacks.randomnessFee).to.be.bignumber.equal(new BN(this.fee));
     });
 });

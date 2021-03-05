@@ -2,6 +2,8 @@
 pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/GSN/Context.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 import "./interfaces/XFundTokenInterface.sol";
 import "./interfaces/BlockHashStoreInterface.sol";
 import "./VOR.sol";
@@ -12,8 +14,9 @@ import "./VORConsumerBase.sol";
  * @title VORCoordinator coordinates on-chain verifiable-randomness requests
  * @title with off-chain responses
  */
-contract VORCoordinator is VOR, VORRequestIDBase {
+contract VORCoordinator is Context, VOR, VORRequestIDBase {
     using SafeMath for uint256;
+    using Address for address;
 
     XFundTokenInterface internal xFUND;
     BlockHashStoreInterface internal blockHashStore;
@@ -97,6 +100,7 @@ contract VORCoordinator is VOR, VORRequestIDBase {
      */
     function changeFee(uint256[2] calldata _publicProvingKey, uint256 _fee) external {
         bytes32 keyHash = hashOfKey(_publicProvingKey);
+        require(serviceAgreements[keyHash].vOROracle == _msgSender(), "only oracle can change the commission");
         require(_fee <= 1e9 ether, "you can't charge more than all the xFUND in the world, greedy");
         serviceAgreements[keyHash].fee = uint96(_fee);
         emit ChangeFee(keyHash, _fee);
@@ -108,7 +112,7 @@ contract VORCoordinator is VOR, VORRequestIDBase {
      * @param _amount is the amount of xFUND transferred from the Coordinator contract
      */
     function withdraw(address _recipient, uint256 _amount) external hasAvailableFunds(_amount) {
-        withdrawableTokens[msg.sender] = withdrawableTokens[msg.sender].sub(_amount);
+        withdrawableTokens[_msgSender()] = withdrawableTokens[_msgSender()].sub(_amount);
         assert(xFUND.transfer(_recipient, _amount));
     }
 
@@ -118,7 +122,6 @@ contract VORCoordinator is VOR, VORRequestIDBase {
      * @param _keyHash ID of the VOR public key against which to generate output
      * @param _consumerSeed Input to the VOR, from which randomness is generated
      * @param _feePaid Amount of xFUND sent with request. Must exceed fee for key
-     * @param _sender Requesting contract; to be called back with VOR output
      *
      * @dev _consumerSeed is mixed with key hash, sender address and nonce to
      * @dev obtain preSeed, which is passed to VOR oracle, which mixes it with the
@@ -130,21 +133,26 @@ contract VORCoordinator is VOR, VORRequestIDBase {
     function randomnessRequest(
         bytes32 _keyHash,
         uint256 _consumerSeed,
-        uint256 _feePaid,
-        address _sender
+        uint256 _feePaid
     ) external sufficientXFUND(_feePaid, _keyHash) {
-        xFUND.transferFrom(_sender, address(this), _feePaid);
-        uint256 nonce = nonces[_keyHash][_sender];
-        uint256 preSeed = makeVORInputSeed(_keyHash, _consumerSeed, _sender, nonce);
+        require(address(_msgSender()).isContract(), "request can only be made by a contract");
+
+        xFUND.transferFrom(_msgSender(), address(this), _feePaid);
+
+        uint256 nonce = nonces[_keyHash][_msgSender()];
+        uint256 preSeed = makeVORInputSeed(_keyHash, _consumerSeed, _msgSender(), nonce);
         bytes32 requestId = makeRequestId(_keyHash, preSeed);
+
         // Cryptographically guaranteed by preSeed including an increasing nonce
         assert(callbacks[requestId].callbackContract == address(0));
-        callbacks[requestId].callbackContract = _sender;
+        callbacks[requestId].callbackContract = _msgSender();
+
         assert(_feePaid < 1e27); // Total xFUND fits in uint96
         callbacks[requestId].randomnessFee = uint96(_feePaid);
+
         callbacks[requestId].seedAndBlockNum = keccak256(abi.encodePacked(preSeed, block.number));
-        emit RandomnessRequest(_keyHash, preSeed, _sender, _feePaid, requestId);
-        nonces[_keyHash][_sender] = nonces[_keyHash][_sender].add(1);
+        emit RandomnessRequest(_keyHash, preSeed, _msgSender(), _feePaid, requestId);
+        nonces[_keyHash][_msgSender()] = nonces[_keyHash][_msgSender()].add(1);
     }
 
     /**
@@ -268,7 +276,7 @@ contract VORCoordinator is VOR, VORRequestIDBase {
      * @param _amount The given amount to compare to `withdrawableTokens`
      */
     modifier hasAvailableFunds(uint256 _amount) {
-        require(withdrawableTokens[msg.sender] >= _amount, "can't withdraw more than balance");
+        require(withdrawableTokens[_msgSender()] >= _amount, "can't withdraw more than balance");
         _;
     }
 }
