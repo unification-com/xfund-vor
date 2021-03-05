@@ -12,6 +12,5 @@ interface XFundTokenInterface {
     function symbol() external view returns (string memory tokenSymbol);
     function totalSupply() external view returns (uint256 totalTokensIssued);
     function transfer(address to, uint256 value) external returns (bool success);
-    function transferAndCall(address to, uint256 value, bytes calldata data) external returns (bool success);
     function transferFrom(address from, address to, uint256 value) external returns (bool success);
 }
