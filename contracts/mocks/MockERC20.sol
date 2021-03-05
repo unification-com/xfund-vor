@@ -2,6 +2,7 @@
 pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/GSN/Context.sol";
 
 contract MockERC20 is ERC20 {
     constructor(
@@ -9,6 +10,6 @@ contract MockERC20 is ERC20 {
         string memory symbol,
         uint256 supply
     ) public ERC20(name, symbol) {
-        _mint(msg.sender, supply);
+        _mint(_msgSender(), supply);
     }
 }

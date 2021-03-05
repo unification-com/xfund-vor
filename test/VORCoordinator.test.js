@@ -53,11 +53,16 @@ contract('VORCoordinator', ([owner, oracle, contractSender]) => {
         const newServiceAgreement = await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey);
         expectEvent(newServiceAgreement, 'NewServiceAgreement', { keyHash, fee: this.fee });
 
-        const changeFee = await this.vorCoordinator.changeFee(publicProvingKey, newFee);
+        const changeFee = await this.vorCoordinator.changeFee(publicProvingKey, newFee, { from: oracle });
         expectEvent(changeFee, 'ChangeFee', { keyHash, fee: newFee });
 
         await expectRevert(
             this.vorCoordinator.changeFee(publicProvingKey, web3.utils.toWei('10000000000', 'ether')),
+            `only oracle can change the commission`
+        );
+
+        await expectRevert(
+            this.vorCoordinator.changeFee(publicProvingKey, web3.utils.toWei('10000000000', 'ether'), { from: oracle }),
             `you can't charge more than all the xFUND in the world, greedy`
         );
     });
@@ -69,7 +74,7 @@ contract('VORCoordinator', ([owner, oracle, contractSender]) => {
         const keyHash = web3.utils.fromAscii('keyHash');
         const seed = 12345;
 
-        const randomnessRequest = await this.vorCoordinator.randomnessRequest(keyHash, seed, this.fee, contractSender, { from: contractSender });
+        const randomnessRequest = await this.vorCoordinator.randomnessRequest(keyHash, seed, this.fee, { from: contractSender });
         expectEvent(
             randomnessRequest,
             'RandomnessRequest',
