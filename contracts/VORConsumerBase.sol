@@ -146,7 +146,7 @@ abstract contract VORConsumerBase is VORRequestIDBase {
      */
     function requestRandomness(bytes32 _keyHash, uint256 _fee, uint256 _seed) internal returns (bytes32 requestId) {
         xFUND.approve(vorCoordinator, _fee);
-        IVORCoordinator(vorCoordinator).randomnessRequest(_keyHash, _seed, _fee, address(this));
+        IVORCoordinator(vorCoordinator).randomnessRequest(_keyHash, _seed, _fee);
         // This is the seed passed to VORCoordinator. The oracle will mix this with
         // the hash of the block containing this request to obtain the seed/input
         // which is finally passed to the VOR cryptographic machinery.

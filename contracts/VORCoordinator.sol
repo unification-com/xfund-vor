@@ -3,6 +3,7 @@ pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/GSN/Context.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 import "./interfaces/XFundTokenInterface.sol";
 import "./interfaces/BlockHashStoreInterface.sol";
 import "./VOR.sol";
@@ -15,6 +16,7 @@ import "./VORConsumerBase.sol";
  */
 contract VORCoordinator is Context, VOR, VORRequestIDBase {
     using SafeMath for uint256;
+    using Address for address;
 
     XFundTokenInterface internal xFUND;
     BlockHashStoreInterface internal blockHashStore;
@@ -133,15 +135,21 @@ contract VORCoordinator is Context, VOR, VORRequestIDBase {
         uint256 _consumerSeed,
         uint256 _feePaid
     ) external sufficientXFUND(_feePaid, _keyHash) {
+        require(address(_msgSender()).isContract(), "request can only be made by a contract");
+
         xFUND.transferFrom(_msgSender(), address(this), _feePaid);
+
         uint256 nonce = nonces[_keyHash][_msgSender()];
         uint256 preSeed = makeVORInputSeed(_keyHash, _consumerSeed, _msgSender(), nonce);
         bytes32 requestId = makeRequestId(_keyHash, preSeed);
+
         // Cryptographically guaranteed by preSeed including an increasing nonce
         assert(callbacks[requestId].callbackContract == address(0));
         callbacks[requestId].callbackContract = _msgSender();
+
         assert(_feePaid < 1e27); // Total xFUND fits in uint96
         callbacks[requestId].randomnessFee = uint96(_feePaid);
+
         callbacks[requestId].seedAndBlockNum = keccak256(abi.encodePacked(preSeed, block.number));
         emit RandomnessRequest(_keyHash, preSeed, _msgSender(), _feePaid, requestId);
         nonces[_keyHash][_msgSender()] = nonces[_keyHash][_msgSender()].add(1);

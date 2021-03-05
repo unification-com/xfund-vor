@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.6.6;
 
+import "@openzeppelin/contracts/GSN/Context.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 import "../VORConsumerBase.sol";
 
-contract VORCoordinatorMock {
+contract VORCoordinatorMock is Context {
+    using Address for address;
+
     event RandomnessRequest(
         address indexed sender,
         bytes32 indexed keyHash,
@@ -14,10 +18,10 @@ contract VORCoordinatorMock {
     function randomnessRequest(
         bytes32 keyHash,
         uint256 consumerSeed,
-        uint256 feePaid,
-        address sender
+        uint256 feePaid
     ) public {
-        emit RandomnessRequest(sender, keyHash, consumerSeed, feePaid);
+        require(address(_msgSender()).isContract(), "request can only be made by a contract");
+        emit RandomnessRequest(_msgSender(), keyHash, consumerSeed, feePaid);
     }
 
     function callBackWithRandomness(
