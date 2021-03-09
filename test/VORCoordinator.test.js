@@ -28,7 +28,7 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
         const publicProvingKey = [new BN('0'), new BN('0')];
         const keyHash = await this.vorCoordinator.hashOfKey(publicProvingKey);
 
-        const newServiceAgreement = await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey);
+        const newServiceAgreement = await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey, true);
         expectEvent(newServiceAgreement, 'NewServiceAgreement', { keyHash, fee: this.fee });
 
         const serviceAgreements = await this.vorCoordinator.serviceAgreements.call(keyHash);
@@ -41,12 +41,12 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
         const publicProvingKey = [new BN('0'), new BN('0')];
 
         await expectRevert(
-            this.vorCoordinator.registerProvingKey(this.fee, constants.ZERO_ADDRESS, publicProvingKey),
+            this.vorCoordinator.registerProvingKey(this.fee, constants.ZERO_ADDRESS, publicProvingKey, true),
             '_oracle must not be 0x0'
         );
 
         await expectRevert(
-            this.vorCoordinator.registerProvingKey(newFee, oracle, publicProvingKey),
+            this.vorCoordinator.registerProvingKey(newFee, oracle, publicProvingKey, true),
             `you can't charge more than all the xFUND in the world, greedy`
         );
     });
@@ -57,7 +57,7 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
 
         const keyHash = await this.vorCoordinator.hashOfKey(publicProvingKey);
 
-        const newServiceAgreement = await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey);
+        const newServiceAgreement = await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey, true);
         expectEvent(newServiceAgreement, 'NewServiceAgreement', { keyHash, fee: this.fee });
 
         const changeFee = await this.vorCoordinator.changeFee(publicProvingKey, newFee, { from: oracle });
