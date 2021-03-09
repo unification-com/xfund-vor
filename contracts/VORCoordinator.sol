@@ -2,8 +2,9 @@
 pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/GSN/Context.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/XFundTokenInterface.sol";
 import "./interfaces/BlockHashStoreInterface.sol";
 import "./VOR.sol";
@@ -14,16 +15,23 @@ import "./VORConsumerBase.sol";
  * @title VORCoordinator coordinates on-chain verifiable-randomness requests
  * @title with off-chain responses
  */
-contract VORCoordinator is Context, VOR, VORRequestIDBase {
+contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
     using SafeMath for uint256;
     using Address for address;
 
     XFundTokenInterface internal xFUND;
     BlockHashStoreInterface internal blockHashStore;
 
+    uint256 public constant EXPECTED_GAS_FIRST_FULFILMENT = 90550;
+    uint256 public constant EXPECTED_GAS = 56290;
+
+    uint256 private totalGasDeposits;
+    uint256 private gasTopUpLimit;
+
     constructor(address _xfund, address _blockHashStore) public {
         xFUND = XFundTokenInterface(_xfund);
         blockHashStore = BlockHashStoreInterface(_blockHashStore);
+        gasTopUpLimit = 1 ether;
     }
 
     struct Callback {
@@ -42,8 +50,14 @@ contract VORCoordinator is Context, VOR, VORRequestIDBase {
 
     struct ServiceAgreement {
         // Tracks oracle commitments to VOR service
-        address vOROracle; // Oracle committing to respond with VOR service
+        address payable vOROracle; // Oracle committing to respond with VOR service
         uint96 fee; // Minimum payment for oracle response. Total xFUND=1e9*1e18<2^96
+        bool providerPaysGas; // True if provider will pay gas
+    }
+
+    struct Consumer {
+        uint256 amount;
+        mapping(address => uint256) providers;
     }
 
     /* (provingKey, seed) */
@@ -56,6 +70,10 @@ contract VORCoordinator is Context, VOR, VORRequestIDBase {
     /* provingKey */
     /* consumer */
     mapping(bytes32 => mapping(address => uint256)) private nonces;
+    /* (consumer, struct Consumer) */
+    mapping(address => Consumer) private gasDeposits;
+
+    mapping(address => bool) public consumerPreviousFulfillment;
 
     event RandomnessRequest(
         bytes32 keyHash,
@@ -71,16 +89,51 @@ contract VORCoordinator is Context, VOR, VORRequestIDBase {
 
     event RandomnessRequestFulfilled(bytes32 requestId, uint256 output);
 
+    event GasToppedUp(address indexed consumer, address indexed provider, uint256 amount);
+
+    event SetGasTopUpLimit(address indexed sender, uint256 oldLimit, uint256 newLimit);
+
+    event GasRefundedToProvider(address indexed consumer, address indexed provider, uint256 amount);
+
+    event SetProviderPaysGas(address indexed dataProvider, bool providerPays);
+
+    /**
+     * @dev getTotalGasDeposits - get total gas deposited in Router
+     * @return uint256
+     */
+    function getTotalGasDeposits() external view returns (uint256) {
+        return totalGasDeposits;
+    }
+
+    /**
+     * @dev setGasTopUpLimit set the max amount of ETH that can be sent
+     * in a topUpGas Tx. Router admin calls this to set the maximum amount
+     * a Consumer can send in a single Tx, to prevent large amounts of ETH
+     * being sent.
+     *
+     * @param _gasTopUpLimit amount in wei
+     * @return success
+     */
+    function setGasTopUpLimit(uint256 _gasTopUpLimit) external onlyOwner returns (bool success) {
+        require(_gasTopUpLimit > 0, "Router: _gasTopUpLimit must be > 0");
+        uint256 oldGasTopUpLimit = gasTopUpLimit;
+        gasTopUpLimit = _gasTopUpLimit;
+        emit SetGasTopUpLimit(msg.sender, oldGasTopUpLimit, _gasTopUpLimit);
+        return true;
+    }
+
     /**
      * @notice Commits calling address to serve randomness
      * @param _fee minimum xFUND payment required to serve randomness
      * @param _oracle the address of the node with the proving key
      * @param _publicProvingKey public key used to prove randomness
+     * @param _providerPaysGas true if provider will pay gas
      */
     function registerProvingKey(
         uint256 _fee,
-        address _oracle,
-        uint256[2] calldata _publicProvingKey
+        address payable _oracle,
+        uint256[2] calldata _publicProvingKey,
+        bool _providerPaysGas
     ) external {
         bytes32 keyHash = hashOfKey(_publicProvingKey);
         address oldVOROracle = serviceAgreements[keyHash].vOROracle;
@@ -90,6 +143,7 @@ contract VORCoordinator is Context, VOR, VORRequestIDBase {
         // Yes, this revert message doesn't fit in a word
         require(_fee <= 1e9 ether, "you can't charge more than all the xFUND in the world, greedy");
         serviceAgreements[keyHash].fee = uint96(_fee);
+        serviceAgreements[keyHash].providerPaysGas = _providerPaysGas;
         emit NewServiceAgreement(keyHash, _fee);
     }
 
@@ -104,6 +158,20 @@ contract VORCoordinator is Context, VOR, VORRequestIDBase {
         require(_fee <= 1e9 ether, "you can't charge more than all the xFUND in the world, greedy");
         serviceAgreements[keyHash].fee = uint96(_fee);
         emit ChangeFee(keyHash, _fee);
+    }
+
+        /**
+     * @dev setProviderPaysGas - provider calls for setting who pays gas
+     * for sending the fulfillRequest Tx
+     * @param _providerPays bool - true if provider will pay gas
+     * @return success
+     */
+    function setProviderPaysGas(uint256[2] calldata _publicProvingKey, bool _providerPays) external returns (bool success) {
+        bytes32 keyHash = hashOfKey(_publicProvingKey);
+        require(serviceAgreements[keyHash].vOROracle == _msgSender(), "only oracle can change who will pay gas");
+        serviceAgreements[keyHash].providerPaysGas = _providerPays;
+        emit SetProviderPaysGas(msg.sender, _providerPays);
+        return true;
     }
 
     /**
@@ -156,6 +224,39 @@ contract VORCoordinator is Context, VOR, VORRequestIDBase {
     }
 
     /**
+     * @dev topUpGas data consumer contract calls this function to top up gas
+     * Gas is the ETH held by this contract which is used to refund Tx costs
+     * to the data provider for fulfilling a request.
+     *
+     * To prevent silly amounts of ETH being sent, a sensible limit is imposed.
+     *
+     * Can only top up for authorised providers
+     *
+     * @param _provider address of data provider
+     * @return success
+     */
+    function topUpGas(address _provider) external payable nonReentrant returns (bool success) {
+        uint256 amount = msg.value;
+        // msg.sender is the address of the Consumer's smart contract
+        address consumer = msg.sender;
+        require(address(consumer).isContract(), "only a contract can top up gas");
+        require(amount > 0, "cannot top up zero");
+        require(amount <= gasTopUpLimit, "cannot top up more than gasTopUpLimit");
+
+        // total held by Router contract
+        totalGasDeposits = totalGasDeposits.add(amount);
+
+        // Total held for consumer contract
+        gasDeposits[consumer].amount = gasDeposits[consumer].amount.add(amount);
+
+        // Total held for consumer contract/provider pair
+        gasDeposits[consumer].providers[_provider] = gasDeposits[consumer].providers[_provider].add(amount);
+
+        emit GasToppedUp(consumer, _provider, amount);
+        return true;
+    }
+
+    /**
      * @notice Returns the serviceAgreements key associated with this public key
      * @param _publicKey the key to return the address for
      */
@@ -173,12 +274,20 @@ contract VORCoordinator is Context, VOR, VORRequestIDBase {
             getRandomnessFromProof(_proof);
 
         // Pay oracle
-        address oadd = serviceAgreements[currentKeyHash].vOROracle;
-        withdrawableTokens[oadd] = withdrawableTokens[oadd].add(callback.randomnessFee);
+        address payable oracle = serviceAgreements[currentKeyHash].vOROracle;
+        withdrawableTokens[oracle] = withdrawableTokens[oracle].add(callback.randomnessFee);
+
+        address gasPayer = (serviceAgreements[currentKeyHash].providerPaysGas) ? oracle : callback.callbackContract;
 
         // Forget request. Must precede callback (prevents reentrancy)
         delete callbacks[requestId];
+        uint256 gasLeftStart = gasleft();
         callBackWithRandomness(requestId, randomness, callback.callbackContract);
+        uint256 gasUsedToCall = gasLeftStart - gasleft();
+
+        if (gasPayer != oracle) {
+            require(refundGas(callback.callbackContract, oracle, gasUsedToCall));
+        }
 
         emit RandomnessRequestFulfilled(requestId, randomness);
     }
@@ -259,6 +368,48 @@ contract VORCoordinator is Context, VOR, VORRequestIDBase {
             mstore(_proof, PROOF_LENGTH)
         }
         randomness = VOR.randomValueFromVORProof(_proof); // Reverts on failure
+    }
+
+    /**
+     * @dev refundGas - private function called by fulfillRequest, when Consumer is expected to pay
+     * the gas for fulfilling a request.
+     *
+     * @param _consumer address of the consumer contract
+     * @param _provider address of the data provider
+     * @param _gasUsedToCall amount of gas consumed calling the Consumer's rawReceiveData function
+     * @return success if the execution was successful.
+     */
+    function refundGas(address _consumer, address payable _provider, uint256 _gasUsedToCall) private returns (bool){
+        // calculate how much should be refunded to the provider
+        uint256 baseGas = EXPECTED_GAS_FIRST_FULFILMENT;
+        if(consumerPreviousFulfillment[_consumer]) {
+            baseGas = EXPECTED_GAS;
+        }
+
+        consumerPreviousFulfillment[_consumer] = true;
+
+        uint256 totalGasUsed = baseGas + _gasUsedToCall;
+        uint256 ethRefund = totalGasUsed.mul(tx.gasprice);
+
+        // check there's enough
+        require(
+            gasDeposits[_consumer].providers[_provider] >= ethRefund
+            && totalGasDeposits >= ethRefund,
+            "Router: not enough ETH to refund"
+        );
+        // update total held by Router contract
+        totalGasDeposits = totalGasDeposits.sub(ethRefund);
+
+        // update total held for consumer contract
+        gasDeposits[_consumer].amount = gasDeposits[_consumer].amount.sub(ethRefund);
+
+        // update total held for consumer contract/provider pair
+        gasDeposits[_consumer].providers[_provider] = gasDeposits[_consumer].providers[_provider].sub(ethRefund);
+
+        emit GasRefundedToProvider(_consumer, _provider, ethRefund);
+        // refund the provider
+        Address.sendValue(_provider, ethRefund);
+        return true;
     }
 
     /**
