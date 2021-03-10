@@ -50,6 +50,13 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
             this.vorCoordinator.registerProvingKey(newFee, oracle, publicProvingKey, true),
             `you can't charge more than all the xFUND in the world, greedy`
         );
+
+        await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey, true);
+
+        await expectRevert(
+            this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey, true),
+            `please register a new key`
+        );
     });
 
     it('returns the correct fee', async () => {
@@ -84,6 +91,15 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
         const callbacks = await this.vorCoordinator.callbacks.call(requestId);
         expect(callbacks.callbackContract).to.be.equal(this.vorD20.address);
         expect(callbacks.randomnessFee).to.be.bignumber.equal(new BN(this.fee));
+    });
+
+    it('randomnessRequest reject', async () => {
+        const seed = 12345;
+
+        await expectRevert(
+            this.vorCoordinator.randomnessRequest(this.keyHash, seed, this.fee),
+            `request can only be made by a contract`
+        );
     });
 
     it('returns the gas top up', async () => {
@@ -140,5 +156,12 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
         await this.vorD20.topUpGas(web3.utils.toWei('1', 'ether'));
         const totalGasDeposits = await this.vorCoordinator.getTotalGasDeposits();
         expect(totalGasDeposits).to.be.bignumber.equal(new BN(web3.utils.toWei('1', 'ether')));
+    });
+
+    it('topUpGas reject', async () => {
+        await expectRevert(
+            this.vorCoordinator.topUpGas(oracle, { from: owner, value: web3.utils.toWei('1', 'ether') }),
+            `only a contract can top up gas`
+        );
     });
 });
