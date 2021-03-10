@@ -106,6 +106,14 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
     }
 
     /**
+     * @dev getGasTopUpLimit - get gas top up limit
+     * @return uint256
+     */
+    function getGasTopUpLimit() external view returns (uint256) {
+        return gasTopUpLimit;
+    }
+
+    /**
      * @dev setGasTopUpLimit set the max amount of ETH that can be sent
      * in a topUpGas Tx. Router admin calls this to set the maximum amount
      * a Consumer can send in a single Tx, to prevent large amounts of ETH
@@ -115,7 +123,7 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
      * @return success
      */
     function setGasTopUpLimit(uint256 _gasTopUpLimit) external onlyOwner returns (bool success) {
-        require(_gasTopUpLimit > 0, "Router: _gasTopUpLimit must be > 0");
+        require(_gasTopUpLimit > 0, "_gasTopUpLimit must be > 0");
         uint256 oldGasTopUpLimit = gasTopUpLimit;
         gasTopUpLimit = _gasTopUpLimit;
         emit SetGasTopUpLimit(msg.sender, oldGasTopUpLimit, _gasTopUpLimit);
