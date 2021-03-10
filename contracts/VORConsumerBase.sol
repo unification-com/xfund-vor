@@ -161,6 +161,19 @@ abstract contract VORConsumerBase is VORRequestIDBase {
         return makeRequestId(_keyHash, vORSeed);
     }
 
+    /**
+     * @dev topUpGas consumer contract calls this function to top up gas
+     * Gas is the ETH held by this contract which is used to refund Tx costs
+     * to the VOR provider for fulfilling a request.
+     *
+     * @param _keyHash ID of public key against which randomness is generated
+     * @param _amount amount of ETH to send
+     */
+    function topUpGas(bytes32 _keyHash, uint256 _amount) internal {
+        address provider = IVORCoordinator(vorCoordinator).getProviderAddress(_keyHash);
+        IVORCoordinator(vorCoordinator).topUpGas{ value: _amount }(provider);
+    }
+
     XFundTokenInterface internal immutable xFUND;
     address private immutable vorCoordinator;
 
@@ -187,4 +200,7 @@ abstract contract VORConsumerBase is VORRequestIDBase {
         require(msg.sender == vorCoordinator, "Only VORCoordinator can fulfill");
         fulfillRandomness(requestId, randomness);
     }
+
+    // If the contract will pay for the provider's gas
+    receive() external payable {}
 }

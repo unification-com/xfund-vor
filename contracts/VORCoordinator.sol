@@ -95,7 +95,7 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
 
     event GasRefundedToProvider(address indexed consumer, address indexed provider, uint256 amount);
 
-    event SetProviderPaysGas(address indexed dataProvider, bool providerPays);
+    event SetProviderPaysGas(address indexed provider, bool providerPays);
 
     /**
      * @dev getTotalGasDeposits - get total gas deposited in Router
@@ -111,6 +111,14 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
      */
     function getGasTopUpLimit() external view returns (uint256) {
         return gasTopUpLimit;
+    }
+
+    /**
+     * @dev getProviderAddress - get provider address
+     * @return address
+     */
+    function getProviderAddress(bytes32 _keyHash) external view returns (address) {
+        return serviceAgreements[_keyHash].vOROracle;
     }
 
     /**
@@ -232,15 +240,15 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
     }
 
     /**
-     * @dev topUpGas data consumer contract calls this function to top up gas
+     * @dev topUpGas consumer contract calls this function to top up gas
      * Gas is the ETH held by this contract which is used to refund Tx costs
-     * to the data provider for fulfilling a request.
+     * to the VOR provider for fulfilling a request.
      *
      * To prevent silly amounts of ETH being sent, a sensible limit is imposed.
      *
      * Can only top up for authorised providers
      *
-     * @param _provider address of data provider
+     * @param _provider address of VOR provider
      * @return success
      */
     function topUpGas(address _provider) external payable nonReentrant returns (bool success) {
@@ -383,8 +391,8 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
      * the gas for fulfilling a request.
      *
      * @param _consumer address of the consumer contract
-     * @param _provider address of the data provider
-     * @param _gasUsedToCall amount of gas consumed calling the Consumer's rawReceiveData function
+     * @param _provider address of the VOR provider
+     * @param _gasUsedToCall amount of gas consumed calling the Consumer's
      * @return success if the execution was successful.
      */
     function refundGas(address _consumer, address payable _provider, uint256 _gasUsedToCall) private returns (bool){

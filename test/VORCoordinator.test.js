@@ -130,4 +130,15 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
             `only oracle can change who will pay gas`
         );
     });
+
+    it('returns the correct total gas deposits', async () => {
+        const actualBalance = await web3.eth.getBalance(alice);
+        expect(actualBalance).to.be.bignumber.equal(new BN(web3.utils.toWei('100', 'ether')));
+
+        await web3.eth.sendTransaction({ from: alice, to: this.vorD20.address, value: web3.utils.toWei('1', 'ether') });
+
+        await this.vorD20.topUpGas(web3.utils.toWei('1', 'ether'));
+        const totalGasDeposits = await this.vorCoordinator.getTotalGasDeposits();
+        expect(totalGasDeposits).to.be.bignumber.equal(new BN(web3.utils.toWei('1', 'ether')));
+    });
 });

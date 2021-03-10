@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.6.6;
 
-import "../VORConsumerBase.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "../VORConsumerBase.sol";
 
 /**
  * @notice A VOR consumer which uses randomness to mimic the rolling
@@ -37,7 +37,17 @@ contract VORD20 is VORConsumerBase, Ownable {
     {
         _sKeyHash = keyHash;
         _sFee = fee;
-        
+    }
+
+    /**
+     * @dev topUpGas consumer contract calls this function to top up gas
+     * Gas is the ETH held by this contract which is used to refund Tx costs
+     * to the VOR provider for fulfilling a request.
+     *
+     * @param _amount amount of ETH to send
+     */
+    function topUpGas(uint256 _amount) public onlyOwner {
+        topUpGas(_sKeyHash, _amount);
     }
 
     /**
