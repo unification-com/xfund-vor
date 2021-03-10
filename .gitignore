@@ -5,3 +5,8 @@ build
 .coverage_contracts
 coverage
 coverage.json
+
+# IDEs
+.vscode
+.idea
+
