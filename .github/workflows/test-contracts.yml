@@ -1,0 +1,51 @@
+# Run unit tests for smart contracts
+name: Smart Contract Unit Test CI
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check:
+    name: Check smart contract files
+    outputs:
+      run_job: ${{ steps.check_contracts.outputs.run_job }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+
+      - name: check modified contracts
+        id: check_contracts
+        run: |
+          echo "=============== list modified files ==============="
+          git diff --name-only HEAD^ HEAD
+
+          echo "========== check paths of modified files =========="
+          git diff --name-only HEAD^ HEAD > files.txt
+          while IFS= read -r file
+          do
+            echo $file
+            if [[ $file != contracts/* && $file != test/* ]]; then
+              echo "This modified file is not under the 'contracts' or 'test' folder."
+              echo "::set-output name=run_job::false"
+              break
+            else
+              echo "::set-output name=run_job::true"
+            fi
+          done < files.txt
+
+  test_contracts:
+    needs: check
+    if: needs.check.outputs.run_job == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12'
+      - run: npm ci
+      - run: npm test
+
