@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"oracle/services/signatures/secp256k1"
+	"oracle/service/secp256k1"
 	"oracle/utils"
 
 	"github.com/ethereum/go-ethereum/common"

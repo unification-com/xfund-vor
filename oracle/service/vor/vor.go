@@ -38,7 +38,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
 
-	"oracle/service/signatures/secp256k1"
+	"oracle/service/secp256k1"
 	"oracle/utils"
 
 	"go.dedis.ch/kyber/v3"
@@ -275,7 +275,7 @@ func (p *Proof) VerifyVORProof() (bool, error) {
 
 // generateProofWithNonce allows external nonce generation for testing purposes
 //
-// As with signatures, using nonces which are in any way predictable to an
+// As with secp256k1, using nonces which are in any way predictable to an
 // adversary will leak your secret key! Most people should use GenerateProof
 // instead.
 func generateProofWithNonce(secretKey, seed, nonce *big.Int) (Proof, error) {
