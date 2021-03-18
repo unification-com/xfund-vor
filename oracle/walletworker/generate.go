@@ -1,7 +1,6 @@
 package walletworker
 
 import (
-	crypt "crypto"
 	"crypto/ecdsa"
 	"github.com/ethereum/go-ethereum/crypto"
 )
@@ -11,12 +10,18 @@ func GeneratePrivate() (*ecdsa.PrivateKey, error) {
 	return privateKey, err
 }
 
-func StringToPrivate(bytePrivateKey []byte) (*ecdsa.PrivateKey, error) {
-	privateKey, err := crypto.ToECDSA(bytePrivateKey)
+func StringToPrivate(bytePrivateKey string) (*ecdsa.PrivateKey, error) {
+	privateKey, err := crypto.HexToECDSA(bytePrivateKey)
 	return privateKey, err
 }
 
-func GeneratePublic(privateKey *ecdsa.PrivateKey) crypt.PublicKey {
+func GeneratePublic(privateKey *ecdsa.PrivateKey) *ecdsa.PublicKey {
 	publicKey := privateKey.Public()
-	return publicKey
+	publicKeyECDSA, _ := publicKey.(*ecdsa.PublicKey)
+	return publicKeyECDSA
+}
+
+func GenerateAddress(publicKeyECDSA *ecdsa.PublicKey) string {
+	address := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
+	return address
 }
