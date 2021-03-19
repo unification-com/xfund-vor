@@ -14,6 +14,8 @@ require (
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
 	github.com/jpillora/backoff v1.0.0
 	github.com/karalabe/usb v0.0.0-20191104083709-911d15fe12a9 // indirect
+	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
+	github.com/labstack/echo/v4 v4.2.1
 	github.com/mattn/go-runewidth v0.0.10 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/onsi/gomega v1.10.1
@@ -23,8 +25,10 @@ require (
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rjeczalik/notify v0.9.2 // indirect
 	github.com/satori/go.uuid v1.2.0
+	github.com/sevlyar/go-daemon v0.1.5
 	github.com/shirou/gopsutil v3.21.2+incompatible // indirect
 	github.com/shopspring/decimal v1.2.0
+	github.com/sirupsen/logrus v1.8.1
 	github.com/status-im/keycard-go v0.0.0-20200402102358-957c09536969 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/tevino/abool v1.2.0
@@ -37,7 +41,7 @@ require (
 	golang.org/x/crypto v0.0.0-20210314154223-e6e6c4f2bb5b
 	golang.org/x/net v0.0.0-20210315170653-34ac3e1c2000 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20210316164454-77fc1eacc6aa // indirect
+	golang.org/x/sys v0.0.0-20210317225723-c4fcb01b228e // indirect
 	golang.org/x/text v0.3.5
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/guregu/null.v4 v4.0.0

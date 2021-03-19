@@ -2,15 +2,17 @@ package chaincall
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"log"
 	"math/big"
 	"oracle/contracts/vor_coordinator"
-	//"oracle/service/secp256k1"
-	secp256k1_2 "github.com/ethereum/go-ethereum/crypto/secp256k1"
+	"oracle/walletworker"
 )
 
 type VORCoordinatorCaller struct {
@@ -24,7 +26,7 @@ type VORCoordinatorCaller struct {
 
 func pair(x, y *big.Int) [2]*big.Int { return [2]*big.Int{x, y} }
 
-func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string, chainID *big.Int, oraclePrivateKey []byte, oraclePublicKey []byte, oracleAddress []byte) (*VORCoordinatorCaller, error) {
+func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string, chainID *big.Int, oraclePrivateKey []byte) (*VORCoordinatorCaller, error) {
 	client, err := ethclient.Dial(ethHostAddress)
 	if err != nil {
 		return nil, err
@@ -38,6 +40,19 @@ func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string
 	if err != nil {
 		return nil, err
 	}
+
+	oraclePublicKey := oraclePrivateKeyECDSA.Public()
+	log.Print("Public Key: ", hexutil.Encode(crypto.FromECDSAPub(oraclePublicKey.(*ecdsa.PublicKey))))
+
+	ECDSAoraclePublicKey, err := crypto.UnmarshalPubkey(crypto.FromECDSAPub(oraclePublicKey.(*ecdsa.PublicKey)))
+	if err != nil || ECDSAoraclePublicKey == nil  {
+		log.Print(err)
+		log.Print(ECDSAoraclePublicKey)
+		return nil, err
+	}
+	oracleAddress := walletworker.GenerateAddress(ECDSAoraclePublicKey)
+	log.Print("Address: ", oracleAddress)
+
 	transactOpts, err := bind.NewKeyedTransactorWithChainID(oraclePrivateKeyECDSA, chainID)
 	if err != nil {
 		return nil, err
@@ -47,14 +62,14 @@ func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string
 	if err != nil {
 		return nil, err
 	}
-	nonce, err := client.PendingNonceAt(context.Background(), common.BytesToAddress(oracleAddress))
+	nonce, err := client.PendingNonceAt(context.Background(), common.HexToAddress(oracleAddress))
 	if err != nil {
 		return nil, err
 	}
 	transactOpts.Nonce = big.NewInt(int64(nonce))
-	transactOpts.Value = big.NewInt(1)
+	transactOpts.Value = big.NewInt(0)
 	transactOpts.GasPrice = gasPrice
-	transactOpts.GasLimit = uint64(1000000) // in units
+	transactOpts.GasLimit = uint64(100000) // in units
 	transactOpts.Context = context.Background()
 
 	return &VORCoordinatorCaller{
@@ -62,7 +77,7 @@ func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string
 		contractAddress:  contractAddress,
 		instance:         instance,
 		transactOpts:     transactOpts,
-		publicProvingKey: pair(secp256k1_2.DecompressPubkey(oraclePublicKey)),
+		publicProvingKey: [2]*big.Int{ECDSAoraclePublicKey.X, ECDSAoraclePublicKey.Y},
 	}, err
 }
 
@@ -78,14 +93,16 @@ func (d *VORCoordinatorCaller) GetGasTopUpLimit(bindOpts bind.CallOpts) (*big.In
 //	return d.instance.GetProviderAddress(&bindOpts, [32]byte(keyHash))
 //}
 
-func (d *VORCoordinatorCaller) Withdraw(recipientAddress string, amount big.Int) (*types.Transaction, error) {
+func (d *VORCoordinatorCaller) Withdraw(recipientAddress string, amount *big.Int) (*types.Transaction, error) {
 	recipientAddr := common.HexToAddress(recipientAddress)
-	return d.instance.Withdraw(d.transactOpts, recipientAddr, &amount)
+	return d.instance.Withdraw(d.transactOpts, recipientAddr, amount)
 }
 
-func (d *VORCoordinatorCaller) RegisterProvingKey(amount *big.Int, oracleAddress string, providerPaysGas bool) (*types.Transaction, error) {
-	oracleAddr := common.HexToAddress(oracleAddress)
-	transaction, err := d.instance.RegisterProvingKey(d.transactOpts, amount, oracleAddr, d.publicProvingKey, providerPaysGas)
+func (d *VORCoordinatorCaller) RegisterProvingKey(fee big.Int, oracleAddress string, providerPaysGas bool) (*types.Transaction, error) {
+	oracleAddr := common.BytesToAddress([]byte(oracleAddress))
+	log.Print(*d.transactOpts)
+	log.Print(d.publicProvingKey)
+	transaction, err := d.instance.RegisterProvingKey(d.transactOpts, &fee, oracleAddr, d.publicProvingKey, providerPaysGas)
 	return transaction, err
 }
 
@@ -93,10 +110,10 @@ func (d *VORCoordinatorCaller) ChangeFee(fee *big.Int) (*types.Transaction, erro
 	return d.instance.ChangeFee(d.transactOpts, d.publicProvingKey, fee)
 }
 
-func (d *VORCoordinatorCaller) SetProviderPaysGas(bindOpts bind.TransactOpts, providerPaysFee bool) (*types.Transaction, error) {
-	return d.instance.SetProviderPaysGas(&bindOpts, d.publicProvingKey, providerPaysFee)
+func (d *VORCoordinatorCaller) SetProviderPaysGas(providerPaysFee bool) (*types.Transaction, error) {
+	return d.instance.SetProviderPaysGas(d.transactOpts, d.publicProvingKey, providerPaysFee)
 }
 
-func (d *VORCoordinatorCaller) FulfillRandomnessRequest(bindOpts bind.TransactOpts, proof []byte) (*types.Transaction, error) {
-	return d.instance.FulfillRandomnessRequest(&bindOpts, proof)
+func (d *VORCoordinatorCaller) FulfillRandomnessRequest(proof []byte) (*types.Transaction, error) {
+	return d.instance.FulfillRandomnessRequest(d.transactOpts, proof)
 }

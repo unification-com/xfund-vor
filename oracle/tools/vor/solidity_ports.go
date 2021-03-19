@@ -3,7 +3,7 @@ package vor
 import (
 	"math/big"
 
-	"oracle/service/secp256k1"
+	"oracle/tools/secp256k1"
 
 	"go.dedis.ch/kyber/v3"
 )

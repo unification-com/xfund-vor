@@ -38,7 +38,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
 
-	"oracle/service/secp256k1"
+	"oracle/tools/secp256k1"
 	"oracle/utils"
 
 	"go.dedis.ch/kyber/v3"
