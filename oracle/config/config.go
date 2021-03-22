@@ -9,7 +9,7 @@ import (
 
 type Keystorage struct {
 	File    string `json:"file"`
-	Account int32  `json:"account"`
+	Account string `json:"account"`
 }
 
 type Serve struct {

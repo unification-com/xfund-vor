@@ -1,4 +1,4 @@
-package api
+package models
 
 type OracleWithdrawRequestModel struct {
 	Address string `json:"address"`

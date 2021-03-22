@@ -13,7 +13,7 @@ func (d KeyStorageKeyModel) GetCipherPrivate() string {
 }
 
 type KeyStorageModel struct {
-	Key *[]KeyStorageKeyModel
+	Key *[]KeyStorageKeyModel `json:"keys"`
 }
 
 func (d KeyStorageModel) GetKey() *[]KeyStorageKeyModel {

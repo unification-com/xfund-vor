@@ -3,12 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 	"math/big"
+	"net/http"
 	"oracle/chaincall"
+	controller "oracle/controller/api"
 	"oracle/service"
 	"oracle/store/keystorage"
 	"os"
+	"time"
 )
 
 func start() error {
@@ -55,6 +59,51 @@ func start() error {
 		}).Error()
 		return fmt.Errorf("can't connect to VORCoordinator")
 	}
-	service.NewService(ctx, VORCoordinatorCaller)
+	oracleService := service.NewService(ctx, VORCoordinatorCaller)
+	if err != nil {
+		log.WithFields(logrus.Fields{
+			"package":  "main",
+			"function": "start",
+			"action":   "init service",
+			"result":   "can't create oracle service",
+		}).Error()
+		return fmt.Errorf("can't create oracle service")
+	}
+
+	oracleController, err := controller.NewOracle(ctx, log, oracleService)
+
+	e := echo.New()
+	e.POST("/withdraw", oracleController.Withdraw)
+	e.POST("/stop", func(c echo.Context) error {
+		if stop1 {
+			log.WithFields(logrus.Fields{
+				"package":  "main",
+				"function": "start",
+				"action":   "stop service",
+				"result":   fmt.Sprintf("stopped %d %s", PID, time.Now().String()),
+			}).Warning()
+		}
+		stop1 = true
+		log.WithFields(logrus.Fields{
+			"package":  "main",
+			"function": "start",
+			"action":   "stop service",
+			"result":   fmt.Sprintf("stopped %d %s", PID, time.Now().String()),
+		}).Warning()
+		go func() {
+			listener1.Close()
+			if file1 != nil {
+				file1.Close()
+			}
+
+			exit1 <- 1
+		}()
+		return err
+	})
+	e.GET("/status", func(c echo.Context) error {
+		return c.String(http.StatusOK, "alive")
+	})
+	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", configuration.Serve.Host, configuration.Serve.Port)))
+
 	return err
 }

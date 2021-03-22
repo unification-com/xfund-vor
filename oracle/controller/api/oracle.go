@@ -15,13 +15,16 @@ type Oracle struct {
 	context context.Context
 }
 
-func NewOracle(log *logrus.Logger) (*Oracle, error) {
-	return &Oracle{log: log}, nil
+func NewOracle(ctx context.Context, log *logrus.Logger, service *service.Service) (*Oracle, error) {
+	return &Oracle{log: log, context: ctx, service: service}, nil
 }
 
 func (d *Oracle) Withdraw(c echo.Context) error {
 	var requestModel api.OracleWithdrawRequestModel
 	c.Bind(&requestModel)
 	transactionInfo, err := d.service.Oracle.Withdraw(requestModel.Address, requestModel.Amount)
-	return c.String(http.StatusOK, transactionInfo)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, transactionInfo)
+	}
+	return c.JSON(http.StatusOK, transactionInfo)
 }

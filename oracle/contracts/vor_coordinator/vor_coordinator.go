@@ -4,7 +4,6 @@
 package vor_coordinator
 
 import (
-	"log"
 	"math/big"
 	"strings"
 

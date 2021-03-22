@@ -16,7 +16,7 @@ type Keystorage struct {
 
 func NewKeyStorage(log *logrus.Logger, filePath string) (*Keystorage, error) {
 	var err error
-	keystoreFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, 0755)
+	keystoreFile, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {
 		log.WithFields(logrus.Fields{
 			"package":  "keystorage",
@@ -24,6 +24,7 @@ func NewKeyStorage(log *logrus.Logger, filePath string) (*Keystorage, error) {
 			"action":   "reading file",
 			"result":   err.Error(),
 		}).Error()
+		return nil, err
 	}
 
 	data, err := ioutil.ReadAll(keystoreFile)
@@ -34,6 +35,7 @@ func NewKeyStorage(log *logrus.Logger, filePath string) (*Keystorage, error) {
 			"action":   "init KeyStore object",
 			"result":   err.Error(),
 		}).Error()
+		return nil, err
 	}
 
 	var keyStore models.KeyStorageModel
