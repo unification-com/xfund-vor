@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"oracle/chaincall"
 	controller "oracle/controller/api"
+	"oracle/controller/chainlisten"
 	"oracle/service"
 	"oracle/store/keystorage"
 	"os"
@@ -49,7 +50,23 @@ func start() error {
 			"result":   "can't read keystorage, creating a new one...",
 		}).Warning()
 	}
-	VORCoordinatorCaller, err := chaincall.NewVORCoordinatorCaller(configuration.VORCoordinatorContractAddress, configuration.EthHTTPHost, big.NewInt(configuration.NetworkID), []byte(keystore.GetFirst().CipherPrivate))
+
+	var oraclePrivateKey string
+	if !keystore.Exists() {
+		err = keystore.AddGenerated(configuration.Keystorage.Account)
+		if err != nil {
+			return err
+		}
+		oraclePrivateKey = keystore.GetFirst().CipherPrivate
+	} else {
+		oraclePrivateKeyModel, err := keystore.GetByAccount(configuration.Keystorage.Account)
+		if err != nil {
+			return err
+		}
+		oraclePrivateKey = oraclePrivateKeyModel.CipherPrivate
+	}
+
+	VORCoordinatorCaller, err := chaincall.NewVORCoordinatorCaller(configuration.VORCoordinatorContractAddress, configuration.EthHTTPHost, big.NewInt(configuration.NetworkID), []byte(oraclePrivateKey))
 	if err != nil || VORCoordinatorCaller == nil {
 		log.WithFields(logrus.Fields{
 			"package":  "main",
@@ -71,6 +88,8 @@ func start() error {
 	}
 
 	oracleController, err := controller.NewOracle(ctx, log, oracleService)
+	oracleListener, err := chainlisten.NewVORCoordinatorListener(configuration.VORCoordinatorContractAddress, configuration.EthHTTPHost)
+	go oracleListener.StartPoll()
 
 	e := echo.New()
 	e.POST("/withdraw", oracleController.Withdraw)

@@ -3,6 +3,7 @@ package chaincall
 import (
 	"context"
 	"crypto/ecdsa"
+	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -12,7 +13,7 @@ import (
 	"log"
 	"math/big"
 	"oracle/contracts/vor_coordinator"
-	"oracle/walletworker"
+	"oracle/utils/walletworker"
 )
 
 type VORCoordinatorCaller struct {
@@ -20,18 +21,21 @@ type VORCoordinatorCaller struct {
 	client          *ethclient.Client
 	instance        *vor_coordinator.VORCoordinator
 	transactOpts    *bind.TransactOpts
+	callOpts        *bind.CallOpts
 
 	publicProvingKey [2]*big.Int
+	oraclePrivateKey string
+	oraclePublicKey  string
+	oracleAddress    string
 }
-
-func pair(x, y *big.Int) [2]*big.Int { return [2]*big.Int{x, y} }
 
 func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string, chainID *big.Int, oraclePrivateKey []byte) (*VORCoordinatorCaller, error) {
 	client, err := ethclient.Dial(ethHostAddress)
 	if err != nil {
 		return nil, err
 	}
-	contractAddress := common.BytesToAddress([]byte(contractStringAddress))
+	fmt.Println("contractStringAddress: ", contractStringAddress)
+	contractAddress := common.HexToAddress(contractStringAddress)
 	instance, err := vor_coordinator.NewVORCoordinator(contractAddress, client)
 	if err != nil {
 		return nil, err
@@ -45,12 +49,12 @@ func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string
 	log.Print("Public Key: ", hexutil.Encode(crypto.FromECDSAPub(oraclePublicKey.(*ecdsa.PublicKey))))
 
 	ECDSAoraclePublicKey, err := crypto.UnmarshalPubkey(crypto.FromECDSAPub(oraclePublicKey.(*ecdsa.PublicKey)))
-	if err != nil || ECDSAoraclePublicKey == nil  {
+	if err != nil || ECDSAoraclePublicKey == nil {
 		log.Print(err)
 		log.Print(ECDSAoraclePublicKey)
 		return nil, err
 	}
-	oracleAddress := walletworker.GenerateAddress(ECDSAoraclePublicKey)
+	_, oracleAddress := walletworker.GenerateAddress(ECDSAoraclePublicKey)
 	log.Print("Address: ", oracleAddress)
 
 	transactOpts, err := bind.NewKeyedTransactorWithChainID(oraclePrivateKeyECDSA, chainID)
@@ -77,7 +81,11 @@ func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string
 		contractAddress:  contractAddress,
 		instance:         instance,
 		transactOpts:     transactOpts,
+		callOpts:         &bind.CallOpts{},
 		publicProvingKey: [2]*big.Int{ECDSAoraclePublicKey.X, ECDSAoraclePublicKey.Y},
+		oraclePrivateKey: string(oraclePrivateKey),
+		oraclePublicKey:  hexutil.Encode(crypto.FromECDSAPub(oraclePublicKey.(*ecdsa.PublicKey))),
+		oracleAddress:    oracleAddress,
 	}, err
 }
 
@@ -89,6 +97,14 @@ func (d *VORCoordinatorCaller) GetGasTopUpLimit(bindOpts bind.CallOpts) (*big.In
 	return d.instance.GetGasTopUpLimit(&bindOpts)
 }
 
+func (d *VORCoordinatorCaller) HashOfKey() ([32]byte, error) {
+	return d.instance.HashOfKey(d.callOpts, d.publicProvingKey)
+}
+
+//func (d *VORCoordinatorCallerr) HashOfKeyLocally() ([]byte, error) {
+//	utils.Keccak256(d.publicProvingKey)
+//	crypto.Keccak256()
+//}
 //func (d *VORCoordinatorCaller) GetProviderAddress(bindOpts bind.CallOpts, keyHash string) (common.Address, error) {
 //	return d.instance.GetProviderAddress(&bindOpts, [32]byte(keyHash))
 //}
@@ -98,11 +114,8 @@ func (d *VORCoordinatorCaller) Withdraw(recipientAddress string, amount *big.Int
 	return d.instance.Withdraw(d.transactOpts, recipientAddr, amount)
 }
 
-func (d *VORCoordinatorCaller) RegisterProvingKey(fee big.Int, oracleAddress string, providerPaysGas bool) (*types.Transaction, error) {
-	oracleAddr := common.BytesToAddress([]byte(oracleAddress))
-	log.Print(*d.transactOpts)
-	log.Print(d.publicProvingKey)
-	transaction, err := d.instance.RegisterProvingKey(d.transactOpts, &fee, oracleAddr, d.publicProvingKey, providerPaysGas)
+func (d *VORCoordinatorCaller) RegisterProvingKey(fee big.Int, providerPaysGas bool) (*types.Transaction, error) {
+	transaction, err := d.instance.RegisterProvingKey(d.transactOpts, &fee, common.HexToAddress(d.oracleAddress), d.publicProvingKey, providerPaysGas)
 	return transaction, err
 }
 

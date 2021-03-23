@@ -17,8 +17,6 @@ import (
 	"sync"
 	"time"
 
-	"oracle/logger"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -529,7 +527,6 @@ func CombinedContext(signals ...interface{}) (context.Context, context.CancelFun
 			ctxTimeout, cancel2 = context.WithTimeout(ctx, sig)
 			ch = reflect.ValueOf(ctxTimeout.Done())
 		default:
-			logger.Errorf("utils.CombinedContext cannot accept a value of type %T, skipping", sig)
 			continue
 		}
 		cases = append(cases, reflect.SelectCase{Chan: ch, Dir: reflect.SelectRecv})
@@ -703,7 +700,6 @@ func WrapIfError(err *error, msg string) {
 
 func LogIfError(err *error, msg string) {
 	if *err != nil {
-		logger.Errorf(msg+": %+v", *err)
 	}
 }
 
@@ -712,8 +708,7 @@ func DebugPanic() {
 		pc := make([]uintptr, 10) // at least 1 entry needed
 		runtime.Callers(5, pc)
 		f := runtime.FuncForPC(pc[0])
-		file, line := f.FileLine(pc[0])
-		logger.Errorf("Caught panic in %v (%v#%v): %v", f.Name(), file, line, err)
+		_, _ = f.FileLine(pc[0])
 		panic(err)
 	}
 }
