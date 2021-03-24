@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"net/http"
 	"oracle/chaincall"
+	"oracle/config"
 	controller "oracle/controller/api"
 	"oracle/controller/chainlisten"
 	"oracle/service"
@@ -20,8 +21,8 @@ func start() error {
 	var err error
 	var ctx = context.Background()
 
-	if configuration.LogFile != "" {
-		logFile, err := os.OpenFile(configuration.LogFile, os.O_WRONLY|os.O_CREATE, 0755)
+	if config.Conf.LogFile != "" {
+		logFile, err := os.OpenFile(config.Conf.LogFile, os.O_WRONLY|os.O_CREATE, 0755)
 		if err != nil {
 			log.WithFields(logrus.Fields{
 				"package":  "main",
@@ -41,7 +42,7 @@ func start() error {
 		}).Warning()
 	}
 
-	keystore, err := keystorage.NewKeyStorage(log, configuration.Keystorage.File)
+	keystore, err := keystorage.NewKeyStorage(log, config.Conf.Keystorage.File)
 	if err != nil {
 		log.WithFields(logrus.Fields{
 			"package":  "main",
@@ -53,20 +54,20 @@ func start() error {
 
 	var oraclePrivateKey string
 	if !keystore.Exists() {
-		err = keystore.AddGenerated(configuration.Keystorage.Account)
+		err = keystore.AddGenerated(config.Conf.Keystorage.Account)
 		if err != nil {
 			return err
 		}
 		oraclePrivateKey = keystore.GetFirst().CipherPrivate
 	} else {
-		oraclePrivateKeyModel, err := keystore.GetByAccount(configuration.Keystorage.Account)
+		oraclePrivateKeyModel, err := keystore.GetByAccount(config.Conf.Keystorage.Account)
 		if err != nil {
 			return err
 		}
 		oraclePrivateKey = oraclePrivateKeyModel.CipherPrivate
 	}
 
-	VORCoordinatorCaller, err := chaincall.NewVORCoordinatorCaller(configuration.VORCoordinatorContractAddress, configuration.EthHTTPHost, big.NewInt(configuration.NetworkID), []byte(oraclePrivateKey))
+	VORCoordinatorCaller, err := chaincall.NewVORCoordinatorCaller(config.Conf.VORCoordinatorContractAddress, config.Conf.EthHTTPHost, big.NewInt(config.Conf.NetworkID), []byte(oraclePrivateKey))
 	if err != nil || VORCoordinatorCaller == nil {
 		log.WithFields(logrus.Fields{
 			"package":  "main",
@@ -88,7 +89,7 @@ func start() error {
 	}
 
 	oracleController, err := controller.NewOracle(ctx, log, oracleService)
-	oracleListener, err := chainlisten.NewVORCoordinatorListener(configuration.VORCoordinatorContractAddress, configuration.EthHTTPHost)
+	oracleListener, err := chainlisten.NewVORCoordinatorListener(config.Conf.VORCoordinatorContractAddress, config.Conf.EthHTTPHost)
 	go oracleListener.StartPoll()
 
 	e := echo.New()
@@ -122,7 +123,7 @@ func start() error {
 	e.GET("/status", func(c echo.Context) error {
 		return c.String(http.StatusOK, "alive")
 	})
-	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", configuration.Serve.Host, configuration.Serve.Port)))
+	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", config.Conf.Serve.Host, config.Conf.Serve.Port)))
 
 	return err
 }

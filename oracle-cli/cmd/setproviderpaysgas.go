@@ -27,23 +27,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// withdrawCmd represents the withdraw command
-var withdrawCmd = &cobra.Command{
-	Use:   "withdraw",
-	Short: "Withdraw your xFUND",
-	Long: `Withdraw your xFUND
+// setproviderpaysgasCmd represents the setproviderpaysgas command
+var setproviderpaysgasCmd = &cobra.Command{
+	Use:   "setproviderpaysgas",
+	Short: "Set who pays gas",
+	Long: `A command to set who pays gas - true if provider pays gas
+
 Usage:
- oracle-cli withdraw [address] [amount]
+ oracle-cli setproviderpaysgas [true/false]
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		amount, err := strconv.ParseInt(args[1], 10, 64)
+		paysgas, err := strconv.ParseBool(args[3])
 		if err != nil {
-			fmt.Println("Incorrect amount")
+			fmt.Println("Incorrect provider pays gas parameter")
 			return
 		}
-		requestStruct := models.OracleWithdrawRequestModel{
-			Address: "",
-			Amount:  amount,
+		requestStruct := models.OracleSetProviderPaysGasRequestModel{
+			ProviderPays: paysgas,
 		}
 		requestJSON, err := json.Marshal(requestStruct)
 		if err != nil {
@@ -51,7 +51,7 @@ Usage:
 			return
 		}
 		request := bytes.NewBuffer(requestJSON)
-		resp, err := http.Post(fmt.Sprint(utils.OracleAddress(), "/withdraw"), "encoding/json", request)
+		resp, err := http.Post(fmt.Sprint(utils.OracleAddress(), "/setproviderpaysgas"), "encoding/json", request)
 		if err != nil {
 			fmt.Println("Something went wrong.")
 		}
@@ -60,15 +60,15 @@ Usage:
 }
 
 func init() {
-	rootCmd.AddCommand(withdrawCmd)
+	rootCmd.AddCommand(setproviderpaysgasCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// withdrawCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// setproviderpaysgasCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// withdrawCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// setproviderpaysgasCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

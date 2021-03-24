@@ -19,31 +19,37 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/spf13/cobra"
 	"net/http"
 	"oraclecli/models"
 	"oraclecli/utils"
 	"strconv"
-
-	"github.com/spf13/cobra"
 )
 
-// withdrawCmd represents the withdraw command
-var withdrawCmd = &cobra.Command{
-	Use:   "withdraw",
-	Short: "Withdraw your xFUND",
-	Long: `Withdraw your xFUND
+// registerCmd represents the register command
+var registerCmd = &cobra.Command{
+	Use:   "register",
+	Short: "Register your new Oracle",
+	Long: `Use this command to register your new oracle
 Usage:
- oracle-cli withdraw [address] [amount]
+ oracle-cli register [account name] [0x... private key] [fee] [provider pays gas (true/false)]
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		amount, err := strconv.ParseInt(args[1], 10, 64)
+		fee, err := strconv.ParseInt(args[2], 10, 64)
 		if err != nil {
 			fmt.Println("Incorrect amount")
 			return
 		}
-		requestStruct := models.OracleWithdrawRequestModel{
-			Address: "",
-			Amount:  amount,
+		paysgas, err := strconv.ParseBool(args[3])
+		if err != nil {
+			fmt.Println("Incorrect provider pays gas parameter")
+			return
+		}
+		requestStruct := models.OracleRegisterRequestModel{
+			AccountName:     args[0],
+			PrivateKey:      args[1],
+			Fee:             fee,
+			ProviderPaysGas: paysgas,
 		}
 		requestJSON, err := json.Marshal(requestStruct)
 		if err != nil {
@@ -51,7 +57,7 @@ Usage:
 			return
 		}
 		request := bytes.NewBuffer(requestJSON)
-		resp, err := http.Post(fmt.Sprint(utils.OracleAddress(), "/withdraw"), "encoding/json", request)
+		resp, err := http.Post(fmt.Sprint(utils.OracleAddress(), "/register"), "encoding/json", request)
 		if err != nil {
 			fmt.Println("Something went wrong.")
 		}
@@ -60,15 +66,15 @@ Usage:
 }
 
 func init() {
-	rootCmd.AddCommand(withdrawCmd)
+	rootCmd.AddCommand(registerCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// withdrawCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// registerCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// withdrawCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// registerCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

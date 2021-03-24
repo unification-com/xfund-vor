@@ -12,14 +12,14 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"log"
 	"math/big"
-	"oracle/contracts/vor_coordinator"
+	"oracle/contracts/vord_20"
 	"oracle/utils/walletworker"
 )
 
-type VORCoordinatorCaller struct {
+type VORD20Caller struct {
 	contractAddress common.Address
 	client          *ethclient.Client
-	instance        *vor_coordinator.VORCoordinator
+	instance        *vord_20.VORD20
 	transactOpts    *bind.TransactOpts
 	callOpts        *bind.CallOpts
 
@@ -29,14 +29,14 @@ type VORCoordinatorCaller struct {
 	oracleAddress    string
 }
 
-func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string, chainID *big.Int, oraclePrivateKey []byte) (*VORCoordinatorCaller, error) {
+func NewVORD20Caller(contractStringAddress string, ethHostAddress string, chainID *big.Int, oraclePrivateKey []byte) (*VORD20Caller, error) {
 	client, err := ethclient.Dial(ethHostAddress)
 	if err != nil {
 		return nil, err
 	}
 	fmt.Println("contractStringAddress: ", contractStringAddress)
 	contractAddress := common.HexToAddress(contractStringAddress)
-	instance, err := vor_coordinator.NewVORCoordinator(contractAddress, client)
+	instance, err := vord_20.NewVORD20(contractAddress, client)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string
 	transactOpts.GasLimit = uint64(100000) // in units
 	transactOpts.Context = context.Background()
 
-	return &VORCoordinatorCaller{
+	return &VORD20Caller{
 		client:           client,
 		contractAddress:  contractAddress,
 		instance:         instance,
@@ -89,49 +89,6 @@ func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string
 	}, err
 }
 
-func (d *VORCoordinatorCaller) GetTotalGasDeposits(bindOpts bind.CallOpts) (*big.Int, error) {
-	return d.instance.GetTotalGasDeposits(&bindOpts)
-}
-
-func (d *VORCoordinatorCaller) GetGasTopUpLimit(bindOpts bind.CallOpts) (*big.Int, error) {
-	return d.instance.GetGasTopUpLimit(&bindOpts)
-}
-
-func (d *VORCoordinatorCaller) HashOfKey() ([32]byte, error) {
-	return d.instance.HashOfKey(d.callOpts, d.publicProvingKey)
-}
-
-//func (d *VORCoordinatorCallerr) HashOfKeyLocally() ([]byte, error) {
-//	utils.Keccak256(d.publicProvingKey)
-//	crypto.Keccak256()
-//}
-//func (d *VORCoordinatorCaller) GetProviderAddress(bindOpts bind.CallOpts, keyHash string) (common.Address, error) {
-//	return d.instance.GetProviderAddress(&bindOpts, [32]byte(keyHash))
-//}
-
-func (d *VORCoordinatorCaller) Withdraw(recipientAddress string, amount *big.Int) (*types.Transaction, error) {
-	recipientAddr := common.HexToAddress(recipientAddress)
-	return d.instance.Withdraw(d.transactOpts, recipientAddr, amount)
-}
-
-func (d *VORCoordinatorCaller) RegisterProvingKey(fee big.Int, providerPaysGas bool) (*types.Transaction, error) {
-	transaction, err := d.instance.RegisterProvingKey(d.transactOpts, &fee, common.HexToAddress(d.oracleAddress), d.publicProvingKey, providerPaysGas)
-	return transaction, err
-}
-
-func (d *VORCoordinatorCaller) RandomnessRequest(keyHash [32]byte, consumerSeed *big.Int, feePaid *big.Int) (*types.Transaction, error) {
-	transaction, err := d.instance.RandomnessRequest(d.transactOpts, keyHash, consumerSeed, feePaid)
-	return transaction, err
-}
-
-func (d *VORCoordinatorCaller) ChangeFee(fee *big.Int) (*types.Transaction, error) {
-	return d.instance.ChangeFee(d.transactOpts, d.publicProvingKey, fee)
-}
-
-func (d *VORCoordinatorCaller) SetProviderPaysGas(providerPaysFee bool) (*types.Transaction, error) {
-	return d.instance.SetProviderPaysGas(d.transactOpts, d.publicProvingKey, providerPaysFee)
-}
-
-func (d *VORCoordinatorCaller) FulfillRandomnessRequest(proof []byte) (*types.Transaction, error) {
-	return d.instance.FulfillRandomnessRequest(d.transactOpts, proof)
+func (d *VORD20Caller) RollDice(seed int64) (*types.Transaction, error) {
+	return d.instance.RollDice(d.transactOpts, big.NewInt(seed), common.HexToAddress(d.oracleAddress))
 }

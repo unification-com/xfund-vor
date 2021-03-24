@@ -19,8 +19,6 @@ var file1 *os.File = nil
 var exit1 chan int = make(chan int)
 var stop1 = false
 
-var configuration *config.Config
-
 // To terminate the daemon use:
 //  kill `cat oracled.pid`
 func main() {
@@ -30,7 +28,7 @@ func main() {
 	//// flags declaration using flag package
 	flag.StringVar(&configFile, "c", "./config.json", "Specify config json file.Default is ./config.json")
 
-	configuration, err = config.NewConfig(configFile)
+	config.Conf, err = config.NewConfig(configFile)
 	if err != nil {
 		log.WithFields(logrus.Fields{
 			"package":  "main",
@@ -40,8 +38,8 @@ func main() {
 		}).Error()
 		panic(err)
 	}
-	os.Setenv("ORACLE_PORT", string(configuration.Serve.Port))
-	os.Setenv("ORACLE_HOST", configuration.Serve.Host)
+	os.Setenv("ORACLE_PORT", string(config.Conf.Serve.Port))
+	os.Setenv("ORACLE_HOST", config.Conf.Serve.Host)
 
 	daemonContext := &daemon.Context{
 		PidFileName: "oracled.pid",

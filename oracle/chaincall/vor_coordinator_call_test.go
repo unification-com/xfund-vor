@@ -1,7 +1,6 @@
 package chaincall_test
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -64,7 +63,7 @@ func TestVORCoordinatorCaller_HashOfKey(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	t.Log(hex.EncodeToString(HashOfKey[:]))
+	t.Log(string([]byte(string(HashOfKey[:]))))
 }
 
 func TestVORCoordinatorCaller_GetGasTopUpLimit(t *testing.T) {
@@ -121,6 +120,22 @@ func TestVORCoordinatorCaller_RegisterProvingKey(t *testing.T) {
 	}
 	transactJson, err := json.Marshal(TransactOut)
 	fmt.Print(string(transactJson))
+}
+
+func TestVORCoordinatorCaller_RandomnessRequest(t *testing.T) {
+	err := Init(os.Args[len(os.Args)-1])
+	if err != nil {
+		t.Error(err)
+	}
+	keyHash, err := VORCoordinator.HashOfKey()
+	TransactOut, err := VORCoordinator.RandomnessRequest(keyHash, big.NewInt(10), big.NewInt(100))
+	//debug.PrintStack()
+	t.Log(TransactOut)
+	if err != nil {
+		t.Error(err)
+	}
+	transactJson, err := json.Marshal(TransactOut)
+	fmt.Println(string(transactJson))
 }
 
 func TestVORCoordinatorCaller_SetProviderPaysGas(t *testing.T) {

@@ -17,8 +17,19 @@ type Serve struct {
 	Port int32  `json:"port"`
 }
 
+type Database struct {
+	Host     string `json:"host"`
+	Port     int32  `json:"port"`
+	User     string `json:"user"`
+	Password string `json:"password"`
+	Database string `json:"database"`
+}
+
+var Conf *Config
+
 type Config struct {
 	VORCoordinatorContractAddress string      `json:"contract_address"`
+	VORD20ContractAddress         string      `json:"vord20_contract_address"`
 	EthHTTPHost                   string      `json:"eth_http_host"`
 	EthWSHost                     string      `json:"eth_ws_host"`
 	NetworkID                     int64       `json:"network_id"`
@@ -27,6 +38,7 @@ type Config struct {
 	LogFile                       string      `json:"log_file"`
 	LogLevel                      string      `json:"log_level"`
 	Keystorage                    *Keystorage `json:"keystorage"`
+	Database                      *Database   `json:"database"`
 }
 
 func NewConfig(filePath string) (*Config, error) {

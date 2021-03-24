@@ -38,8 +38,8 @@ func NewVORCoordinatorListener(contractHexAddress string, ethHostAddress string)
 		instance:        instance,
 		query: ethereum.FilterQuery{
 			FromBlock: big.NewInt(1),
-			ToBlock:   big.NewInt(20),
-			Addresses: []common.Address{contractAddress},
+			//ToBlock:   big.NewInt(23),
+			//Addresses: []common.Address{contractAddress},
 		},
 	}, err
 }
@@ -63,11 +63,13 @@ func (d *VORCoordinatorListener) Request() error {
 	logRandomnessRequestHash := crypto.Keccak256Hash(logRandomnessRequestSig)
 
 	fmt.Println("logRandomnessRequestHash: ", logRandomnessRequestHash)
+	fmt.Println("logRandomnessRequestHash hex: ", logRandomnessRequestHash.Hex())
 	fmt.Println("logs: ", logs)
 
 	for _, vLog := range logs {
 		fmt.Println("Log Block Number: ", vLog.BlockNumber)
 		fmt.Println("Log Index: ", vLog.Index)
+		fmt.Println("vLog.Topics[0].Hex(): ", vLog.Topics[0].Hex())
 		switch vLog.Topics[0].Hex() {
 		case logRandomnessRequestHash.Hex():
 			fmt.Println("Log Name: randomnessRequest")
@@ -75,7 +77,7 @@ func (d *VORCoordinatorListener) Request() error {
 			//var randomnessRequestEvent contractModel.LogRandomnessRequest
 
 			data, err := contractAbi.Unpack("randomnessRequest", vLog.Data)
-			fmt.Print(data)
+			fmt.Println(data)
 			if err != nil {
 				return err
 			}
