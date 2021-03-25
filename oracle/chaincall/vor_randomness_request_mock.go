@@ -12,14 +12,14 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"log"
 	"math/big"
-	"oracle/contracts/vord_20"
+	"oracle/contracts/vor_randomness_request_mock"
 	"oracle/utils/walletworker"
 )
 
-type VORD20Caller struct {
+type VORRandomnessRequestMockCaller struct {
 	contractAddress common.Address
 	client          *ethclient.Client
-	instance        *vord_20.VORD20
+	instance        *vor_randomness_request_mock.VORRandomnessRequestMock
 	transactOpts    *bind.TransactOpts
 	callOpts        *bind.CallOpts
 
@@ -29,14 +29,14 @@ type VORD20Caller struct {
 	oracleAddress    string
 }
 
-func NewVORD20Caller(contractStringAddress string, ethHostAddress string, chainID *big.Int, oraclePrivateKey []byte) (*VORD20Caller, error) {
+func NewVORRandomnessRequestMockCaller(contractStringAddress string, ethHostAddress string, chainID *big.Int, oraclePrivateKey []byte) (*VORRandomnessRequestMockCaller, error) {
 	client, err := ethclient.Dial(ethHostAddress)
 	if err != nil {
 		return nil, err
 	}
 	fmt.Println("contractStringAddress: ", contractStringAddress)
 	contractAddress := common.HexToAddress(contractStringAddress)
-	instance, err := vord_20.NewVORD20(contractAddress, client)
+	instance, err := vor_randomness_request_mock.NewVORRandomnessRequestMock(contractAddress, client)
 	if err != nil {
 		return nil, err
 	}
@@ -54,6 +54,7 @@ func NewVORD20Caller(contractStringAddress string, ethHostAddress string, chainI
 		log.Print(ECDSAoraclePublicKey)
 		return nil, err
 	}
+
 	_, oracleAddress := walletworker.GenerateAddress(ECDSAoraclePublicKey)
 	log.Print("Address: ", oracleAddress)
 
@@ -76,7 +77,7 @@ func NewVORD20Caller(contractStringAddress string, ethHostAddress string, chainI
 	transactOpts.GasLimit = uint64(100000) // in units
 	transactOpts.Context = context.Background()
 
-	return &VORD20Caller{
+	return &VORRandomnessRequestMockCaller{
 		client:           client,
 		contractAddress:  contractAddress,
 		instance:         instance,
@@ -89,6 +90,6 @@ func NewVORD20Caller(contractStringAddress string, ethHostAddress string, chainI
 	}, err
 }
 
-func (d *VORD20Caller) RollDice(seed int64) (*types.Transaction, error) {
-	return d.instance.RollDice(d.transactOpts, big.NewInt(seed), common.HexToAddress(d.oracleAddress))
+func (d *VORRandomnessRequestMockCaller) RandomnessRequest(keyHash [32]byte, consumerSeed *big.Int, feePaid *big.Int) (*types.Transaction, error) {
+	return d.instance.RandomnessRequest(d.transactOpts, keyHash, consumerSeed, feePaid)
 }

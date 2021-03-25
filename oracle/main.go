@@ -48,16 +48,16 @@ func main() {
 		LogFilePerm: 0640,
 		WorkDir:     "./",
 		Umask:       027,
-		Args:        []string{"[oracled daemon]"},
+		//Args:        []string{"[oracled]"},
 	}
 
-	d, err := daemonContext.Reborn()
-	if err != nil || d != nil {
+	_, err = daemonContext.Reborn()
+	if err != nil {
 		log.WithFields(logrus.Fields{
 			"package":  "main",
 			"function": "main",
 			"action":   "start oracle daemon",
-			"result":   "can't start daemon",
+			"result":   err,
 		}).Error()
 		return
 	}
@@ -71,7 +71,7 @@ func main() {
 		"result":   "daemon started",
 	}).Info()
 
-	switch os.Args[0] {
+	switch os.Args[1] {
 	case "start":
 		err = start()
 	default:
@@ -79,7 +79,7 @@ func main() {
 			"package":  "main",
 			"function": "main",
 			"action":   "open log file",
-			"result":   "log file is not specified",
+			"result":   "no command specified",
 		}).Error()
 		return
 	}

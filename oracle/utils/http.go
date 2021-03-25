@@ -10,8 +10,6 @@ import (
 	"net/http"
 	"time"
 
-	"oracle/logger"
-
 	"github.com/jpillora/backoff"
 )
 
@@ -120,7 +118,6 @@ func withRetry(
 		case <-ctx.Done():
 			return responseBody, statusCode, ctx.Err()
 		}
-		logger.Debugw("http adapter error, will retry", "error", err.Error(), "attempt", bb.Attempt(), "timeout", config.Timeout)
 	}
 }
 
@@ -134,23 +131,18 @@ func makeHTTPCall(
 
 	r, err := client.Do(request)
 	if err != nil {
-		logger.Warnw("http adapter got error", "error", err)
 		return nil, 0, err
 	}
-	defer logger.ErrorIfCalling(r.Body.Close)
 
 	statusCode = r.StatusCode
-	elapsed := time.Since(start)
-	logger.Debugw(fmt.Sprintf("http adapter got %v in %s", statusCode, elapsed), "statusCode", statusCode, "timeElapsedSeconds", elapsed)
+	_ = time.Since(start)
 
 	source := NewMaxBytesReader(r.Body, config.SizeLimit)
 	bytes, err := ioutil.ReadAll(source)
 	if err != nil {
-		logger.Errorw("http adapter error reading body", "error", err)
 		return nil, statusCode, err
 	}
-	elapsed = time.Since(start)
-	logger.Debugw(fmt.Sprintf("http adapter finished after %s", elapsed), "statusCode", statusCode, "timeElapsedSeconds", elapsed)
+	_ = time.Since(start)
 
 	responseBody = bytes
 

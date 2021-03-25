@@ -89,10 +89,12 @@ func start() error {
 	}
 
 	oracleController, err := controller.NewOracle(ctx, log, oracleService)
-	oracleListener, err := chainlisten.NewVORCoordinatorListener(config.Conf.VORCoordinatorContractAddress, config.Conf.EthHTTPHost)
+	oracleListener, err := chainlisten.NewVORCoordinatorListener(config.Conf.VORCoordinatorContractAddress, config.Conf.EthHTTPHost, oracleService, ctx)
 	go oracleListener.StartPoll()
 
 	e := echo.New()
+	e.POST("/withdraw", oracleController.Withdraw)
+	e.POST("/register", oracleController.Register)
 	e.POST("/withdraw", oracleController.Withdraw)
 	e.POST("/stop", func(c echo.Context) error {
 		if stop1 {

@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net"
 	"time"
-
-	"oracle/logger"
 )
 
 var privateIPBlocks []*net.IPNet
@@ -69,7 +67,6 @@ func restrictedDialContext(ctx context.Context, network, address string) (net.Co
 		a, _ := con.RemoteAddr().(*net.TCPAddr)
 
 		if isRestrictedIP(a.IP) {
-			defer logger.ErrorIfCalling(con.Close)
 			return nil, fmt.Errorf("disallowed IP %s. Connections to local/private and multicast networks are disabled by default for security reasons. If you really want to allow this, consider using the httpgetwithunrestrictednetworkaccess or httppostwithunrestrictednetworkaccess adapter instead", a.IP.String())
 		}
 	}

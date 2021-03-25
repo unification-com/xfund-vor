@@ -4,9 +4,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"syscall"
-
-	"oracle/logger"
 
 	"github.com/pkg/errors"
 )
@@ -23,13 +20,13 @@ func TooPermissive(fileMode, maxAllowedPerms os.FileMode) bool {
 	return fileMode&^maxAllowedPerms != 0
 }
 
-func IsFileOwnedByOracle(fileInfo os.FileInfo) (bool, error) {
-	stat, ok := fileInfo.Sys().(*syscall.Stat_t)
-	if !ok {
-		return false, errors.Errorf("Unable to determine file owner of %s", fileInfo.Name())
-	}
-	return int(stat.Uid) == os.Getuid(), nil
-}
+//func IsFileOwnedByOracle(fileInfo os.FileInfo) (bool, error) {
+//	stat, ok := fileInfo.Sys().(*syscall.Stat_t)
+//	if !ok {
+//		return false, errors.Errorf("Unable to determine file owner of %s", fileInfo.Name())
+//	}
+//	return int(stat.Uid) == os.Getuid(), nil
+//}
 
 // Ensures that the given path exists, that it's a directory, and that it has
 // permissions that are no more permissive than the given ones.
@@ -62,7 +59,6 @@ func WriteFileWithMaxPerms(path string, data []byte, perms os.FileMode) error {
 	if err != nil {
 		return err
 	}
-	defer logger.ErrorIfCalling(f.Close)
 	err = EnsureFileMaxPerms(f, perms)
 	if err != nil {
 		return err
@@ -78,13 +74,11 @@ func CopyFileWithMaxPerms(srcPath, dstPath string, perms os.FileMode) error {
 	if err != nil {
 		return errors.Wrap(err, "could not open source file")
 	}
-	defer logger.ErrorIfCalling(src.Close)
 
 	dst, err := os.OpenFile(dstPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, perms)
 	if err != nil {
 		return errors.Wrap(err, "could not open destination file")
 	}
-	defer logger.ErrorIfCalling(dst.Close)
 
 	err = EnsureFileMaxPerms(dst, perms)
 	if err != nil {
@@ -115,7 +109,6 @@ func EnsureFilepathMaxPerms(filepath string, perms os.FileMode) error {
 	if err != nil {
 		return err
 	}
-	defer logger.ErrorIfCalling(dst.Close)
 
 	return EnsureFileMaxPerms(dst, perms)
 }
@@ -126,7 +119,6 @@ func FilesInDir(dir string) ([]string, error) {
 	if err != nil {
 		return []string{}, err
 	}
-	defer logger.ErrorIfCalling(f.Close)
 
 	r, err := f.Readdirnames(-1)
 	if err != nil {

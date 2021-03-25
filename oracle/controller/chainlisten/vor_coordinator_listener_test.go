@@ -1,34 +1,38 @@
 package chainlisten_test
 
 import (
-	"github.com/sirupsen/logrus"
-	"oracle/config"
+	"context"
+	"math/big"
+	"oracle/chaincall"
 	"oracle/controller/chainlisten"
-	"oracle/store/keystorage"
+	"oracle/service"
 	"os"
 	"testing"
 )
 
-var VORCoordinator *chainlisten.VORCoordinatorListener
-var Keystore *keystorage.Keystorage
-var Config *config.Config
-var Log = logrus.New()
-
-func Init(configAddres string) (err error) {
-	Config, err = config.NewConfig(configAddres)
-	if err != nil {
-		return err
-	}
-	Keystore, err = keystorage.NewKeyStorage(Log, Config.Keystorage.File)
-	if err != nil {
-		return err
-	}
-	VORCoordinator, err = chainlisten.NewVORCoordinatorListener(VORCoordinatorCallerTestValues())
+func InitCaller(configAddress string) (err error) {
+	VORCoordinatorCaller, err = chaincall.NewVORCoordinatorCaller(VORCoordinatorCallerTestValues())
+	Service = service.NewService(context.Background(), VORCoordinatorCaller)
 	return err
 }
 
-func VORCoordinatorCallerTestValues() (string, string) {
-	return Config.VORCoordinatorContractAddress, Config.EthHTTPHost
+func VORCoordinatorCallerTestValues() (string, string, *big.Int, []byte) {
+	return Config.VORCoordinatorContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetFirst().CipherPrivate)
+}
+
+func Init(configAddres string) (err error) {
+	InitConfig(configAddres)
+	InitKeystore(configAddres)
+	err = InitCaller(configAddres)
+	if err != nil {
+		return err
+	}
+	VORCoordinator, err = chainlisten.NewVORCoordinatorListener(VORCoordinatorListenerTestValues())
+	return err
+}
+
+func VORCoordinatorListenerTestValues() (string, string, *service.Service, context.Context) {
+	return Config.VORCoordinatorContractAddress, Config.EthHTTPHost, Service, context.Background()
 }
 
 func TestVORCoordinatorListener_Request(t *testing.T) {
