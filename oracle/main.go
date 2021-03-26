@@ -51,16 +51,16 @@ func main() {
 		//Args:        []string{"[oracled]"},
 	}
 
-	_, err = daemonContext.Reborn()
-	if err != nil {
-		log.WithFields(logrus.Fields{
-			"package":  "main",
-			"function": "main",
-			"action":   "start oracle daemon",
-			"result":   err,
-		}).Error()
-		return
-	}
+	//_, err = daemonContext.Reborn()
+	//if err != nil {
+	//	log.WithFields(logrus.Fields{
+	//		"package":  "main",
+	//		"function": "main",
+	//		"action":   "start oracle daemon",
+	//		"result":   err,
+	//	}).Error()
+	//	return
+	//}
 
 	defer daemonContext.Release()
 

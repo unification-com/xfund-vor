@@ -3,24 +3,25 @@ package store
 import (
 	"context"
 	"oracle/store/postgresql"
+	"oracle/store/sqlite"
 	"time"
 )
 
 const KeepAlivePeriod = 3
 
 type Store struct {
-	Pg *postgresql.DB
+	Pg     *postgresql.DB
+	SQLite *sqlite.DB
 }
 
 func NewStore(ctx context.Context) (*Store, error) {
-	var pgDB, err = postgresql.Dial()
+	var sqliteConn, err = sqlite.NewDB()
 	if err != nil {
 		return nil, err
 	}
 	var store Store
-	if pgDB != nil {
-		store.Pg = pgDB
-		go store.KeepAlivePostgres()
+	if sqliteConn != nil {
+		store.SQLite = sqliteConn
 	}
 	return &store, err
 }

@@ -32,37 +32,97 @@ var registerCmd = &cobra.Command{
 	Short: "Register your new Oracle",
 	Long: `Use this command to register your new oracle
 Usage:
- oracle-cli register [account name] [0x... private key] [fee] [provider pays gas (true/false)]
+ oracle-cli register
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		fee, err := strconv.ParseInt(args[2], 10, 64)
+		err := Register(cmd, args)
 		if err != nil {
-			fmt.Println("Incorrect amount")
-			return
+			fmt.Println(err)
 		}
-		paysgas, err := strconv.ParseBool(args[3])
-		if err != nil {
-			fmt.Println("Incorrect provider pays gas parameter")
-			return
-		}
-		requestStruct := models.OracleRegisterRequestModel{
-			AccountName:     args[0],
-			PrivateKey:      args[1],
-			Fee:             fee,
-			ProviderPaysGas: paysgas,
-		}
-		requestJSON, err := json.Marshal(requestStruct)
-		if err != nil {
-			fmt.Println("Can't marshal request")
-			return
-		}
-		request := bytes.NewBuffer(requestJSON)
-		resp, err := http.Post(fmt.Sprint(utils.OracleAddress(), "/register"), "encoding/json", request)
-		if err != nil {
-			fmt.Println("Something went wrong.")
-		}
-		fmt.Println(resp)
 	},
+}
+
+func Register(cmd *cobra.Command, args []string) (err error) {
+	accountName, err := GetUsername()
+	privateKey, err := GetPrivateKey()
+	fee, err := GetFee()
+	paysGas, err := GetProviderPaysGas()
+	if err != nil {
+		fmt.Println("Sorry, there is a problem with data you entered =(")
+		err = Register(cmd, args)
+		return
+	}
+	requestStruct := models.OracleRegisterRequestModel{
+		AccountName:     accountName,
+		PrivateKey:      privateKey,
+		Fee:             fee,
+		ProviderPaysGas: paysGas,
+	}
+	requestJSON, err := json.Marshal(requestStruct)
+	if err != nil {
+		fmt.Println("Can't marshal request")
+		return
+	}
+	request := bytes.NewBuffer(requestJSON)
+	resp, err := http.Post(fmt.Sprint(utils.OracleAddress(), "/register"), "encoding/json", request)
+	if err != nil {
+		fmt.Println("Something went wrong.")
+	}
+	fmt.Println(resp)
+	return
+}
+
+func GetUsername() (input string, err error) {
+	fmt.Println("")
+	fmt.Print("Username: ")
+	_, err = fmt.Scanf("%s\n", &input)
+	if input == "" {
+		fmt.Println("Please enter account username.")
+		input, err = GetUsername()
+	}
+	return
+}
+
+func GetPrivateKey() (input string, err error) {
+	fmt.Println("")
+	fmt.Print("Private Key: ")
+	_, err = fmt.Scanf("%s\n", &input)
+	if input == "" {
+		fmt.Println("Please enter account Private Key.")
+		input, err = GetPrivateKey()
+	}
+	return
+}
+
+func GetFee() (input int64, err error) {
+	var rawInput string
+	fmt.Println("")
+	fmt.Print("Fee: ")
+	_, err = fmt.Scanf("%s\n", &rawInput)
+	input, err = strconv.ParseInt(rawInput, 10, 64)
+	if err != nil {
+		fmt.Println("Incorrect amount")
+		input, err = GetFee()
+	}
+	if input == 0 {
+		fmt.Println("Please enter Fee.")
+		input, err = GetFee()
+	}
+	return
+}
+
+func GetProviderPaysGas() (input bool, err error) {
+	var rawInput string
+	fmt.Println("")
+	fmt.Print("Does provider pay gas? [true|false]: ")
+	_, err = fmt.Scanf("%s\n", &rawInput)
+	input, err = strconv.ParseBool(rawInput)
+	if err != nil {
+		fmt.Println("Incorrect provider pays gas parameter")
+		input, err = GetProviderPaysGas()
+	}
+
+	return
 }
 
 func init() {

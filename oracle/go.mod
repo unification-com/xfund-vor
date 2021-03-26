@@ -48,4 +48,5 @@ require (
 	golang.org/x/text v0.3.5
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/guregu/null.v4 v4.0.0
+	gorm.io/driver/sqlite v1.1.4
 )

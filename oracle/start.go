@@ -17,9 +17,11 @@ import (
 	"time"
 )
 
-func start() error {
-	var err error
+func start() (err error) {
 	var ctx = context.Background()
+	var oracleRegistrationNeeded bool
+	var fee int64
+	var paysGas bool
 
 	if config.Conf.LogFile != "" {
 		logFile, err := os.OpenFile(config.Conf.LogFile, os.O_WRONLY|os.O_CREATE, 0755)
@@ -54,18 +56,21 @@ func start() error {
 
 	var oraclePrivateKey string
 	if !keystore.Exists() {
-		err = keystore.AddGenerated(config.Conf.Keystorage.Account)
-		if err != nil {
-			return err
-		}
-		oraclePrivateKey = keystore.GetFirst().CipherPrivate
-	} else {
-		oraclePrivateKeyModel, err := keystore.GetByAccount(config.Conf.Keystorage.Account)
-		if err != nil {
-			return err
-		}
-		oraclePrivateKey = oraclePrivateKeyModel.CipherPrivate
+		FirstRun(keystore)
+		oracleRegistrationNeeded = true
 	}
+
+	err = auth(keystore)
+	if err != nil {
+		return err
+	}
+
+	oraclePrivateKeyModel, err := keystore.GetByAccount(config.Conf.Keystorage.Account)
+	if err != nil {
+		return err
+	}
+	oraclePrivateKey = oraclePrivateKeyModel.Private
+	fmt.Println(oraclePrivateKey)
 
 	VORCoordinatorCaller, err := chaincall.NewVORCoordinatorCaller(config.Conf.VORCoordinatorContractAddress, config.Conf.EthHTTPHost, big.NewInt(config.Conf.NetworkID), []byte(oraclePrivateKey))
 	if err != nil || VORCoordinatorCaller == nil {
@@ -76,6 +81,13 @@ func start() error {
 			"result":   "can't connect to VORCoordinator",
 		}).Error()
 		return fmt.Errorf("can't connect to VORCoordinator")
+	}
+	if oracleRegistrationNeeded {
+		tx, err := VORCoordinatorCaller.RegisterProvingKey(*big.NewInt(fee), paysGas)
+		fmt.Println(tx)
+		if err != nil {
+			return
+		}
 	}
 	oracleService := service.NewService(ctx, VORCoordinatorCaller)
 	if err != nil {

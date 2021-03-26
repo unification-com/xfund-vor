@@ -11,7 +11,7 @@ func (d *Oracle) Register(c echo.Context) error {
 	c.Bind(&requestModel)
 	transactionInfo, err := d.service.Oracle.Register(requestModel.AccountName, requestModel.PrivateKey, requestModel.Fee, requestModel.ProviderPaysGas)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, transactionInfo)
+		return c.JSON(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, transactionInfo)
 }

@@ -51,9 +51,13 @@ func NewVORCoordinatorListener(contractHexAddress string, ethHostAddress string,
 	}, err
 }
 
-func (d VORCoordinatorListener) StartPoll() {
+func (d VORCoordinatorListener) StartPoll() (err error) {
 	d.wg.Add(1)
+	//for {
+	err = d.Request()
+	//}
 	d.wg.Wait()
+	return
 }
 
 func (d *VORCoordinatorListener) Request() error {

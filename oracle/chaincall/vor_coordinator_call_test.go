@@ -29,9 +29,6 @@ func Init(configAddress string) (err error) {
 		return err
 	}
 
-	if !Keystore.Exists() {
-		err = Keystore.AddGenerated(Config.Keystorage.Account)
-	}
 	VORCoordinator, err = chaincall.NewVORCoordinatorCaller(VORCoordinatorCallerTestValues())
 	return err
 }
