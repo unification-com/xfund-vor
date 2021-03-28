@@ -7,7 +7,7 @@ import (
 	"oracle/tools/vor"
 )
 
-func (d *Oracle) FulfillRandomness(seed vor.Seed, blockHash common.Hash, blockNum int64) (tx *types.Transaction, err error) {
+func (d *Service) FulfillRandomness(seed vor.Seed, blockHash common.Hash, blockNum int64) (tx *types.Transaction, err error) {
 	preSeed := vor.PreSeedData{
 		PreSeed:   seed,
 		BlockHash: blockHash,

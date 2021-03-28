@@ -9,11 +9,14 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
+	"oracle/config"
 	"oracle/contracts/vor_coordinator"
 	"oracle/service"
 	"oracle/tools/vor"
+	"oracle/utils"
 	"strings"
 	"sync"
+	"time"
 )
 
 type VORCoordinatorListener struct {
@@ -36,13 +39,23 @@ func NewVORCoordinatorListener(contractHexAddress string, ethHostAddress string,
 	if err != nil {
 		return nil, err
 	}
+
+	var lastBlock *big.Int
+	lastRequest, err := service.Store.RandomnessRequest.Last()
+	if lastRequest != nil {
+		lastBlock = big.NewInt(int64(lastRequest.GetBlockNumber()))
+	} else if config.Conf.FirstBlockNumber != 0 {
+		lastBlock = big.NewInt(int64(config.Conf.FirstBlockNumber))
+	} else {
+		lastBlock = big.NewInt(1)
+	}
+
 	return &VORCoordinatorListener{
 		client:          client,
 		contractAddress: contractAddress,
 		instance:        instance,
 		query: ethereum.FilterQuery{
-			FromBlock: big.NewInt(1),
-			//ToBlock:   big.NewInt(23),
+			FromBlock: lastBlock,
 			Addresses: []common.Address{contractAddress},
 		},
 		service: service,
@@ -53,9 +66,10 @@ func NewVORCoordinatorListener(contractHexAddress string, ethHostAddress string,
 
 func (d VORCoordinatorListener) StartPoll() (err error) {
 	d.wg.Add(1)
-	//for {
-	err = d.Request()
-	//}
+	for {
+		err = d.Request()
+		time.Sleep(60 * 3)
+	}
 	d.wg.Wait()
 	return
 }
@@ -101,12 +115,16 @@ func (d *VORCoordinatorListener) Request() error {
 
 			byteSeed, err := vor.BigToSeed(event.Seed)
 
-			tx, err := d.service.Oracle.FulfillRandomness(byteSeed, vLog.BlockHash, int64(vLog.BlockNumber))
-			if err != nil {
-				return err
-			}
+			var status string
+			tx, err := d.service.FulfillRandomness(byteSeed, vLog.BlockHash, int64(vLog.BlockNumber))
 			fmt.Println(tx)
-
+			if err != nil {
+				status = "failed"
+			} else {
+				status = "success"
+			}
+			seedHex, err := utils.Uint256ToHex(event.Seed)
+			err = d.service.Store.RandomnessRequest.Insert(common.Bytes2Hex(event.KeyHash[:]), seedHex, event.Sender.Hex(), common.Bytes2Hex(event.RequestID[:]), vLog.BlockHash.Hex(), vLog.BlockNumber, vLog.TxHash.Hex(), status)
 			continue
 		default:
 			fmt.Println("vLog: ", vLog)

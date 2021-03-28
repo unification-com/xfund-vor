@@ -114,8 +114,8 @@ func (d *VORCoordinatorCaller) Withdraw(recipientAddress string, amount *big.Int
 	return d.instance.Withdraw(d.transactOpts, recipientAddr, amount)
 }
 
-func (d *VORCoordinatorCaller) RegisterProvingKey(fee big.Int, providerPaysGas bool) (*types.Transaction, error) {
-	transaction, err := d.instance.RegisterProvingKey(d.transactOpts, &fee, common.HexToAddress(d.oracleAddress), d.publicProvingKey, providerPaysGas)
+func (d *VORCoordinatorCaller) RegisterProvingKey(fee *big.Int, providerPaysGas bool) (*types.Transaction, error) {
+	transaction, err := d.instance.RegisterProvingKey(d.transactOpts, fee, common.HexToAddress(d.oracleAddress), d.publicProvingKey, providerPaysGas)
 	return transaction, err
 }
 

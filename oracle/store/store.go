@@ -10,11 +10,13 @@ import (
 const KeepAlivePeriod = 3
 
 type Store struct {
-	Pg     *postgresql.DB
-	SQLite *sqlite.DB
+	Pg                *postgresql.DB
+	SQLite            *sqlite.DB
+	RandomnessRequest IRandomnessRequestStore
+	Keystorage        IKeystorageStore
 }
 
-func NewStore(ctx context.Context) (*Store, error) {
+func NewStore(ctx context.Context, keystorage IKeystorageStore) (*Store, error) {
 	var sqliteConn, err = sqlite.NewDB()
 	if err != nil {
 		return nil, err
@@ -22,6 +24,8 @@ func NewStore(ctx context.Context) (*Store, error) {
 	var store Store
 	if sqliteConn != nil {
 		store.SQLite = sqliteConn
+		store.RandomnessRequest = sqlite.NewRandomnessRequestStore(sqliteConn)
+		store.Keystorage = keystorage
 	}
 	return &store, err
 }

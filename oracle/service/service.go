@@ -2,15 +2,22 @@ package service
 
 import (
 	"context"
+	"math/big"
 	"oracle/chaincall"
+	"oracle/config"
+	"oracle/store"
 )
 
 type Service struct {
-	Oracle *Oracle
+	ctx                  context.Context
+	Store                *store.Store
+	VORCoordinatorCaller *chaincall.VORCoordinatorCaller
 }
 
-func NewService(ctx context.Context, caller *chaincall.VORCoordinatorCaller) *Service {
-	return &Service{
-		Oracle: NewOracle(ctx, caller),
+func NewService(ctx context.Context, store *store.Store) (*Service, error) {
+	VORCoordinatorCaller, err := chaincall.NewVORCoordinatorCaller(config.Conf.MockContractAddress, config.Conf.EthHTTPHost, big.NewInt(config.Conf.NetworkID), []byte(store.Keystorage.GetSelectedPrivateKey()))
+	if err != nil {
+		return nil, err
 	}
+	return &Service{ctx: ctx, Store: store, VORCoordinatorCaller: VORCoordinatorCaller}, err
 }

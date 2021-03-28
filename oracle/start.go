@@ -7,11 +7,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"math/big"
 	"net/http"
-	"oracle/chaincall"
 	"oracle/config"
 	controller "oracle/controller/api"
 	"oracle/controller/chainlisten"
 	"oracle/service"
+	store2 "oracle/store"
 	"oracle/store/keystorage"
 	"os"
 	"time"
@@ -54,50 +54,37 @@ func start() (err error) {
 		}).Warning()
 	}
 
-	var oraclePrivateKey string
+	store, err := store2.NewStore(context.Background(), keystore)
 	if !keystore.Exists() {
 		FirstRun(keystore)
 		oracleRegistrationNeeded = true
 	}
-
+	err = store.RandomnessRequest.Migrate()
+	if err != nil {
+		return err
+	}
 	err = auth(keystore)
 	if err != nil {
 		return err
 	}
 
-	oraclePrivateKeyModel, err := keystore.GetByAccount(config.Conf.Keystorage.Account)
+	err = keystore.SelectPrivateKey(config.Conf.Keystorage.Account)
 	if err != nil {
 		return err
 	}
-	oraclePrivateKey = oraclePrivateKeyModel.Private
-	fmt.Println(oraclePrivateKey)
 
-	VORCoordinatorCaller, err := chaincall.NewVORCoordinatorCaller(config.Conf.VORCoordinatorContractAddress, config.Conf.EthHTTPHost, big.NewInt(config.Conf.NetworkID), []byte(oraclePrivateKey))
-	if err != nil || VORCoordinatorCaller == nil {
-		log.WithFields(logrus.Fields{
-			"package":  "main",
-			"function": "start",
-			"action":   "connect to VORCoordinator",
-			"result":   "can't connect to VORCoordinator",
-		}).Error()
-		return fmt.Errorf("can't connect to VORCoordinator")
-	}
-	if oracleRegistrationNeeded {
-		tx, err := VORCoordinatorCaller.RegisterProvingKey(*big.NewInt(fee), paysGas)
-		fmt.Println(tx)
-		if err != nil {
-			return
-		}
-	}
-	oracleService := service.NewService(ctx, VORCoordinatorCaller)
+	oracleService, err := service.NewService(ctx, store)
 	if err != nil {
 		log.WithFields(logrus.Fields{
 			"package":  "main",
 			"function": "start",
 			"action":   "init service",
-			"result":   "can't create oracle service",
+			"result":   err,
 		}).Error()
 		return fmt.Errorf("can't create oracle service")
+	}
+	if oracleRegistrationNeeded {
+		oracleService.VORCoordinatorCaller.RegisterProvingKey(big.NewInt(fee), paysGas)
 	}
 
 	oracleController, err := controller.NewOracle(ctx, log, oracleService)

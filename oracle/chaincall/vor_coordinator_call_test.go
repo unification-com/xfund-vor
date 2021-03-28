@@ -109,7 +109,7 @@ func TestVORCoordinatorCaller_RegisterProvingKey(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	TransactOut, err := VORCoordinator.RegisterProvingKey(*big.NewInt(100000), false)
+	TransactOut, err := VORCoordinator.RegisterProvingKey(big.NewInt(100000), false)
 	//debug.PrintStack()
 	t.Log(TransactOut)
 	if err != nil {

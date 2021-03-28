@@ -3,7 +3,6 @@ package chainlisten_test
 import (
 	"context"
 	"math/big"
-	"oracle/chaincall"
 	"oracle/controller/chainlisten"
 	"oracle/service"
 	"os"
@@ -11,8 +10,7 @@ import (
 )
 
 func InitCaller(configAddress string) (err error) {
-	VORCoordinatorCaller, err = chaincall.NewVORCoordinatorCaller(VORCoordinatorCallerTestValues())
-	Service = service.NewService(context.Background(), VORCoordinatorCaller)
+	//Service, err = service.NewService(context.Background(),)
 	return err
 }
 

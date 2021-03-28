@@ -19,7 +19,7 @@ func noKeyFound(keystorage *keystorage.Keystorage) (fee int64, paysGas bool, err
 	paysGas, err = GetProviderPaysGas()
 
 	if keystorage.ExistsByUsername(addusername) {
-		fmt.Println("This account name is already used)")
+		fmt.Println("This account name is already used")
 		noKeyFound(keystorage)
 	} else if addusername == "" {
 		fmt.Println("Please enter account username.")

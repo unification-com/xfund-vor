@@ -1,17 +1,27 @@
 package service
 
 import (
+	"fmt"
 	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"oracle/chaincall"
 	"oracle/config"
 )
 
-func (d *Oracle) Register(account string, privateKey string, fee int64, providerPaysGas bool) (*types.Transaction, error) {
-	var err error
-	d.VORCoordinatorCaller, err = chaincall.NewVORCoordinatorCaller(config.Conf.VORCoordinatorContractAddress, config.Conf.EthHTTPHost, big.NewInt(config.Conf.NetworkID), []byte(privateKey))
-	if err != nil {
-		return nil, err
+func (d *Service) Register(account string, privateKey string, fee int64, providerPaysGas bool) (tx *types.Transaction, err error) {
+	if d.Store.Keystorage.ExistsByUsername(account) {
+		return nil, fmt.Errorf("This account name is already used")
 	}
-	return d.VORCoordinatorCaller.RegisterProvingKey(*big.NewInt(fee), providerPaysGas)
+
+	err = d.Store.Keystorage.AddExisting(account, privateKey)
+
+	if err != nil {
+		return
+	}
+	d.VORCoordinatorCaller, err = chaincall.NewVORCoordinatorCaller(config.Conf.VORCoordinatorContractAddress, config.Conf.EthHTTPHost, big.NewInt(config.Conf.NetworkID), []byte(d.Store.Keystorage.GetSelectedPrivateKey()))
+	if err != nil {
+		return
+	}
+
+	return d.VORCoordinatorCaller.RegisterProvingKey(big.NewInt(fee), providerPaysGas)
 }
