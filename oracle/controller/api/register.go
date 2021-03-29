@@ -9,7 +9,7 @@ import (
 func (d *Oracle) Register(c echo.Context) error {
 	var requestModel api.OracleRegisterRequestModel
 	c.Bind(&requestModel)
-	transactionInfo, err := d.service.Oracle.Register(requestModel.AccountName, requestModel.PrivateKey, requestModel.Fee, requestModel.ProviderPaysGas)
+	transactionInfo, err := d.service.Register(requestModel.AccountName, requestModel.PrivateKey, requestModel.Fee, requestModel.ProviderPaysGas)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}

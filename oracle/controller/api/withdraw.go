@@ -9,7 +9,7 @@ import (
 func (d *Oracle) Withdraw(c echo.Context) error {
 	var requestModel api.OracleWithdrawRequestModel
 	c.Bind(&requestModel)
-	transactionInfo, err := d.service.Oracle.Withdraw(requestModel.Address, requestModel.Amount)
+	transactionInfo, err := d.service.Withdraw(requestModel.Address, requestModel.Amount)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, transactionInfo)
 	}

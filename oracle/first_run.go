@@ -54,9 +54,10 @@ func noKeyFound(keystorage *keystorage.Keystorage) (fee int64, paysGas bool, err
 		if err != nil {
 			return
 		}
-		keyPrivate, err := keystorage.GeneratePrivate(addusername)
+		var keyPrivate string
+		keyPrivate, err = keystorage.GeneratePrivate(addusername)
 		if err != nil {
-			return
+			return fee, paysGas, err
 		}
 		fmt.Println("Successfully generated a private key:")
 		fmt.Println(keyPrivate)

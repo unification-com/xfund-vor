@@ -9,7 +9,7 @@ import (
 func (d *Oracle) SetProviderPaysGas(c echo.Context) error {
 	var requestModel api.OracleSetProviderPaysGasRequestModel
 	c.Bind(&requestModel)
-	transactionInfo, err := d.service.Oracle.SetProviderPaysGas(requestModel.ProviderPays)
+	transactionInfo, err := d.service.SetProviderPaysGas(requestModel.ProviderPays)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, transactionInfo)
 	}

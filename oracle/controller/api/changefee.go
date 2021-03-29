@@ -9,7 +9,7 @@ import (
 func (d *Oracle) ChangeFee(c echo.Context) error {
 	var requestModel api.OracleChangeFeeRequestModel
 	c.Bind(&requestModel)
-	transactionInfo, err := d.service.Oracle.ChangeFee(requestModel.Amount)
+	transactionInfo, err := d.service.ChangeFee(requestModel.Amount)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, transactionInfo)
 	}

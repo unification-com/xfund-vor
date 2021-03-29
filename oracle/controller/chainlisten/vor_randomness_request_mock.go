@@ -12,6 +12,7 @@ import (
 	"oracle/contracts/vor_randomness_request_mock"
 	"oracle/service"
 	"oracle/tools/vor"
+	"oracle/utils"
 	"strings"
 	"sync"
 )
@@ -98,12 +99,16 @@ func (d *VORRandomnessRequestMockListener) Request() error {
 
 			byteSeed, err := vor.BigToSeed(event.Seed)
 
-			tx, err := d.service.Oracle.FulfillRandomness(byteSeed, vLog.BlockHash, int64(vLog.BlockNumber))
-			if err != nil {
-				return err
-			}
+			var status string
+			tx, err := d.service.FulfillRandomness(byteSeed, vLog.BlockHash, int64(vLog.BlockNumber))
 			fmt.Println(tx)
-
+			if err != nil {
+				status = "failed"
+			} else {
+				status = "success"
+			}
+			seedHex, err := utils.Uint256ToHex(event.Seed)
+			err = d.service.Store.RandomnessRequest.Insert(common.Bytes2Hex(event.KeyHash[:]), seedHex, event.Sender.Hex(), common.Bytes2Hex(event.RequestID[:]), vLog.BlockHash.Hex(), vLog.BlockNumber, vLog.TxHash.Hex(), status)
 			continue
 		default:
 			fmt.Println("vLog: ", vLog)
