@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/sirupsen/logrus"
 	"math/big"
 	"oracle/chaincall"
@@ -15,6 +17,7 @@ import (
 )
 
 var VORCoordinator *chaincall.VORCoordinatorCaller
+var VORD20Caller *chaincall.VORD20Caller
 var Keystore *keystorage.Keystorage
 var Config *config.Config
 var Log = logrus.New()
@@ -28,13 +31,18 @@ func Init(configAddress string) (err error) {
 	if err != nil {
 		return err
 	}
-
+	Keystore.CheckToken("rod0gbc3mhyxdiah2vwialx1q3osk5cw")
 	VORCoordinator, err = chaincall.NewVORCoordinatorCaller(VORCoordinatorCallerTestValues())
+	VORD20Caller, err = chaincall.NewVORD20Caller(VORD20CallerTestValues())
 	return err
 }
 
 func VORCoordinatorCallerTestValues() (string, string, *big.Int, []byte) {
-	return Config.VORCoordinatorContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetFirst().CipherPrivate)
+	return Config.VORCoordinatorContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetByUsername(Config.Keystorage.Account).Private)
+}
+
+func VORD20CallerTestValues() (string, string, *big.Int, []byte) {
+	return Config.ContractCallerAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetByUsername(Config.Keystorage.Account).Private)
 }
 
 func TestVORCoordinatorCaller_GetTotalGasDeposits(t *testing.T) {
@@ -60,7 +68,8 @@ func TestVORCoordinatorCaller_HashOfKey(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	t.Log(string([]byte(string(HashOfKey[:]))))
+	t.Log(common.BytesToHash(HashOfKey[:]))
+	t.Log(hexutil.Encode(HashOfKey[:]))
 }
 
 func TestVORCoordinatorCaller_GetGasTopUpLimit(t *testing.T) {
@@ -95,7 +104,7 @@ func TestVORCoordinatorCaller_ChangeFee(t *testing.T) {
 		t.Error(err)
 	}
 
-	TransactOut, err := VORCoordinator.ChangeFee(big.NewInt(1))
+	TransactOut, err := VORCoordinator.ChangeFee(big.NewInt(100))
 	if err != nil {
 		t.Error(err)
 	}
@@ -109,7 +118,7 @@ func TestVORCoordinatorCaller_RegisterProvingKey(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	TransactOut, err := VORCoordinator.RegisterProvingKey(big.NewInt(100000), false)
+	TransactOut, err := VORCoordinator.RegisterProvingKey(big.NewInt(100), false)
 	//debug.PrintStack()
 	t.Log(TransactOut)
 	if err != nil {

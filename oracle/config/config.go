@@ -29,6 +29,7 @@ var Conf *Config
 
 type Config struct {
 	VORCoordinatorContractAddress string      `json:"contract_address"`
+	ContractCallerAddress         string      `json:"contract_caller_address"`
 	MockContractAddress           string      `json:"mock_contract_address"`
 	EthHTTPHost                   string      `json:"eth_http_host"`
 	EthWSHost                     string      `json:"eth_ws_host"`

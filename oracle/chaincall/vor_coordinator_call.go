@@ -40,6 +40,7 @@ func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(string(oraclePrivateKey))
 	oraclePrivateKeyECDSA, err := crypto.HexToECDSA(string(oraclePrivateKey[2:]))
 	if err != nil {
 		return nil, err

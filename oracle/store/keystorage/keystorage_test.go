@@ -17,7 +17,7 @@ func TestKeystorage_NewKeyStorage(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	t.Log(*(keystore.KeyStore.GetKey()))
+	t.Log(keystore.KeyStore.GetKey())
 }
 
 func TestKeystorage_Exists(t *testing.T) {
@@ -42,6 +42,24 @@ func TestKeystorage_AddGenerated(t *testing.T) {
 		t.Error(err)
 	}
 	t.Log(private)
+}
+
+// rod0gbc3mhyxdiah2vwialx1q3osk5cw
+func TestKeystorage_Add(t *testing.T) {
+	keystoragePath := os.Args[len(os.Args)-1]
+
+	keystore, err := keystorage.NewKeyStorage(Log, keystoragePath)
+	if err != nil {
+		t.Error(err)
+	}
+	err = keystore.CheckToken("rod0gbc3mhyxdiah2vwialx1q3osk5cw")
+	if err != nil {
+		t.Error(err)
+	}
+	err = keystore.AddExisting("rootaccount", "21517d9442434659709c5aa4891185c118076dd931ba0f5a8a96ab3da34b59e8")
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 func TestKeystorage_GenerateAndCheckToken(t *testing.T) {
@@ -97,4 +115,58 @@ func TestKeystorage_Decrypt(t *testing.T) {
 	t.Log("decrypted string: ", decryptedString)
 
 	assert.Equal(stringToEncrypt, decryptedString)
+}
+
+func TestKeystorage_GetByAccount(t *testing.T) {
+	keystoragePath := os.Args[len(os.Args)-1]
+
+	assert := assert.New(t)
+	privateKeyExpected := "0x90fc9ac3c1d46d2bff1c57cc24e1068a03ea933489a17a23708cd3b5c23168d6"
+	keystore, err := keystorage.NewKeyStorage(Log, keystoragePath)
+	if err != nil {
+		t.Error(err)
+	}
+	err = keystore.CheckToken("rod0gbc3mhyxdiah2vwialx1q3osk5cw")
+	if err != nil {
+		t.Error(err)
+	}
+	keyModel := keystore.GetByUsername("gkozyrev")
+	t.Log(keyModel.Private)
+
+	assert.Equal(keyModel.Private, privateKeyExpected)
+}
+
+func TestKeystorage_SetRegistered(t *testing.T) {
+	keystoragePath := os.Args[len(os.Args)-1]
+
+	assert := assert.New(t)
+	//privateKeyExpected := "0x90fc9ac3c1d46d2bff1c57cc24e1068a03ea933489a17a23708cd3b5c23168d6"
+	keystore, err := keystorage.NewKeyStorage(Log, keystoragePath)
+	if err != nil {
+		t.Error(err)
+	}
+	err = keystore.CheckToken("rod0gbc3mhyxdiah2vwialx1q3osk5cw")
+	if err != nil {
+		t.Error(err)
+	}
+	keyModel := keystore.GetByUsername("gkozyrev")
+	t.Log(keyModel.Private)
+
+	err = keystore.SetRegistered(keyModel.Private)
+	if err != nil {
+		t.Error(err)
+	}
+
+	keystore2, err := keystorage.NewKeyStorage(Log, keystoragePath)
+	if err != nil {
+		t.Error(err)
+	}
+	err = keystore2.CheckToken("rod0gbc3mhyxdiah2vwialx1q3osk5cw")
+	if err != nil {
+		t.Error(err)
+	}
+	keyModel2 := keystore2.GetByUsername("gkozyrev")
+	t.Log(keyModel.Private)
+
+	assert.Equal(keyModel2.Registered, true)
 }

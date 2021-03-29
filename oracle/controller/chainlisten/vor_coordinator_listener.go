@@ -68,7 +68,7 @@ func (d VORCoordinatorListener) StartPoll() (err error) {
 	d.wg.Add(1)
 	for {
 		err = d.Request()
-		time.Sleep(60 * 3)
+		time.Sleep(3 * time.Minute)
 	}
 	d.wg.Wait()
 	return

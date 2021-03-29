@@ -4,6 +4,7 @@ type KeyStorageKeyModel struct {
 	Account       string `json:"account"`
 	CipherPrivate string `json:"cipherprivate"`
 	Private       string `json:"-"`
+	Registered    bool   `json:"registered"`
 }
 
 func (d KeyStorageKeyModel) GetAccount() string {
@@ -16,6 +17,10 @@ func (d KeyStorageKeyModel) GetCipherPrivate() string {
 
 func (d KeyStorageKeyModel) GetPrivate() string {
 	return d.Private
+}
+
+func (d KeyStorageKeyModel) GetRegistered() bool {
+	return d.Registered
 }
 
 func (d KeyStorageKeyModel) SetAccount(account string) {
@@ -31,7 +36,7 @@ func (d KeyStorageKeyModel) SetPrivate(private string) {
 }
 
 type KeyStorageModel struct {
-	Key  *[]KeyStorageKeyModel `json:"keys"`
+	Key  []*KeyStorageKeyModel `json:"keys"`
 	Hash string                `json:"hash"`
 	// used to store decrypted api token(key) which is being used
 	Token string `json:"-"`
@@ -39,7 +44,7 @@ type KeyStorageModel struct {
 	PrivateKey string `json:"-"`
 }
 
-func (d KeyStorageModel) GetKey() *[]KeyStorageKeyModel {
+func (d KeyStorageModel) GetKey() []*KeyStorageKeyModel {
 	return d.Key
 }
 
@@ -55,7 +60,7 @@ func (d *KeyStorageModel) GetPrivateKey() string {
 	return d.PrivateKey
 }
 
-func (d *KeyStorageModel) SetKey(key *[]KeyStorageKeyModel) {
+func (d *KeyStorageModel) SetKey(key []*KeyStorageKeyModel) {
 	d.Key = key
 }
 

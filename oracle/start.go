@@ -19,7 +19,6 @@ import (
 
 func start() (err error) {
 	var ctx = context.Background()
-	var oracleRegistrationNeeded bool
 	var fee int64
 	var paysGas bool
 
@@ -57,7 +56,6 @@ func start() (err error) {
 	store, err := store2.NewStore(context.Background(), keystore)
 	if !keystore.Exists() {
 		FirstRun(keystore)
-		oracleRegistrationNeeded = true
 	}
 	err = store.RandomnessRequest.Migrate()
 	if err != nil {
@@ -69,6 +67,7 @@ func start() (err error) {
 	}
 
 	err = keystore.SelectPrivateKey(config.Conf.Keystorage.Account)
+
 	if err != nil {
 		return err
 	}
@@ -81,10 +80,13 @@ func start() (err error) {
 			"action":   "init service",
 			"result":   err,
 		}).Error()
-		return fmt.Errorf("can't create oracle service")
+		return err
 	}
-	if oracleRegistrationNeeded {
-		oracleService.VORCoordinatorCaller.RegisterProvingKey(big.NewInt(fee), paysGas)
+	if !keystore.IsRegisteredByPrivate(keystore.KeyStore.PrivateKey) {
+		tx, err := oracleService.VORCoordinatorCaller.RegisterProvingKey(big.NewInt(fee), paysGas)
+		if tx != nil || err == nil {
+			keystore.SetRegistered(keystore.KeyStore.PrivateKey)
+		}
 	}
 
 	oracleController, err := controller.NewOracle(ctx, log, oracleService)
@@ -121,9 +123,11 @@ func start() (err error) {
 		}()
 		return err
 	})
+	e.GET("/about", oracleController.About)
 	e.GET("/status", func(c echo.Context) error {
 		return c.String(http.StatusOK, "alive")
 	})
+
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", config.Conf.Serve.Host, config.Conf.Serve.Port)))
 
 	return err
