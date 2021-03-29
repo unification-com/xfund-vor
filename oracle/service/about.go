@@ -17,7 +17,7 @@ func (d *Service) About() (response string, err error) {
 	publicKey := hexutil.Encode(crypto.FromECDSAPub(privateKey.Public().(*ecdsa.PublicKey)))
 	ECDSAoraclePublicKey, err := crypto.UnmarshalPubkey(crypto.FromECDSAPub(privateKey.Public().(*ecdsa.PublicKey)))
 	_, oracleAddress := walletworker.GenerateAddress(ECDSAoraclePublicKey)
-	keyhash, _ := publicKey, d.VORCoordinatorCaller.HashOfKey()
+	keyhash, err := d.VORCoordinatorCaller.HashOfKey()
 	return fmt.Sprintf(`Account: %s
 Private Key: %s
 Public Key: %s
