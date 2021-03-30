@@ -34,8 +34,8 @@ func (d RandomnessRequestStore) Migrate() (err error) {
 	return
 }
 
-func (d RandomnessRequestStore) Last() (request models.IRandomnessRequestStoreModel, err error) {
-	request = sqlite.RandomnessRequestStoreModel{}
-	err = d.db.Last(&request).Error
-	return
+func (d RandomnessRequestStore) Last() (models.IRandomnessRequestStoreModel, error) {
+	request := sqlite.RandomnessRequestStoreModel{}
+	err := d.db.Last(&request).Error
+	return request, err
 }
