@@ -14,6 +14,6 @@ module.exports = function(deployer) {
     const vor = await deployer.deploy(VORCoordinator, xfund, block.address);
 
     // For tests, you must substitute the correct values
-    // deployer.deploy(VORD20, vor.address, xfund, web3.utils.fromAscii('keyHash'), web3.utils.toWei('1', 'ether'));
+    // await deployer.deploy(VORD20, vor.address, xfund, web3.utils.fromAscii('keyHash'), web3.utils.toWei('1', 'ether'));
   });
 };
