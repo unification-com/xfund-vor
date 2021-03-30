@@ -44,24 +44,26 @@ func main() {
 	daemonContext := &daemon.Context{
 		PidFileName: "oracled.pid",
 		PidFilePerm: 0644,
-		LogFileName: "oraclog.log",
+		LogFileName: config.Conf.LogFile,
 		LogFilePerm: 0640,
 		WorkDir:     "./",
 		Umask:       027,
 		//Args:        []string{"[oracled]"},
 	}
 
-	//_, err = daemonContext.Reborn()
-	//if err != nil {
-	//	log.WithFields(logrus.Fields{
-	//		"package":  "main",
-	//		"function": "main",
-	//		"action":   "start oracle daemon",
-	//		"result":   err,
-	//	}).Error()
-	//	return
-	//}
-
+	daemon, err := daemonContext.Reborn()
+	if err != nil {
+		log.WithFields(logrus.Fields{
+			"package":  "main",
+			"function": "main",
+			"action":   "start oracle daemon",
+			"result":   err,
+		}).Error()
+		return
+	}
+	if daemon != nil {
+		return
+	}
 	defer daemonContext.Release()
 
 	log.WithFields(logrus.Fields{

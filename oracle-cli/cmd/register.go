@@ -31,8 +31,6 @@ var registerCmd = &cobra.Command{
 	Use:   "register",
 	Short: "Register your new Oracle",
 	Long: `Use this command to register your new oracle
-Usage:
- oracle-cli register
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		err := Register(cmd, args)
@@ -64,7 +62,15 @@ func Register(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 	request := bytes.NewBuffer(requestJSON)
-	resp, err := http.Post(fmt.Sprint(utils.OracleAddress(), "/register"), "encoding/json", request)
+
+	// Create a Bearer string by appending string access token
+	var bearer = "Bearer " + utils.Settings.Settings.GetOracleKey()
+	req, err := http.NewRequest("POST", fmt.Sprint(utils.OracleAddress(), "/register"), request)
+	// add authorization header to the req
+	req.Header.Add("Authorization", bearer)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+
 	if err != nil {
 		fmt.Println("Something went wrong.")
 	}

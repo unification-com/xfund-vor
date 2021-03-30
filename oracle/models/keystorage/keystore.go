@@ -1,10 +1,15 @@
 package keystorage
 
 type KeyStorageKeyModel struct {
-	Account       string `json:"account"`
+	Account string `json:"account"`
+	// encrypted private key
 	CipherPrivate string `json:"cipherprivate"`
 	Private       string `json:"-"`
-	Registered    bool   `json:"registered"`
+	// true if public key generated from this private is already
+	// registered in VORCoordinator
+	Registered bool `json:"registered"`
+	// last checked block number (may be set manually)
+	BlockNumber int64 `json:"block_number"`
 }
 
 func (d KeyStorageKeyModel) GetAccount() string {
@@ -21,6 +26,10 @@ func (d KeyStorageKeyModel) GetPrivate() string {
 
 func (d KeyStorageKeyModel) GetRegistered() bool {
 	return d.Registered
+}
+
+func (d KeyStorageKeyModel) GetBlockNumber() int64 {
+	return d.BlockNumber
 }
 
 func (d KeyStorageKeyModel) SetAccount(account string) {

@@ -187,8 +187,33 @@ func (d *Keystorage) SetRegistered(privateKey string) (err error) {
 
 	for index, key := range keys {
 		if decryptedPrivate, _ := Decrypt(key.CipherPrivate, d.KeyStore.Token); decryptedPrivate == privateKey {
-			fmt.Print(index, key.CipherPrivate)
 			d.KeyStore.Key[index].Registered = true
+			err = d.save()
+			return
+		}
+	}
+	return
+}
+
+func (d *Keystorage) SetBlockNumber(blockNumber int64) (err error) {
+	keys := d.KeyStore.GetKey()
+
+	for index, key := range keys {
+		if decryptedPrivate, _ := Decrypt(key.CipherPrivate, d.KeyStore.Token); decryptedPrivate == d.KeyStore.PrivateKey {
+			d.KeyStore.Key[index].BlockNumber = blockNumber
+			err = d.save()
+			return
+		}
+	}
+	return
+}
+
+func (d *Keystorage) GetBlockNumber() (blockNumber int64, err error) {
+	keys := d.KeyStore.GetKey()
+
+	for index, key := range keys {
+		if decryptedPrivate, _ := Decrypt(key.CipherPrivate, d.KeyStore.Token); decryptedPrivate == d.KeyStore.PrivateKey {
+			blockNumber = d.KeyStore.Key[index].BlockNumber
 			err = d.save()
 			return
 		}

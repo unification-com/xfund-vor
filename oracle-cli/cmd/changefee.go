@@ -19,12 +19,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/spf13/cobra"
 	"net/http"
 	"oraclecli/models"
 	"oraclecli/utils"
-	"strconv"
-
-	"github.com/spf13/cobra"
 )
 
 // changefeeCmd represents the changefee command
@@ -32,16 +30,9 @@ var changefeeCmd = &cobra.Command{
 	Use:   "changefee",
 	Short: "Change Oracle fee",
 	Long: `Use this command to change fee
-
-Usage:
- oracle-cli changefee [amount]
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		amount, err := strconv.ParseInt(args[0], 10, 64)
-		if err != nil {
-			fmt.Println("Incorrect amount")
-			return
-		}
+		amount, err := GetFee()
 		requestStruct := models.OracleChangeFeeRequestModel{
 			Amount: amount,
 		}
@@ -51,7 +42,15 @@ Usage:
 			return
 		}
 		request := bytes.NewBuffer(requestJSON)
-		resp, err := http.Post(fmt.Sprint(utils.OracleAddress(), "/changefee"), "encoding/json", request)
+
+		// Create a Bearer string by appending string access token
+		var bearer = "Bearer " + utils.Settings.Settings.GetOracleKey()
+		req, err := http.NewRequest("POST", fmt.Sprint(utils.OracleAddress(), "/changefee"), request)
+		// add authorization header to the req
+		req.Header.Add("Authorization", bearer)
+		client := &http.Client{}
+		resp, err := client.Do(req)
+
 		if err != nil {
 			fmt.Println("Something went wrong.")
 		}

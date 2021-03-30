@@ -19,6 +19,7 @@ require (
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
 	github.com/labstack/echo/v4 v4.2.1
 	github.com/lib/pq v1.3.0 // indirect
+	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-runewidth v0.0.10 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/onsi/gomega v1.10.1
@@ -42,11 +43,13 @@ require (
 	go.dedis.ch/kyber/v3 v3.0.13
 	go.uber.org/multierr v1.5.0
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
-	golang.org/x/net v0.0.0-20210315170653-34ac3e1c2000 // indirect
+	golang.org/x/net v0.0.0-20210329181859-df645c7b52b1 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20210317225723-c4fcb01b228e // indirect
+	golang.org/x/sys v0.0.0-20210326220804-49726bf1d181 // indirect
 	golang.org/x/text v0.3.5
+	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/guregu/null.v4 v4.0.0
 	gorm.io/driver/sqlite v1.1.4
+	gorm.io/gorm v1.20.7
 )

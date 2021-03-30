@@ -31,18 +31,12 @@ import (
 var withdrawCmd = &cobra.Command{
 	Use:   "withdraw",
 	Short: "Withdraw your xFUND",
-	Long: `Withdraw your xFUND
-Usage:
- oracle-cli withdraw [address] [amount]
-`,
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		amount, err := strconv.ParseInt(args[1], 10, 64)
-		if err != nil {
-			fmt.Println("Incorrect amount")
-			return
-		}
+		amount, err := GetAmount()
+		address, err := GetAddress()
 		requestStruct := models.OracleWithdrawRequestModel{
-			Address: "",
+			Address: address,
 			Amount:  amount,
 		}
 		requestJSON, err := json.Marshal(requestStruct)
@@ -51,12 +45,48 @@ Usage:
 			return
 		}
 		request := bytes.NewBuffer(requestJSON)
-		resp, err := http.Post(fmt.Sprint(utils.OracleAddress(), "/withdraw"), "encoding/json", request)
+
+		// Create a Bearer string by appending string access token
+		var bearer = "Bearer " + utils.Settings.Settings.GetOracleKey()
+		req, err := http.NewRequest("POST", fmt.Sprint(utils.OracleAddress(), "/withdraw"), request)
+		// add authorization header to the req
+		req.Header.Add("Authorization", bearer)
+		client := &http.Client{}
+		resp, err := client.Do(req)
+
 		if err != nil {
 			fmt.Println("Something went wrong.")
 		}
 		fmt.Println(resp)
 	},
+}
+
+func GetAmount() (input int64, err error) {
+	var rawInput string
+	fmt.Println("")
+	fmt.Print("Amount: ")
+	_, err = fmt.Scanf("%s\n", &rawInput)
+	input, err = strconv.ParseInt(rawInput, 10, 64)
+	if err != nil {
+		fmt.Println("Incorrect amount")
+		input, err = GetAmount()
+	}
+	if input == 0 {
+		fmt.Println("Please enter Fee.")
+		input, err = GetAmount()
+	}
+	return
+}
+
+func GetAddress() (input string, err error) {
+	fmt.Println("")
+	fmt.Print("Address: ")
+	_, err = fmt.Scanf("%s\n", &input)
+	if input == "" {
+		fmt.Println("Please enter address.")
+		input, err = GetPrivateKey()
+	}
+	return
 }
 
 func init() {

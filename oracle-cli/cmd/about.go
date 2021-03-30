@@ -17,7 +17,7 @@ package cmd
 
 import (
 	"fmt"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"oraclecli/utils"
 
@@ -30,13 +30,21 @@ var aboutCmd = &cobra.Command{
 	Short: "List info about your oracle",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		resp, err := http.Get(utils.OracleAddress() + "/about")
+
+		// Create a Bearer string by appending string access token
+		var bearer = "Bearer " + utils.Settings.Settings.GetOracleKey()
+		req, err := http.NewRequest("GET", utils.OracleAddress()+"/about", nil)
+		// add authorization header to the req
+		req.Header.Add("Authorization", bearer)
+		client := &http.Client{}
+		resp, err := client.Do(req)
+
 		if err != nil {
 			fmt.Println(`Sorry, something went wrong =(`)
 			return
 		}
 		defer resp.Body.Close()
-		body, err := io.ReadAll(resp.Body)
+		body, err := ioutil.ReadAll(resp.Body)
 		fmt.Print(string(body))
 	},
 }

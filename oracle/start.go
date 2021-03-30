@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 	"math/big"
 	"net/http"
@@ -94,8 +95,16 @@ func start() (err error) {
 	go oracleListener.StartPoll()
 
 	e := echo.New()
+
+	// Middleware
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+	e.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
+		return key == keystore.KeyStore.Token, nil
+	}))
 	e.POST("/withdraw", oracleController.Withdraw)
 	e.POST("/register", oracleController.Register)
+	e.POST("/changefee", oracleController.ChangeFee)
 	e.POST("/withdraw", oracleController.Withdraw)
 	e.POST("/stop", func(c echo.Context) error {
 		if stop1 {

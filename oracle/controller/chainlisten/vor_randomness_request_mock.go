@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
+	"oracle/config"
 	"oracle/contracts/vor_randomness_request_mock"
 	"oracle/service"
 	"oracle/tools/vor"
@@ -37,6 +38,19 @@ func NewVORRandomnessRequestMockListener(contractHexAddress string, ethHostAddre
 	if err != nil {
 		return nil, err
 	}
+
+	var lastBlock *big.Int
+	lastRequest, err := service.Store.RandomnessRequest.Last()
+	if blockNumber, _ := service.Store.Keystorage.GetBlockNumber(); blockNumber != 0 {
+		lastBlock = big.NewInt(blockNumber)
+	} else if lastRequest != nil {
+		lastBlock = big.NewInt(int64(lastRequest.GetBlockNumber()))
+	} else if config.Conf.FirstBlockNumber != 0 {
+		lastBlock = big.NewInt(int64(config.Conf.FirstBlockNumber))
+	} else {
+		lastBlock = big.NewInt(1)
+	}
+
 	return &VORRandomnessRequestMockListener{
 		client:          client,
 		contractAddress: contractAddress,
@@ -44,7 +58,7 @@ func NewVORRandomnessRequestMockListener(contractHexAddress string, ethHostAddre
 		service:         service,
 		context:         ctx,
 		query: ethereum.FilterQuery{
-			FromBlock: big.NewInt(1),
+			FromBlock: lastBlock,
 			//ToBlock:   big.NewInt(23),
 			Addresses: []common.Address{contractAddress},
 		},
@@ -54,6 +68,12 @@ func NewVORRandomnessRequestMockListener(contractHexAddress string, ethHostAddre
 func (d VORRandomnessRequestMockListener) StartPoll() {
 	d.wg.Add(1)
 	d.wg.Wait()
+}
+
+func (d *VORRandomnessRequestMockListener) SetLastBlockNumber(blockNumber uint64) (err error) {
+	d.query.FromBlock = big.NewInt(int64(blockNumber))
+	err = d.service.Store.Keystorage.SetBlockNumber(int64(blockNumber))
+	return
 }
 
 func (d *VORRandomnessRequestMockListener) Request() error {
@@ -72,12 +92,13 @@ func (d *VORRandomnessRequestMockListener) Request() error {
 	fmt.Println("logRandomnessRequestHash: ", logRandomnessRequestHash)
 	fmt.Println("logRandomnessRequestHash hex: ", logRandomnessRequestHash.Hex())
 	fmt.Println("logs: ", logs)
-
-	for _, vLog := range logs {
+	for index, vLog := range logs {
 		fmt.Println("----------------------------------------")
 		fmt.Println("Log Block Number: ", vLog.BlockNumber)
 		fmt.Println("Log Index: ", vLog.Index)
-		fmt.Println("vLog.Topics[0].Hex(): ", vLog.Topics[0].Hex())
+		if index == len(logs)-1 {
+			err = d.SetLastBlockNumber(vLog.BlockNumber)
+		}
 		switch vLog.Topics[0].Hex() {
 		case logRandomnessRequestHash.Hex():
 			fmt.Println("Log Name: RandomnessRequest")

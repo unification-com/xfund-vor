@@ -42,7 +42,9 @@ func NewVORCoordinatorListener(contractHexAddress string, ethHostAddress string,
 
 	var lastBlock *big.Int
 	lastRequest, err := service.Store.RandomnessRequest.Last()
-	if lastRequest != nil {
+	if blockNumber, _ := service.Store.Keystorage.GetBlockNumber(); blockNumber != 0 {
+		lastBlock = big.NewInt(blockNumber)
+	} else if lastRequest != nil {
 		lastBlock = big.NewInt(int64(lastRequest.GetBlockNumber()))
 	} else if config.Conf.FirstBlockNumber != 0 {
 		lastBlock = big.NewInt(int64(config.Conf.FirstBlockNumber))
@@ -74,6 +76,12 @@ func (d VORCoordinatorListener) StartPoll() (err error) {
 	return
 }
 
+func (d *VORCoordinatorListener) SetLastBlockNumber(blockNumber uint64) (err error) {
+	d.query.FromBlock = big.NewInt(int64(blockNumber))
+	err = d.service.Store.Keystorage.SetBlockNumber(int64(blockNumber))
+	return
+}
+
 func (d *VORCoordinatorListener) Request() error {
 	logs, err := d.client.FilterLogs(context.Background(), d.query)
 	if err != nil {
@@ -90,10 +98,13 @@ func (d *VORCoordinatorListener) Request() error {
 	fmt.Println("logRandomnessRequestHash hex: ", logRandomnessRequestHash.Hex())
 	fmt.Println("logs: ", logs)
 
-	for _, vLog := range logs {
+	for index, vLog := range logs {
 		fmt.Println("----------------------------------------")
 		fmt.Println("Log Block Number: ", vLog.BlockNumber)
 		fmt.Println("Log Index: ", vLog.Index)
+		if index == len(logs)-1 {
+			err = d.SetLastBlockNumber(vLog.BlockNumber)
+		}
 		switch vLog.Topics[0].Hex() {
 		case logRandomnessRequestHash.Hex():
 			fmt.Println("Log Name: RandomnessRequest")

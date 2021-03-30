@@ -15,8 +15,15 @@ limitations under the License.
 */
 package main
 
-import "oraclecli/cmd"
+import (
+	"oraclecli/cmd"
+	"oraclecli/utils"
+)
 
 func main() {
+	settings, err := utils.NewSettingsStore("./settings.json")
+	if err == nil {
+		utils.Settings = settings
+	}
 	cmd.Execute()
 }

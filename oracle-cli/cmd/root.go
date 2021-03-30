@@ -18,7 +18,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"oraclecli/utils"
 	"os"
@@ -34,14 +34,6 @@ var rootCmd = &cobra.Command{
 	Use:   "oracle-cli",
 	Short: "A CLI to manage your Oracle",
 	Long: `CLI to manage your Oracle.
-Usage:
-oracle-cli [command]
-
-Available commands:
-register			Register new account with new private key
-withdraw			Withdraw your funds
-changefee			Change fee
-setproviderpaysgas	Set who pays gas
 
 Note:
  You need to run "oracle start --config [config_path]" to start your daemon before using CLI.
@@ -53,7 +45,7 @@ Note:
 			return
 		}
 		defer resp.Body.Close()
-		body, err := io.ReadAll(resp.Body)
+		body, err := ioutil.ReadAll(resp.Body)
 		fmt.Print("Oracle status: %s", string(body))
 	},
 }

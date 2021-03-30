@@ -19,12 +19,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/spf13/cobra"
 	"net/http"
 	"oraclecli/models"
 	"oraclecli/utils"
-	"strconv"
-
-	"github.com/spf13/cobra"
 )
 
 // setproviderpaysgasCmd represents the setproviderpaysgas command
@@ -32,16 +30,9 @@ var setproviderpaysgasCmd = &cobra.Command{
 	Use:   "setproviderpaysgas",
 	Short: "Set who pays gas",
 	Long: `A command to set who pays gas - true if provider pays gas
-
-Usage:
- oracle-cli setproviderpaysgas [true/false]
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		paysgas, err := strconv.ParseBool(args[3])
-		if err != nil {
-			fmt.Println("Incorrect provider pays gas parameter")
-			return
-		}
+		paysgas, err := GetProviderPaysGas()
 		requestStruct := models.OracleSetProviderPaysGasRequestModel{
 			ProviderPays: paysgas,
 		}
@@ -51,7 +42,15 @@ Usage:
 			return
 		}
 		request := bytes.NewBuffer(requestJSON)
-		resp, err := http.Post(fmt.Sprint(utils.OracleAddress(), "/setproviderpaysgas"), "encoding/json", request)
+
+		// Create a Bearer string by appending string access token
+		var bearer = "Bearer " + utils.Settings.Settings.GetOracleKey()
+		req, err := http.NewRequest("POST", fmt.Sprint(utils.OracleAddress(), "/setproviderpaysgas"), request)
+		// add authorization header to the req
+		req.Header.Add("Authorization", bearer)
+		client := &http.Client{}
+		resp, err := client.Do(req)
+
 		if err != nil {
 			fmt.Println("Something went wrong.")
 		}
