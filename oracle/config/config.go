@@ -35,7 +35,7 @@ type Config struct {
 	EthWSHost                     string      `json:"eth_ws_host"`
 	NetworkID                     int64       `json:"network_id"`
 	FirstBlockNumber              uint64      `json:"first_block"`
-	CheckDuration                 int64       `json:"check_duration"`
+	CheckDuration                 int32       `json:"check_duration"`
 	Serve                         *Serve      `json:"serve"`
 	LogFile                       string      `json:"log_file"`
 	LogLevel                      string      `json:"log_level"`

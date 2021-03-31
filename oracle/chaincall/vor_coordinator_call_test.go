@@ -18,6 +18,7 @@ import (
 
 var VORCoordinator *chaincall.VORCoordinatorCaller
 var VORD20Caller *chaincall.VORD20Caller
+var MockERC20Caller *chaincall.MockERC20Caller
 var Keystore *keystorage.Keystorage
 var Config *config.Config
 var Log = logrus.New()
@@ -34,11 +35,16 @@ func Init(configAddress string) (err error) {
 	Keystore.CheckToken("rod0gbc3mhyxdiah2vwialx1q3osk5cw")
 	VORCoordinator, err = chaincall.NewVORCoordinatorCaller(VORCoordinatorCallerTestValues())
 	VORD20Caller, err = chaincall.NewVORD20Caller(VORD20CallerTestValues())
+	MockERC20Caller, err = chaincall.NewMockERC20Caller(MockERC20CallerTestValues())
 	return err
 }
 
 func VORCoordinatorCallerTestValues() (string, string, *big.Int, []byte) {
 	return Config.VORCoordinatorContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetByUsername(Config.Keystorage.Account).Private)
+}
+
+func MockERC20CallerTestValues() (string, string, *big.Int, []byte) {
+	return Config.MockContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetByUsername(Config.Keystorage.Account).Private)
 }
 
 func VORD20CallerTestValues() (string, string, *big.Int, []byte) {
@@ -69,6 +75,7 @@ func TestVORCoordinatorCaller_HashOfKey(t *testing.T) {
 		t.Error(err)
 	}
 	t.Log(common.BytesToHash(HashOfKey[:]))
+	t.Log(HashOfKey[:])
 	t.Log(hexutil.Encode(HashOfKey[:]))
 }
 
@@ -104,7 +111,7 @@ func TestVORCoordinatorCaller_ChangeFee(t *testing.T) {
 		t.Error(err)
 	}
 
-	TransactOut, err := VORCoordinator.ChangeFee(big.NewInt(100))
+	TransactOut, err := VORCoordinator.ChangeFee(big.NewInt(1000000000000000000))
 	if err != nil {
 		t.Error(err)
 	}

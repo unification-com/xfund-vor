@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/sevlyar/go-daemon"
 	"github.com/sirupsen/logrus"
 	"math/big"
 	"net/http"
@@ -67,8 +68,38 @@ func start() (err error) {
 		return err
 	}
 
-	err = keystore.SelectPrivateKey(config.Conf.Keystorage.Account)
+	daemonContext := &daemon.Context{
+		PidFileName: "oracled.pid",
+		PidFilePerm: 0644,
+		LogFileName: config.Conf.LogFile,
+		LogFilePerm: 0640,
+		WorkDir:     "./",
+		Umask:       027,
+	}
 
+	daemon, err := daemonContext.Reborn()
+	if err != nil {
+		log.WithFields(logrus.Fields{
+			"package":  "main",
+			"function": "main",
+			"action":   "start oracle daemon",
+			"result":   err,
+		}).Error()
+		return
+	}
+	if daemon != nil {
+		return
+	}
+	defer daemonContext.Release()
+
+	log.WithFields(logrus.Fields{
+		"package":  "main",
+		"function": "main",
+		"action":   "start oracle daemon",
+		"result":   "daemon started",
+	}).Info()
+
+	err = keystore.SelectPrivateKey(config.Conf.Keystorage.Account)
 	if err != nil {
 		return err
 	}
@@ -97,7 +128,6 @@ func start() (err error) {
 	e := echo.New()
 
 	// Middleware
-	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
 		return key == keystore.KeyStore.Token, nil

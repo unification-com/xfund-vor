@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
+	"math/rand"
 	"oracle/config"
 	"oracle/contracts/vor_coordinator"
 	"oracle/service"
@@ -26,6 +27,7 @@ type VORCoordinatorListener struct {
 	query           ethereum.FilterQuery
 	wg              *sync.WaitGroup
 	service         *service.Service
+	keyHash         [32]byte
 	context         context.Context
 }
 
@@ -52,6 +54,7 @@ func NewVORCoordinatorListener(contractHexAddress string, ethHostAddress string,
 		lastBlock = big.NewInt(1)
 	}
 
+	keyHash, err := service.VORCoordinatorCaller.HashOfKey()
 	return &VORCoordinatorListener{
 		client:          client,
 		contractAddress: contractAddress,
@@ -62,15 +65,20 @@ func NewVORCoordinatorListener(contractHexAddress string, ethHostAddress string,
 		},
 		service: service,
 		context: ctx,
+		keyHash: keyHash,
 		wg:      &sync.WaitGroup{},
 	}, err
 }
 
 func (d VORCoordinatorListener) StartPoll() (err error) {
 	d.wg.Add(1)
+	var sleepTime = int32(3)
+	if config.Conf.CheckDuration != 0 {
+		sleepTime = config.Conf.CheckDuration
+	}
 	for {
 		err = d.Request()
-		time.Sleep(3 * time.Minute)
+		time.Sleep(time.Duration(rand.Int31n(sleepTime)) * time.Second)
 	}
 	d.wg.Wait()
 	return
@@ -78,7 +86,7 @@ func (d VORCoordinatorListener) StartPoll() (err error) {
 
 func (d *VORCoordinatorListener) SetLastBlockNumber(blockNumber uint64) (err error) {
 	d.query.FromBlock = big.NewInt(int64(blockNumber))
-	err = d.service.Store.Keystorage.SetBlockNumber(int64(blockNumber))
+	err = d.service.Store.Keystorage.SetBlockNumber(int64(blockNumber + 1))
 	return
 }
 
@@ -115,27 +123,26 @@ func (d *VORCoordinatorListener) Request() error {
 			if err != nil {
 				return err
 			}
-			fmt.Println(common.Bytes2Hex(event.KeyHash[:]))
-			fmt.Println(*event.Seed)
-			fmt.Println(event.Sender.Hex())
-			fmt.Println(*event.Fee)
-			fmt.Println(common.Bytes2Hex(event.RequestID[:]))
-			fmt.Println(vLog.BlockHash)
-			fmt.Println(vLog.BlockNumber)
-			fmt.Println(event.Raw)
+			if event.KeyHash == d.keyHash {
 
-			byteSeed, err := vor.BigToSeed(event.Seed)
+				fmt.Println("It's request to me =)")
 
-			var status string
-			tx, err := d.service.FulfillRandomness(byteSeed, vLog.BlockHash, int64(vLog.BlockNumber))
-			fmt.Println(tx)
-			if err != nil {
-				status = "failed"
+				byteSeed, err := vor.BigToSeed(event.Seed)
+
+				var status string
+				tx, err := d.service.FulfillRandomness(byteSeed, vLog.BlockHash, int64(vLog.BlockNumber))
+				fmt.Println(tx)
+				if err == nil {
+					fmt.Println(err)
+					status = "failed"
+				} else {
+					status = "success"
+				}
+				seedHex, err := utils.Uint256ToHex(event.Seed)
+				err = d.service.Store.RandomnessRequest.Insert(common.Bytes2Hex(event.KeyHash[:]), seedHex, event.Sender.Hex(), common.Bytes2Hex(event.RequestID[:]), vLog.BlockHash.Hex(), vLog.BlockNumber, vLog.TxHash.Hex(), status)
 			} else {
-				status = "success"
+				fmt.Println("Looks like it's addressed not to me =(")
 			}
-			seedHex, err := utils.Uint256ToHex(event.Seed)
-			err = d.service.Store.RandomnessRequest.Insert(common.Bytes2Hex(event.KeyHash[:]), seedHex, event.Sender.Hex(), common.Bytes2Hex(event.RequestID[:]), vLog.BlockHash.Hex(), vLog.BlockNumber, vLog.TxHash.Hex(), status)
 			continue
 		default:
 			fmt.Println("vLog: ", vLog)

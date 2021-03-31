@@ -10,7 +10,7 @@ import (
 )
 
 func InitCaller(configAddress string) (err error) {
-	//Service, err = service.NewService(context.Background(),)
+	Service, err = service.NewService(context.Background(), Store)
 	return err
 }
 
@@ -19,8 +19,18 @@ func VORCoordinatorCallerTestValues() (string, string, *big.Int, []byte) {
 }
 
 func Init(configAddres string) (err error) {
-	InitConfig(configAddres)
-	InitKeystore(configAddres)
+	err = InitConfig(configAddres)
+	if err != nil {
+		return err
+	}
+	err = InitKeystore(configAddres)
+	if err != nil {
+		return err
+	}
+	err = InitStore()
+	if err != nil {
+		return err
+	}
 	err = InitCaller(configAddres)
 	if err != nil {
 		return err

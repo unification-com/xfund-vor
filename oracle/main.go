@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"github.com/sevlyar/go-daemon"
 	"github.com/sirupsen/logrus"
 	"net"
 	"oracle/config"
@@ -26,7 +25,7 @@ func main() {
 	var configFile string
 
 	//// flags declaration using flag package
-	flag.StringVar(&configFile, "c", "./config.json", "Specify config json file.Default is ./config.json")
+	flag.StringVar(&configFile, "c", "./config.json", "Specify config json file. Default is ./config.json")
 
 	config.Conf, err = config.NewConfig(configFile)
 	if err != nil {
@@ -40,38 +39,6 @@ func main() {
 	}
 	os.Setenv("ORACLE_PORT", string(config.Conf.Serve.Port))
 	os.Setenv("ORACLE_HOST", config.Conf.Serve.Host)
-
-	daemonContext := &daemon.Context{
-		PidFileName: "oracled.pid",
-		PidFilePerm: 0644,
-		LogFileName: config.Conf.LogFile,
-		LogFilePerm: 0640,
-		WorkDir:     "./",
-		Umask:       027,
-		//Args:        []string{"[oracled]"},
-	}
-
-	daemon, err := daemonContext.Reborn()
-	if err != nil {
-		log.WithFields(logrus.Fields{
-			"package":  "main",
-			"function": "main",
-			"action":   "start oracle daemon",
-			"result":   err,
-		}).Error()
-		return
-	}
-	if daemon != nil {
-		return
-	}
-	defer daemonContext.Release()
-
-	log.WithFields(logrus.Fields{
-		"package":  "main",
-		"function": "main",
-		"action":   "start oracle daemon",
-		"result":   "daemon started",
-	}).Info()
 
 	switch os.Args[1] {
 	case "start":

@@ -34,7 +34,7 @@ func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("contractStringAddress: ", contractStringAddress)
+	//fmt.Println("contractStringAddress: ", contractStringAddress)
 	contractAddress := common.HexToAddress(contractStringAddress)
 	instance, err := vor_coordinator.NewVORCoordinator(contractAddress, client)
 	if err != nil {
@@ -47,7 +47,7 @@ func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string
 	}
 
 	oraclePublicKey := oraclePrivateKeyECDSA.Public()
-	log.Print("Public Key: ", hexutil.Encode(crypto.FromECDSAPub(oraclePublicKey.(*ecdsa.PublicKey))))
+	//log.Print("Public Key: ", hexutil.Encode(crypto.FromECDSAPub(oraclePublicKey.(*ecdsa.PublicKey))))
 
 	ECDSAoraclePublicKey, err := crypto.UnmarshalPubkey(crypto.FromECDSAPub(oraclePublicKey.(*ecdsa.PublicKey)))
 	if err != nil || ECDSAoraclePublicKey == nil {
@@ -56,7 +56,7 @@ func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string
 		return nil, err
 	}
 	_, oracleAddress := walletworker.GenerateAddress(ECDSAoraclePublicKey)
-	log.Print("Address: ", oracleAddress)
+	//log.Print("Address: ", oracleAddress)
 
 	transactOpts, err := bind.NewKeyedTransactorWithChainID(oraclePrivateKeyECDSA, chainID)
 	if err != nil {
@@ -90,15 +90,34 @@ func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string
 	}, err
 }
 
+func (d *VORCoordinatorCaller) RenewTransactOpts() (err error) {
+	gasPrice, err := d.client.SuggestGasPrice(context.Background())
+	if err != nil {
+		return
+	}
+	nonce, err := d.client.PendingNonceAt(context.Background(), common.HexToAddress(d.oracleAddress))
+	if err != nil {
+		return
+	}
+	d.transactOpts.Nonce = big.NewInt(int64(nonce))
+	d.transactOpts.GasPrice = gasPrice
+	d.transactOpts.GasLimit = uint64(100000) // in units
+
+	return
+}
+
 func (d *VORCoordinatorCaller) GetTotalGasDeposits(bindOpts bind.CallOpts) (*big.Int, error) {
+	defer d.RenewTransactOpts()
 	return d.instance.GetTotalGasDeposits(&bindOpts)
 }
 
 func (d *VORCoordinatorCaller) GetGasTopUpLimit(bindOpts bind.CallOpts) (*big.Int, error) {
+	defer d.RenewTransactOpts()
 	return d.instance.GetGasTopUpLimit(&bindOpts)
 }
 
 func (d *VORCoordinatorCaller) HashOfKey() ([32]byte, error) {
+	defer d.RenewTransactOpts()
 	return d.instance.HashOfKey(d.callOpts, d.publicProvingKey)
 }
 
@@ -111,28 +130,34 @@ func (d *VORCoordinatorCaller) HashOfKey() ([32]byte, error) {
 //}
 
 func (d *VORCoordinatorCaller) Withdraw(recipientAddress string, amount *big.Int) (*types.Transaction, error) {
+	defer d.RenewTransactOpts()
 	recipientAddr := common.HexToAddress(recipientAddress)
 	return d.instance.Withdraw(d.transactOpts, recipientAddr, amount)
 }
 
 func (d *VORCoordinatorCaller) RegisterProvingKey(fee *big.Int, providerPaysGas bool) (*types.Transaction, error) {
+	defer d.RenewTransactOpts()
 	transaction, err := d.instance.RegisterProvingKey(d.transactOpts, fee, common.HexToAddress(d.oracleAddress), d.publicProvingKey, providerPaysGas)
 	return transaction, err
 }
 
 func (d *VORCoordinatorCaller) RandomnessRequest(keyHash [32]byte, consumerSeed *big.Int, feePaid *big.Int) (*types.Transaction, error) {
+	defer d.RenewTransactOpts()
 	transaction, err := d.instance.RandomnessRequest(d.transactOpts, keyHash, consumerSeed, feePaid)
 	return transaction, err
 }
 
 func (d *VORCoordinatorCaller) ChangeFee(fee *big.Int) (*types.Transaction, error) {
+	defer d.RenewTransactOpts()
 	return d.instance.ChangeFee(d.transactOpts, d.publicProvingKey, fee)
 }
 
 func (d *VORCoordinatorCaller) SetProviderPaysGas(providerPaysFee bool) (*types.Transaction, error) {
+	defer d.RenewTransactOpts()
 	return d.instance.SetProviderPaysGas(d.transactOpts, d.publicProvingKey, providerPaysFee)
 }
 
 func (d *VORCoordinatorCaller) FulfillRandomnessRequest(proof []byte) (*types.Transaction, error) {
+	defer d.RenewTransactOpts()
 	return d.instance.FulfillRandomnessRequest(d.transactOpts, proof)
 }

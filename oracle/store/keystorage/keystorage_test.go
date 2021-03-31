@@ -56,7 +56,7 @@ func TestKeystorage_Add(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = keystore.AddExisting("rootaccount", "21517d9442434659709c5aa4891185c118076dd931ba0f5a8a96ab3da34b59e8")
+	err = keystore.AddExisting("rootuser", "ba37bd76fa2efb78d29cc55c026786c368e34cd97e64aebe4184f4e822079c74")
 	if err != nil {
 		t.Error(err)
 	}
@@ -130,7 +130,7 @@ func TestKeystorage_GetByAccount(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	keyModel := keystore.GetByUsername("gkozyrev")
+	keyModel := keystore.GetByUsername("username")
 	t.Log(keyModel.Private)
 
 	assert.Equal(keyModel.Private, privateKeyExpected)
@@ -149,7 +149,7 @@ func TestKeystorage_SetRegistered(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	keyModel := keystore.GetByUsername("gkozyrev")
+	keyModel := keystore.GetByUsername("username")
 	t.Log(keyModel.Private)
 
 	err = keystore.SetRegistered(keyModel.Private)

@@ -16,8 +16,11 @@ type Service struct {
 }
 
 func NewService(ctx context.Context, store *store.Store) (*Service, error) {
-	fmt.Print(store.Keystorage.GetSelectedPrivateKey())
-	VORCoordinatorCaller, err := chaincall.NewVORCoordinatorCaller(config.Conf.MockContractAddress, config.Conf.EthHTTPHost, big.NewInt(config.Conf.NetworkID), []byte(store.Keystorage.GetSelectedPrivateKey()))
+	fmt.Println(config.Conf.VORCoordinatorContractAddress)
+	fmt.Println(config.Conf.EthHTTPHost)
+	fmt.Println(big.NewInt(config.Conf.NetworkID))
+	fmt.Println([]byte(store.Keystorage.GetSelectedPrivateKey()))
+	VORCoordinatorCaller, err := chaincall.NewVORCoordinatorCaller(config.Conf.VORCoordinatorContractAddress, config.Conf.EthHTTPHost, big.NewInt(config.Conf.NetworkID), []byte(store.Keystorage.GetSelectedPrivateKey()))
 	if err != nil {
 		return nil, err
 	}
