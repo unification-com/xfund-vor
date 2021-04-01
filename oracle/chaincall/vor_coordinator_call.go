@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"log"
 	"math/big"
+	"oracle/config"
 	"oracle/contracts/vor_coordinator"
 	"oracle/utils/walletworker"
 )
@@ -23,6 +24,7 @@ type VORCoordinatorCaller struct {
 	transactOpts    *bind.TransactOpts
 	callOpts        *bind.CallOpts
 
+	context          context.Context
 	publicProvingKey [2]*big.Int
 	oraclePrivateKey string
 	oraclePublicKey  string
@@ -31,6 +33,7 @@ type VORCoordinatorCaller struct {
 
 func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string, chainID *big.Int, oraclePrivateKey []byte) (*VORCoordinatorCaller, error) {
 	client, err := ethclient.Dial(ethHostAddress)
+	ctx := context.Background()
 	if err != nil {
 		return nil, err
 	}
@@ -63,26 +66,29 @@ func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string
 		return nil, err
 	}
 
-	gasPrice, err := client.SuggestGasPrice(context.Background())
+	gasPrice, err := client.SuggestGasPrice(ctx)
 	if err != nil {
 		return nil, err
 	}
-	nonce, err := client.PendingNonceAt(context.Background(), common.HexToAddress(oracleAddress))
+	nonce, err := client.PendingNonceAt(ctx, common.HexToAddress(oracleAddress))
 	if err != nil {
 		return nil, err
 	}
 	transactOpts.Nonce = big.NewInt(int64(nonce))
 	transactOpts.Value = big.NewInt(0)
 	transactOpts.GasPrice = gasPrice
-	transactOpts.GasLimit = uint64(100000) // in units
-	transactOpts.Context = context.Background()
+	transactOpts.GasLimit = uint64(config.Conf.LimitGasPrice) // in units
+	transactOpts.Context = ctx
+
+	callOpts := &bind.CallOpts{From: common.HexToAddress(oracleAddress), Context: ctx}
 
 	return &VORCoordinatorCaller{
 		client:           client,
 		contractAddress:  contractAddress,
 		instance:         instance,
 		transactOpts:     transactOpts,
-		callOpts:         &bind.CallOpts{},
+		callOpts:         callOpts,
+		context:          ctx,
 		publicProvingKey: [2]*big.Int{ECDSAoraclePublicKey.X, ECDSAoraclePublicKey.Y},
 		oraclePrivateKey: string(oraclePrivateKey),
 		oraclePublicKey:  hexutil.Encode(crypto.FromECDSAPub(oraclePublicKey.(*ecdsa.PublicKey))),
@@ -91,29 +97,23 @@ func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string
 }
 
 func (d *VORCoordinatorCaller) RenewTransactOpts() (err error) {
-	gasPrice, err := d.client.SuggestGasPrice(context.Background())
-	if err != nil {
-		return
-	}
-	nonce, err := d.client.PendingNonceAt(context.Background(), common.HexToAddress(d.oracleAddress))
+	nonce, err := d.client.PendingNonceAt(d.context, common.HexToAddress(d.oracleAddress))
 	if err != nil {
 		return
 	}
 	d.transactOpts.Nonce = big.NewInt(int64(nonce))
-	d.transactOpts.GasPrice = gasPrice
-	d.transactOpts.GasLimit = uint64(100000) // in units
 
 	return
 }
 
-func (d *VORCoordinatorCaller) GetTotalGasDeposits(bindOpts bind.CallOpts) (*big.Int, error) {
+func (d *VORCoordinatorCaller) GetTotalGasDeposits() (*big.Int, error) {
 	defer d.RenewTransactOpts()
-	return d.instance.GetTotalGasDeposits(&bindOpts)
+	return d.instance.GetTotalGasDeposits(d.callOpts)
 }
 
-func (d *VORCoordinatorCaller) GetGasTopUpLimit(bindOpts bind.CallOpts) (*big.Int, error) {
+func (d *VORCoordinatorCaller) GetGasTopUpLimit() (*big.Int, error) {
 	defer d.RenewTransactOpts()
-	return d.instance.GetGasTopUpLimit(&bindOpts)
+	return d.instance.GetGasTopUpLimit(d.callOpts)
 }
 
 func (d *VORCoordinatorCaller) HashOfKey() ([32]byte, error) {
@@ -150,6 +150,12 @@ func (d *VORCoordinatorCaller) RandomnessRequest(keyHash [32]byte, consumerSeed 
 func (d *VORCoordinatorCaller) ChangeFee(fee *big.Int) (*types.Transaction, error) {
 	defer d.RenewTransactOpts()
 	return d.instance.ChangeFee(d.transactOpts, d.publicProvingKey, fee)
+}
+
+func (d *VORCoordinatorCaller) TopUpGas(gas *big.Int) (*types.Transaction, error) {
+	defer d.RenewTransactOpts()
+	d.transactOpts.Value = gas
+	return d.instance.TopUpGas(d.transactOpts, common.HexToAddress(d.oracleAddress))
 }
 
 func (d *VORCoordinatorCaller) SetProviderPaysGas(providerPaysFee bool) (*types.Transaction, error) {

@@ -12,6 +12,7 @@ require (
 	github.com/go-ole/go-ole v1.2.5 // indirect
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
+	github.com/jessevdk/go-flags v1.4.0
 	github.com/jinzhu/gorm v1.9.16
 	github.com/jinzhu/now v1.1.2 // indirect
 	github.com/jpillora/backoff v1.0.0
@@ -29,7 +30,7 @@ require (
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rjeczalik/notify v0.9.2 // indirect
 	github.com/satori/go.uuid v1.2.0
-	github.com/sevlyar/go-daemon v0.1.5
+	github.com/sevlyar/go-daemon v0.1.5 // indirect
 	github.com/shirou/gopsutil v3.21.2+incompatible // indirect
 	github.com/shopspring/decimal v1.2.0
 	github.com/sirupsen/logrus v1.8.1

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/sevlyar/go-daemon"
 	"github.com/sirupsen/logrus"
 	"math/big"
 	"net/http"
@@ -57,47 +56,18 @@ func start() (err error) {
 
 	store, err := store2.NewStore(context.Background(), keystore)
 	if !keystore.Exists() {
-		FirstRun(keystore)
+		fee, paysGas, err = FirstRun(keystore)
 	}
 	err = store.RandomnessRequest.Migrate()
 	if err != nil {
 		return err
 	}
-	err = auth(keystore)
-	if err != nil {
-		return err
+	if options.Password == "" || (keystore.CheckToken(options.Password) != nil) {
+		err = auth(keystore)
+		if err != nil {
+			return err
+		}
 	}
-
-	daemonContext := &daemon.Context{
-		PidFileName: "oracled.pid",
-		PidFilePerm: 0644,
-		LogFileName: config.Conf.LogFile,
-		LogFilePerm: 0640,
-		WorkDir:     "./",
-		Umask:       027,
-	}
-
-	daemon, err := daemonContext.Reborn()
-	if err != nil {
-		log.WithFields(logrus.Fields{
-			"package":  "main",
-			"function": "main",
-			"action":   "start oracle daemon",
-			"result":   err,
-		}).Error()
-		return
-	}
-	if daemon != nil {
-		return
-	}
-	defer daemonContext.Release()
-
-	log.WithFields(logrus.Fields{
-		"package":  "main",
-		"function": "main",
-		"action":   "start oracle daemon",
-		"result":   "daemon started",
-	}).Info()
 
 	err = keystore.SelectPrivateKey(config.Conf.Keystorage.Account)
 	if err != nil {
@@ -135,7 +105,6 @@ func start() (err error) {
 	e.POST("/withdraw", oracleController.Withdraw)
 	e.POST("/register", oracleController.Register)
 	e.POST("/changefee", oracleController.ChangeFee)
-	e.POST("/withdraw", oracleController.Withdraw)
 	e.POST("/stop", func(c echo.Context) error {
 		if stop1 {
 			log.WithFields(logrus.Fields{
@@ -152,14 +121,17 @@ func start() (err error) {
 			"action":   "stop service",
 			"result":   fmt.Sprintf("stopped %d %s", PID, time.Now().String()),
 		}).Warning()
-		go func() {
-			listener1.Close()
-			if file1 != nil {
-				file1.Close()
-			}
-
-			exit1 <- 1
-		}()
+		err := e.Shutdown(context.Background())
+		if err != nil {
+			log.WithFields(logrus.Fields{
+				"package":  "main",
+				"function": "start",
+				"action":   "stop echo server",
+				"result":   err.Error(),
+			}).Error()
+			err = e.Close()
+		}
+		oracleListener.Shutdown()
 		return err
 	})
 	e.GET("/about", oracleController.About)

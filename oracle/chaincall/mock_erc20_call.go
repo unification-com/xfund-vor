@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"log"
 	"math/big"
+	"oracle/config"
 	"oracle/contracts/mock_erc20"
 	"oracle/utils/walletworker"
 )
@@ -21,7 +22,7 @@ type MockERC20Caller struct {
 	instance         *mock_erc20.MockERC20
 	transactOpts     *bind.TransactOpts
 	callOpts         *bind.CallOpts
-	chainID          *big.Int
+	context          context.Context
 	oraclePrivateKey string
 	oraclePublicKey  string
 	oracleAddress    string
@@ -29,6 +30,7 @@ type MockERC20Caller struct {
 
 func NewMockERC20Caller(contractStringAddress string, ethHostAddress string, chainID *big.Int, oraclePrivateKey []byte) (*MockERC20Caller, error) {
 	client, err := ethclient.Dial(ethHostAddress)
+	ctx := context.Background()
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +70,7 @@ func NewMockERC20Caller(contractStringAddress string, ethHostAddress string, cha
 	}
 	transactOpts.Nonce = big.NewInt(int64(nonce))
 	transactOpts.GasPrice = gasPrice
-	transactOpts.GasLimit = uint64(100000) // in units
+	transactOpts.GasLimit = uint64(config.Conf.LimitGasPrice) // in units
 	//transactOpts.Value = big.NewInt(1000000000000000000)
 	//transactOpts.Value.Mul(transactOpts.Value, big.NewInt(10))
 	transactOpts.Context = context.Background()
@@ -78,8 +80,8 @@ func NewMockERC20Caller(contractStringAddress string, ethHostAddress string, cha
 		client:           client,
 		contractAddress:  contractAddress,
 		instance:         instance,
-		chainID:          chainID,
 		transactOpts:     transactOpts,
+		context:          ctx,
 		callOpts:         &bind.CallOpts{From: oracleAddressObj},
 		oraclePrivateKey: string(oraclePrivateKey),
 		oraclePublicKey:  hexutil.Encode(crypto.FromECDSAPub(oraclePublicKey.(*ecdsa.PublicKey))),
@@ -88,17 +90,17 @@ func NewMockERC20Caller(contractStringAddress string, ethHostAddress string, cha
 }
 
 func (d *MockERC20Caller) RenewTransactOpts() (err error) {
-	gasPrice, err := d.client.SuggestGasPrice(context.Background())
+	gasPrice, err := d.client.SuggestGasPrice(d.context)
 	if err != nil {
 		return
 	}
-	nonce, err := d.client.PendingNonceAt(context.Background(), common.HexToAddress(d.oracleAddress))
+	nonce, err := d.client.PendingNonceAt(d.context, common.HexToAddress(d.oracleAddress))
 	if err != nil {
 		return
 	}
 	d.transactOpts.Nonce = big.NewInt(int64(nonce))
 	d.transactOpts.GasPrice = gasPrice
-	d.transactOpts.GasLimit = uint64(100000) // in units
+	d.transactOpts.GasLimit = uint64(config.Conf.LimitGasPrice) // in units
 
 	return
 }

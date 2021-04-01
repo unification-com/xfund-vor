@@ -411,7 +411,7 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
         require(
             gasDeposits[_consumer].providers[_provider] >= ethRefund
             && totalGasDeposits >= ethRefund,
-            "Router: not enough ETH to refund"
+            "not enough ETH to refund"
         );
         // update total held by Router contract
         totalGasDeposits = totalGasDeposits.sub(ethRefund);

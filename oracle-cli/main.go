@@ -16,14 +16,16 @@ limitations under the License.
 package main
 
 import (
+	"fmt"
 	"oraclecli/cmd"
 	"oraclecli/utils"
 )
 
 func main() {
 	settings, err := utils.NewSettingsStore("./settings.json")
-	if err == nil {
-		utils.Settings = settings
+	if err != nil {
+		fmt.Println(err)
 	}
+	utils.Settings = settings
 	cmd.Execute()
 }

@@ -57,7 +57,7 @@ func TestVORCoordinatorCaller_GetTotalGasDeposits(t *testing.T) {
 		t.Error(err)
 	}
 
-	GasDeposits, err := VORCoordinator.GetTotalGasDeposits(bind.CallOpts{})
+	GasDeposits, err := VORCoordinator.GetTotalGasDeposits()
 	if err != nil {
 		t.Error(err)
 	}
@@ -85,7 +85,7 @@ func TestVORCoordinatorCaller_GetGasTopUpLimit(t *testing.T) {
 		t.Error(err)
 	}
 
-	GasDeposits, err := VORCoordinator.GetGasTopUpLimit(bind.CallOpts{})
+	GasDeposits, err := VORCoordinator.GetGasTopUpLimit()
 	if err != nil {
 		t.Error(err)
 	}
@@ -157,7 +157,7 @@ func TestVORCoordinatorCaller_SetProviderPaysGas(t *testing.T) {
 		t.Error(err)
 	}
 
-	TransactOut, err := VORCoordinator.SetProviderPaysGas(false)
+	TransactOut, err := VORCoordinator.SetProviderPaysGas(true)
 	//debug.PrintStack()
 	t.Log(TransactOut)
 	if err != nil {

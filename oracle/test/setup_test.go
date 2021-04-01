@@ -13,6 +13,7 @@ import (
 	"os"
 	"runtime/debug"
 	"testing"
+	"time"
 )
 
 var VORCoordinator *chainlisten.VORCoordinatorListener
@@ -55,14 +56,14 @@ func TestStartEverything(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	//err = Keystore.AddExisting("rootuser", "25075fd6bca594a1d8f6f2643879c779d61b34cafad0d242478d068fb29eac3f")
-	//if err != nil {
-	//	t.Error(err)
-	//}
-	//err = Keystore.AddExisting("oracle", "7f5a703bcfa0405275f097e9b7c9d26450680c2f5dd5ae4daa4102331c057f18")
-	//if err != nil {
-	//	t.Error(err)
-	//}
+	err = Keystore.AddExisting("rootuser", "9b2e913979a8e390c4ba2ee74f3db065ad2b9b21578646785471cb3de1819ce0")
+	if err != nil {
+		t.Error(err)
+	}
+	err = Keystore.AddExisting("oracle", "b1f07ac06b3e581bb499009b51850b04800720e7a302fe44b531a2eee11ae274")
+	if err != nil {
+		t.Error(err)
+	}
 	Keystore.SelectPrivateKey(Config.Keystorage.Account)
 
 	debug.PrintStack()
@@ -78,14 +79,14 @@ func TestStartEverything(t *testing.T) {
 	}
 
 	//	register proving key
-	tx, err := oracleService.VORCoordinatorCaller.RegisterProvingKey(big.NewInt(100), false)
-	if err != nil {
-		t.Error(err)
-	}
-	t.Log(tx)
+	//tx, err := oracleService.VORCoordinatorCaller.RegisterProvingKey(big.NewInt(100), false)
+	//if err != nil {
+	//	t.Error(err)
+	//}
+	//t.Log(tx)
 
 	//	set fee
-	tx, err = oracleService.VORCoordinatorCaller.ChangeFee(big.NewInt(1000000000000000000))
+	tx, err := oracleService.VORCoordinatorCaller.ChangeFee(big.NewInt(1000000000000000000))
 	if err != nil {
 		t.Error(err)
 	}
@@ -114,13 +115,15 @@ func TestStartEverything(t *testing.T) {
 	}
 	t.Log(tx)
 
-	tx, err = rootVORD20Caller.RollDice(big.NewInt(3))
-	if err != nil {
-		t.Error(err)
-	}
-	t.Log(tx)
+	//rootVORD20Caller.RenewTransactOpts()
+	//tx, err = rootVORD20Caller.RollDice(big.NewInt(7))
+	//if err != nil {
+	//	t.Error(err)
+	//}
+	//t.Log(tx)
 
 	//	set VORD20 keyHash
+	rootVORD20Caller.RenewTransactOpts()
 	tx, err = rootVORD20Caller.SetKeyHash(oracleKeyHash)
 	if err != nil {
 		t.Error(err)
@@ -128,6 +131,7 @@ func TestStartEverything(t *testing.T) {
 	t.Log(tx)
 
 	//	set VORD20 fee
+	rootVORD20Caller.RenewTransactOpts()
 	tx, err = rootVORD20Caller.SetFee(big.NewInt(1000000000000000000))
 	if err != nil {
 		t.Error(err)
@@ -135,16 +139,28 @@ func TestStartEverything(t *testing.T) {
 	t.Log(tx)
 
 	//	create requestRandomness for oracle
-	tx, err = rootVORD20Caller.RollDice(big.NewInt(4))
+	err = rootVORD20Caller.RenewTransactOpts()
+	if err != nil {
+		t.Error(err)
+	}
+
+	tx, err = rootVORD20Caller.RollDice(big.NewInt(10))
 	if err != nil {
 		t.Error(err)
 	}
 	t.Log(tx)
 
 	//	run check
+	time.Sleep(time.Second * 5)
 	err = oracleVORCoordinatorListener.Request()
 	if err != nil {
 		t.Error(err)
 	}
 
+	time.Sleep(time.Second * 5)
+	house, err := rootVORD20Caller.House()
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(house)
 }

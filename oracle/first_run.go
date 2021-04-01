@@ -42,11 +42,10 @@ func noKeyFound(keystorage *keystorage.Keystorage) (fee int64, paysGas bool, err
 		if err != nil {
 			return
 		}
-		fmt.Println("Successfully added a private key!")
-		fmt.Println("")
-		fmt.Println("Your daemon api key:   ")
+		fmt.Println("\nSuccessfully added a private key!\n")
+		fmt.Print("Your daemon api key:   ")
 		fmt.Println(token)
-		fmt.Println("Use this key to login via cli/HTTP (command: oracle-cli auth [api key])")
+		fmt.Println("\nUse this key to login via cli/HTTP (command: oracle-cli settings)")
 		fmt.Println("KEEP THIS KEY SAFE! YOU WILL LOSE YOUR KEYSTORAGE DATA WITHOUT IT!")
 		fmt.Println("")
 	case "2":
@@ -59,11 +58,11 @@ func noKeyFound(keystorage *keystorage.Keystorage) (fee int64, paysGas bool, err
 		if err != nil {
 			return fee, paysGas, err
 		}
-		fmt.Println("Successfully generated a private key:")
+		fmt.Println("\nSuccessfully generated a private key:")
 		fmt.Println(keyPrivate)
-		fmt.Println("Your daemon api key:")
-		fmt.Print(token)
-		fmt.Println("Use this key to login via cli/HTTP (command: oracle-cli auth [api key])")
+		fmt.Print("\nYour daemon api key:   ")
+		fmt.Println(token)
+		fmt.Println("\nUse this key to login via cli/HTTP (command: oracle-cli settings)")
 		fmt.Println("KEEP THIS KEYS SAFE!")
 	default:
 		fmt.Println("Sorry, I can't understand you =(")

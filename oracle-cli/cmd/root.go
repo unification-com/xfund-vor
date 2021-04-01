@@ -36,7 +36,7 @@ var rootCmd = &cobra.Command{
 	Long: `CLI to manage your Oracle.
 
 Note:
- You need to run "oracle start --config [config_path]" to start your daemon before using CLI.
+ You need to run "oracled start -c [config_path | optional] -k [key | optional]" to start your daemon before using CLI.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		resp, err := http.Get(utils.OracleAddress() + "/status")

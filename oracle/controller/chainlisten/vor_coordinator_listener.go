@@ -45,11 +45,11 @@ func NewVORCoordinatorListener(contractHexAddress string, ethHostAddress string,
 	var lastBlock *big.Int
 	lastRequest, err := service.Store.RandomnessRequest.Last()
 	if blockNumber, _ := service.Store.Keystorage.GetBlockNumber(); blockNumber != 0 {
-		lastBlock = big.NewInt(blockNumber)
+		lastBlock = big.NewInt(blockNumber + 1)
 	} else if lastRequest != nil {
 		lastBlock = big.NewInt(int64(lastRequest.GetBlockNumber()))
 	} else if config.Conf.FirstBlockNumber != 0 {
-		lastBlock = big.NewInt(int64(config.Conf.FirstBlockNumber))
+		lastBlock = big.NewInt(int64(config.Conf.FirstBlockNumber + 1))
 	} else {
 		lastBlock = big.NewInt(1)
 	}
@@ -72,7 +72,7 @@ func NewVORCoordinatorListener(contractHexAddress string, ethHostAddress string,
 
 func (d VORCoordinatorListener) StartPoll() (err error) {
 	d.wg.Add(1)
-	var sleepTime = int32(3)
+	var sleepTime = int32(30)
 	if config.Conf.CheckDuration != 0 {
 		sleepTime = config.Conf.CheckDuration
 	}
@@ -84,9 +84,13 @@ func (d VORCoordinatorListener) StartPoll() (err error) {
 	return
 }
 
+func (d VORCoordinatorListener) Shutdown() {
+	d.wg.Done()
+}
+
 func (d *VORCoordinatorListener) SetLastBlockNumber(blockNumber uint64) (err error) {
-	d.query.FromBlock = big.NewInt(int64(blockNumber))
-	err = d.service.Store.Keystorage.SetBlockNumber(int64(blockNumber + 1))
+	d.query.FromBlock = big.NewInt(int64(blockNumber + 1))
+	err = d.service.Store.Keystorage.SetBlockNumber(int64(blockNumber))
 	return
 }
 
@@ -123,6 +127,8 @@ func (d *VORCoordinatorListener) Request() error {
 			if err != nil {
 				return err
 			}
+			fmt.Println("event.KeyHash: ", event.KeyHash)
+			fmt.Println("d.keyHash: ", d.keyHash)
 			if event.KeyHash == d.keyHash {
 
 				fmt.Println("It's request to me =)")
@@ -132,7 +138,7 @@ func (d *VORCoordinatorListener) Request() error {
 				var status string
 				tx, err := d.service.FulfillRandomness(byteSeed, vLog.BlockHash, int64(vLog.BlockNumber))
 				fmt.Println(tx)
-				if err == nil {
+				if err != nil {
 					fmt.Println(err)
 					status = "failed"
 				} else {

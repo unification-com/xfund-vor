@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"math/big"
 	"oracle/chaincall"
 	"oracle/config"
@@ -13,13 +13,10 @@ type Service struct {
 	ctx                  context.Context
 	Store                *store.Store
 	VORCoordinatorCaller *chaincall.VORCoordinatorCaller
+	log                  *log.Logger
 }
 
 func NewService(ctx context.Context, store *store.Store) (*Service, error) {
-	fmt.Println(config.Conf.VORCoordinatorContractAddress)
-	fmt.Println(config.Conf.EthHTTPHost)
-	fmt.Println(big.NewInt(config.Conf.NetworkID))
-	fmt.Println([]byte(store.Keystorage.GetSelectedPrivateKey()))
 	VORCoordinatorCaller, err := chaincall.NewVORCoordinatorCaller(config.Conf.VORCoordinatorContractAddress, config.Conf.EthHTTPHost, big.NewInt(config.Conf.NetworkID), []byte(store.Keystorage.GetSelectedPrivateKey()))
 	if err != nil {
 		return nil, err

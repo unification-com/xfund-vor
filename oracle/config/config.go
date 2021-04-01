@@ -25,7 +25,19 @@ type Database struct {
 	Database string `json:"database"`
 }
 
-var Conf *Config
+var Conf = &Config{
+	FirstBlockNumber: 1,
+	LogFile:          "oracle.log",
+	LimitGasPrice:    1000000,
+	Serve: &Serve{
+		Host: "0.0.0.0",
+		Port: 8445,
+	},
+	CheckDuration: 15,
+	Keystorage: &Keystorage{
+		File: "./keystore.json",
+	},
+}
 
 type Config struct {
 	VORCoordinatorContractAddress string      `json:"contract_address"`
@@ -39,6 +51,7 @@ type Config struct {
 	Serve                         *Serve      `json:"serve"`
 	LogFile                       string      `json:"log_file"`
 	LogLevel                      string      `json:"log_level"`
+	LimitGasPrice                 int64       `json:"gas_limit"`
 	Keystorage                    *Keystorage `json:"keystorage"`
 	Database                      *Database   `json:"database"`
 }

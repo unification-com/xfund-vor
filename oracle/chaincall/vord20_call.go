@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"log"
 	"math/big"
+	"oracle/config"
 	"oracle/contracts/vord_20"
 	"oracle/utils/walletworker"
 )
@@ -23,6 +24,7 @@ type VORD20Caller struct {
 	transactOpts    *bind.TransactOpts
 	callOpts        *bind.CallOpts
 
+	contex           context.Context
 	oraclePrivateKey string
 	oraclePublicKey  string
 	oracleAddress    string
@@ -30,6 +32,7 @@ type VORD20Caller struct {
 
 func NewVORD20Caller(contractStringAddress string, ethHostAddress string, chainID *big.Int, oraclePrivateKey []byte) (*VORD20Caller, error) {
 	client, err := ethclient.Dial(ethHostAddress)
+	ctx := context.Background()
 	if err != nil {
 		return nil, err
 	}
@@ -62,19 +65,19 @@ func NewVORD20Caller(contractStringAddress string, ethHostAddress string, chainI
 		return nil, err
 	}
 
-	gasPrice, err := client.SuggestGasPrice(context.Background())
+	gasPrice, err := client.SuggestGasPrice(ctx)
 	if err != nil {
 		return nil, err
 	}
-	nonce, err := client.PendingNonceAt(context.Background(), common.HexToAddress(oracleAddress))
+	nonce, err := client.PendingNonceAt(ctx, common.HexToAddress(oracleAddress))
 	if err != nil {
 		return nil, err
 	}
 	transactOpts.Nonce = big.NewInt(int64(nonce))
 	//transactOpts.Value = big.NewInt(1000000000000000000)
 	transactOpts.GasPrice = gasPrice
-	transactOpts.GasLimit = uint64(100000) // in units
-	transactOpts.Context = context.Background()
+	transactOpts.GasLimit = uint64(config.Conf.LimitGasPrice) // in units
+	transactOpts.Context = ctx
 	transactOpts.From = oracleAddressObj
 
 	return &VORD20Caller{
@@ -84,24 +87,18 @@ func NewVORD20Caller(contractStringAddress string, ethHostAddress string, chainI
 		transactOpts:     transactOpts,
 		callOpts:         &bind.CallOpts{From: oracleAddressObj},
 		oraclePrivateKey: string(oraclePrivateKey),
+		contex:           ctx,
 		oraclePublicKey:  hexutil.Encode(crypto.FromECDSAPub(oraclePublicKey.(*ecdsa.PublicKey))),
 		oracleAddress:    oracleAddress,
 	}, err
 }
 
 func (d *VORD20Caller) RenewTransactOpts() (err error) {
-	fmt.Println("RenewTransactOpts")
-	gasPrice, err := d.client.SuggestGasPrice(context.Background())
-	if err != nil {
-		return
-	}
-	nonce, err := d.client.PendingNonceAt(context.Background(), common.HexToAddress(d.oracleAddress))
+	nonce, err := d.client.PendingNonceAt(d.contex, common.HexToAddress(d.oracleAddress))
 	if err != nil {
 		return
 	}
 	d.transactOpts.Nonce = big.NewInt(int64(nonce))
-	d.transactOpts.GasPrice = gasPrice
-	d.transactOpts.GasLimit = uint64(100000) // in units
 
 	return
 }
@@ -113,7 +110,6 @@ func (d *VORD20Caller) RollDice(seed *big.Int) (*types.Transaction, error) {
 
 func (d VORD20Caller) TopUpGas(amount *big.Int) (*types.Transaction, error) {
 	defer d.RenewTransactOpts()
-	d.transactOpts.Value = amount
 	return d.instance.TopUpGas(d.transactOpts, amount)
 }
 
@@ -140,6 +136,11 @@ func (d *VORD20Caller) KeyHash() ([32]byte, error) {
 func (d *VORD20Caller) Fee() (*big.Int, error) {
 	defer d.RenewTransactOpts()
 	return d.instance.Fee(d.callOpts)
+}
+
+func (d *VORD20Caller) House() (string, error) {
+	defer d.RenewTransactOpts()
+	return d.instance.House(d.callOpts, common.HexToAddress(d.oracleAddress))
 }
 
 func (d *VORD20Caller) Transfer() {
