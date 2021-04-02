@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/spf13/cobra"
+	"io/ioutil"
 	"net/http"
 	"oraclecli/models"
 	"oraclecli/utils"
@@ -54,7 +55,9 @@ var setproviderpaysgasCmd = &cobra.Command{
 		if err != nil {
 			fmt.Println("Something went wrong.")
 		}
-		fmt.Println(resp)
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		fmt.Println(string(body))
 	},
 }
 

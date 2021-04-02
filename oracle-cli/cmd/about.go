@@ -45,7 +45,7 @@ var aboutCmd = &cobra.Command{
 		}
 		defer resp.Body.Close()
 		body, err := ioutil.ReadAll(resp.Body)
-		fmt.Print(string(body))
+		fmt.Println(string(body))
 	},
 }
 

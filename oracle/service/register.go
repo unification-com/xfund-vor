@@ -13,15 +13,15 @@ func (d *Service) Register(account string, privateKey string, fee int64, provide
 		return nil, fmt.Errorf("This account name is already used")
 	}
 
+	VORCoordinatorCallerNew, err := chaincall.NewVORCoordinatorCaller(config.Conf.VORCoordinatorContractAddress, config.Conf.EthHTTPHost, big.NewInt(config.Conf.NetworkID), []byte(privateKey))
+	if err != nil {
+		return
+	}
+
 	err = d.Store.Keystorage.AddExisting(account, privateKey)
-
-	if err != nil {
-		return
-	}
-	d.VORCoordinatorCaller, err = chaincall.NewVORCoordinatorCaller(config.Conf.VORCoordinatorContractAddress, config.Conf.EthHTTPHost, big.NewInt(config.Conf.NetworkID), []byte(d.Store.Keystorage.GetSelectedPrivateKey()))
 	if err != nil {
 		return
 	}
 
-	return d.VORCoordinatorCaller.RegisterProvingKey(big.NewInt(fee), providerPaysGas)
+	return VORCoordinatorCallerNew.RegisterProvingKey(big.NewInt(fee), providerPaysGas)
 }

@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"oraclecli/models"
 	"oraclecli/utils"
@@ -57,7 +58,9 @@ var withdrawCmd = &cobra.Command{
 		if err != nil {
 			fmt.Println("Something went wrong.")
 		}
-		fmt.Println(resp)
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		fmt.Print(string(body))
 	},
 }
 
@@ -84,7 +87,7 @@ func GetAddress() (input string, err error) {
 	_, err = fmt.Scanf("%s\n", &input)
 	if input == "" {
 		fmt.Println("Please enter address.")
-		input, err = GetPrivateKey()
+		input, err = GetAddress()
 	}
 	return
 }

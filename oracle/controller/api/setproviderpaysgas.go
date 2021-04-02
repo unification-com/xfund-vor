@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"oracle/models/api"
@@ -8,10 +9,10 @@ import (
 
 func (d *Oracle) SetProviderPaysGas(c echo.Context) error {
 	var requestModel api.OracleSetProviderPaysGasRequestModel
-	c.Bind(&requestModel)
+	json.NewDecoder(c.Request().Body).Decode(&requestModel)
 	transactionInfo, err := d.service.SetProviderPaysGas(requestModel.ProviderPays)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, transactionInfo)
+		return c.String(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, transactionInfo)
 }

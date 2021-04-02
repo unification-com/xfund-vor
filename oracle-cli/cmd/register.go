@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/spf13/cobra"
+	"io/ioutil"
 	"net/http"
 	"oraclecli/models"
 	"oraclecli/utils"
@@ -74,12 +75,13 @@ func Register(cmd *cobra.Command, args []string) (err error) {
 	if err != nil {
 		fmt.Println("Something went wrong.")
 	}
-	fmt.Println(resp)
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(body))
 	return
 }
 
 func GetUsername() (input string, err error) {
-	fmt.Println("")
 	fmt.Print("Username: ")
 	_, err = fmt.Scanf("%s\n", &input)
 	if input == "" {
@@ -91,7 +93,7 @@ func GetUsername() (input string, err error) {
 
 func GetPrivateKey() (input string, err error) {
 	fmt.Println("")
-	fmt.Print("Private Key: ")
+	fmt.Print("Private Key (NOTE: it has to start with 0x): ")
 	_, err = fmt.Scanf("%s\n", &input)
 	if input == "" {
 		fmt.Println("Please enter account Private Key.")

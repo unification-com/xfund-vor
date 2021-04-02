@@ -3,7 +3,6 @@ package chaincall
 import (
 	"context"
 	"crypto/ecdsa"
-	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -14,6 +13,7 @@ import (
 	"math/big"
 	"oracle/config"
 	"oracle/contracts/vor_coordinator"
+	"oracle/utils"
 	"oracle/utils/walletworker"
 )
 
@@ -43,8 +43,7 @@ func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(oraclePrivateKey))
-	oraclePrivateKeyECDSA, err := crypto.HexToECDSA(string(oraclePrivateKey[2:]))
+	oraclePrivateKeyECDSA, err := crypto.HexToECDSA(utils.RemoveHexPrefix(string(oraclePrivateKey)))
 	if err != nil {
 		return nil, err
 	}

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"oraclecli/models"
 	"os"
@@ -12,6 +13,15 @@ var Settings *SettingsStore
 type SettingsStore struct {
 	File     *os.File
 	Settings *models.Settings
+}
+
+func (d *SettingsStore) String() string {
+	return fmt.Sprintf(`
+Current oracle-cli settings:
+	Oracle Host: %s
+	Oracle Port: %s
+	Key: ...
+`, d.Settings.GetOracleHost(), d.Settings.GetOraclePort())
 }
 
 func NewSettingsStore(filePath string) (*SettingsStore, error) {

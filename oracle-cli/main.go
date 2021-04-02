@@ -17,12 +17,18 @@ package main
 
 import (
 	"fmt"
+	"github.com/mitchellh/go-homedir"
 	"oraclecli/cmd"
 	"oraclecli/utils"
+	"path/filepath"
 )
 
 func main() {
-	settings, err := utils.NewSettingsStore("./settings.json")
+	homepath, err := homedir.Dir()
+	if err != nil {
+		fmt.Println(err)
+	}
+	settings, err := utils.NewSettingsStore(filepath.Join(homepath, ".oracle-cli_settings.json"))
 	if err != nil {
 		fmt.Println(err)
 	}

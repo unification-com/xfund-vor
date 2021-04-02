@@ -45,9 +45,6 @@ Use this command to stop oracle
 		client := &http.Client{}
 		resp, err := client.Do(req)
 
-		if err != nil {
-			fmt.Println("Something went wrong.")
-		}
 		fmt.Println(resp)
 	},
 }

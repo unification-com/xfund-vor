@@ -29,6 +29,7 @@ var settingsCmd = &cobra.Command{
 	Short: "Oracle CLI settings command",
 	Long:  `Use this command to setup your CLI (or change existing settings).`,
 	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Print(utils.Settings.String())
 		_, err := GetSettings()
 		if err != nil {
 			fmt.Println(err)

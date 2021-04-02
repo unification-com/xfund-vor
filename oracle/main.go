@@ -31,7 +31,6 @@ var parser = flags.NewParser(&options, flags.Default)
 
 func main() {
 	var err error
-	defer fmt.Println("shutting down...")
 
 	if _, err := parser.Parse(); err != nil {
 		panic(err)
@@ -47,7 +46,7 @@ func main() {
 			"action":   "exit",
 			"result":   "exiting oracle daemon...",
 		}).Info()
-		os.Exit(1)
+		err = Stop()
 	}()
 
 	fmt.Println(options.Config)

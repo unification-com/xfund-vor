@@ -15,8 +15,9 @@ import (
 	store2 "oracle/store"
 	"oracle/store/keystorage"
 	"os"
-	"time"
 )
+
+var e = echo.New()
 
 func start() (err error) {
 	var ctx = context.Background()
@@ -92,10 +93,8 @@ func start() (err error) {
 	}
 
 	oracleController, err := controller.NewOracle(ctx, log, oracleService)
-	oracleListener, err := chainlisten.NewVORCoordinatorListener(config.Conf.VORCoordinatorContractAddress, config.Conf.EthHTTPHost, oracleService, ctx)
+	oracleListener, err = chainlisten.NewVORCoordinatorListener(config.Conf.VORCoordinatorContractAddress, config.Conf.EthHTTPHost, oracleService, ctx)
 	go oracleListener.StartPoll()
-
-	e := echo.New()
 
 	// Middleware
 	e.Use(middleware.Recover())
@@ -105,33 +104,9 @@ func start() (err error) {
 	e.POST("/withdraw", oracleController.Withdraw)
 	e.POST("/register", oracleController.Register)
 	e.POST("/changefee", oracleController.ChangeFee)
+	e.POST("/setproviderpaysgas", oracleController.SetProviderPaysGas)
 	e.POST("/stop", func(c echo.Context) error {
-		if stop1 {
-			log.WithFields(logrus.Fields{
-				"package":  "main",
-				"function": "start",
-				"action":   "stop service",
-				"result":   fmt.Sprintf("stopped %d %s", PID, time.Now().String()),
-			}).Warning()
-		}
-		stop1 = true
-		log.WithFields(logrus.Fields{
-			"package":  "main",
-			"function": "start",
-			"action":   "stop service",
-			"result":   fmt.Sprintf("stopped %d %s", PID, time.Now().String()),
-		}).Warning()
-		err := e.Shutdown(context.Background())
-		if err != nil {
-			log.WithFields(logrus.Fields{
-				"package":  "main",
-				"function": "start",
-				"action":   "stop echo server",
-				"result":   err.Error(),
-			}).Error()
-			err = e.Close()
-		}
-		oracleListener.Shutdown()
+		err = Stop()
 		return err
 	})
 	e.GET("/about", oracleController.About)
