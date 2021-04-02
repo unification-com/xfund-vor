@@ -10,3 +10,5 @@ coverage.json
 .vscode
 .idea
 
+vendor
+
