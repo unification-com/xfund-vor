@@ -32,7 +32,7 @@ var rootCmd = &cobra.Command{
 	Long: `CLI to manage your Oracle.
 
 Note:
- You need to run "oracled start -c [config_path | optional] -k [key | optional]" to start your daemon before using CLI.
+ You need to run "oracle start -c [config_path | optional] -k [key | optional]" to start your daemon before using CLI.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create a Bearer string by appending string access token
