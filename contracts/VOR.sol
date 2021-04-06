@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.6;
+pragma solidity 0.6.12;
 
 contract VOR {
     // See https://www.secg.org/sec2-v2.pdf, section 2.4.1, for these constants.
