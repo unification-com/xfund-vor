@@ -1,22 +1,50 @@
 {
   "name": "xfund-vor",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "scripts": {
     "test": "truffle test",
     "build": "truffle compile",
     "lint": "solhint contracts/**/*.sol",
-    "coverage": "node --max-old-space-size=4096 ./node_modules/.bin/truffle run coverage"
+    "coverage": "node --max-old-space-size=4096 ./node_modules/.bin/truffle run coverage",
+    "prepublishOnly": "truffle compile",
+    "docs:api:clean": "rimraf docs/api",
+    "docs:api:postclean": "rimraf docs/api/Migrations.md && rimraf docs/api/interfaces",
+    "docs:api:build": "yarn run docs:api:clean && solidity-docgen -t ./docs/templates -o ./docs/api -e contracts/mocks && yarn run docs:api:postclean",
+    "docs:compile": "rimraf docs/.vuepress/dist && yarn run docs:api:build && vuepress build docs",
+    "docs:dev": "vuepress dev docs"
   },
   "devDependencies": {
+    "@chainsafe/truffle-plugin-abigen": "^0.0.2",
     "@openzeppelin/test-helpers": "^0.5.10",
     "chai": "^4.3.0",
     "chai-as-promised": "^7.1.1",
     "ganache-cli": "^6.12.2",
+    "rimraf": "^3.0.2",
+    "solc": "^0.6.6",
     "solhint": "^3.3.2",
     "solidity-coverage": "^0.7.15",
-    "truffle": "^5.2.1"
+    "solidity-docgen": "^0.5.11",
+    "truffle": "^5.2.1",
+    "truffle-plugin-verify": "^0.5.7",
+    "vuepress": "^1.8.2"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^3.4.0"
-  }
+    "@openzeppelin/contracts": "^3.4.0",
+    "@truffle/hdwallet-provider": "^1.2.6",
+    "dotenv": "^8.2.0"
+  },
+  "files": [
+    "/contracts/**/*.sol",
+    "/build/contracts/*.json",
+    "/docs/**/*.md",
+    "!/abigenBindings/**/*",
+    "!/contracts/mocks",
+    "!/contracts/examples",
+    "!/contracts/Migrations.sol",
+    "!/build/contracts/*Mock.json",
+    "!/build/contracts/Mock*.json",
+    "!/build/contracts/Migrations.json",
+    "!/build/contracts/Ownable.json",
+    "!/build/contracts/VORD20.json"
+  ]
 }
