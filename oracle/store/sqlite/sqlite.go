@@ -3,6 +3,7 @@ package sqlite
 import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"oracle/config"
 )
 
 type DB struct {
@@ -10,7 +11,7 @@ type DB struct {
 }
 
 func NewDB() (*DB, error) {
-	db, err := gorm.Open(sqlite.Open("./oracle.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(config.Conf.Database.Storage), &gorm.Config{})
 	return &DB{
 		db,
 	}, err

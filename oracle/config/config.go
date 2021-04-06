@@ -23,6 +23,8 @@ type Database struct {
 	User     string `json:"user"`
 	Password string `json:"password"`
 	Database string `json:"database"`
+	Storage  string `json:"storage"`
+	Dialect  string `json:"dialect"`
 }
 
 var Conf = &Config{
@@ -36,6 +38,10 @@ var Conf = &Config{
 	CheckDuration: 15,
 	Keystorage: &Keystorage{
 		File: "./keystore.json",
+	},
+	Database: &Database{
+		Dialect: "sqlite",
+		Storage: "./oracle.db",
 	},
 }
 
@@ -51,7 +57,7 @@ type Config struct {
 	Serve                         *Serve      `json:"serve"`
 	LogFile                       string      `json:"log_file"`
 	LogLevel                      string      `json:"log_level"`
-	LimitGasPrice                 int64       `json:"gas_limit"`
+	LimitGasPrice                 int64       `json:"gas_price_limit"`
 	Keystorage                    *Keystorage `json:"keystorage"`
 	Database                      *Database   `json:"database"`
 }
