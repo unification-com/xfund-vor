@@ -26,107 +26,107 @@ var (
 	_ = event.NewSubscription
 )
 
-// MockERC20ABI is the input ABI used to generate the binding from.
-const MockERC20ABI = "[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"symbol\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"supply\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Approval\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"}],\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"subtractedValue\",\"type\":\"uint256\"}],\"name\":\"decreaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"addedValue\",\"type\":\"uint256\"}],\"name\":\"increaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+// MockErc20ABI is the input ABI used to generate the binding from.
+const MockErc20ABI = "[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"symbol\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"supply\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Approval\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"}],\"name\":\"allowance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"subtractedValue\",\"type\":\"uint256\"}],\"name\":\"decreaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"spender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"addedValue\",\"type\":\"uint256\"}],\"name\":\"increaseAllowance\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
 
-// MockERC20 is an auto generated Go binding around an Ethereum contract.
-type MockERC20 struct {
-	MockERC20Caller     // Read-only binding to the contract
-	MockERC20Transactor // Write-only binding to the contract
-	MockERC20Filterer   // Log filterer for contract events
+// MockErc20 is an auto generated Go binding around an Ethereum contract.
+type MockErc20 struct {
+	MockErc20Caller     // Read-only binding to the contract
+	MockErc20Transactor // Write-only binding to the contract
+	MockErc20Filterer   // Log filterer for contract events
 }
 
-// MockERC20Caller is an auto generated read-only Go binding around an Ethereum contract.
-type MockERC20Caller struct {
+// MockErc20Caller is an auto generated read-only Go binding around an Ethereum contract.
+type MockErc20Caller struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// MockERC20Transactor is an auto generated write-only Go binding around an Ethereum contract.
-type MockERC20Transactor struct {
+// MockErc20Transactor is an auto generated write-only Go binding around an Ethereum contract.
+type MockErc20Transactor struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// MockERC20Filterer is an auto generated log filtering Go binding around an Ethereum contract events.
-type MockERC20Filterer struct {
+// MockErc20Filterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type MockErc20Filterer struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// MockERC20Session is an auto generated Go binding around an Ethereum contract,
+// MockErc20Session is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
-type MockERC20Session struct {
-	Contract     *MockERC20        // Generic contract binding to set the session for
+type MockErc20Session struct {
+	Contract     *MockErc20        // Generic contract binding to set the session for
 	CallOpts     bind.CallOpts     // Call options to use throughout this session
 	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
-// MockERC20CallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// MockErc20CallerSession is an auto generated read-only Go binding around an Ethereum contract,
 // with pre-set call options.
-type MockERC20CallerSession struct {
-	Contract *MockERC20Caller // Generic contract caller binding to set the session for
+type MockErc20CallerSession struct {
+	Contract *MockErc20Caller // Generic contract caller binding to set the session for
 	CallOpts bind.CallOpts    // Call options to use throughout this session
 }
 
-// MockERC20TransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// MockErc20TransactorSession is an auto generated write-only Go binding around an Ethereum contract,
 // with pre-set transact options.
-type MockERC20TransactorSession struct {
-	Contract     *MockERC20Transactor // Generic contract transactor binding to set the session for
+type MockErc20TransactorSession struct {
+	Contract     *MockErc20Transactor // Generic contract transactor binding to set the session for
 	TransactOpts bind.TransactOpts    // Transaction auth options to use throughout this session
 }
 
-// MockERC20Raw is an auto generated low-level Go binding around an Ethereum contract.
-type MockERC20Raw struct {
-	Contract *MockERC20 // Generic contract binding to access the raw methods on
+// MockErc20Raw is an auto generated low-level Go binding around an Ethereum contract.
+type MockErc20Raw struct {
+	Contract *MockErc20 // Generic contract binding to access the raw methods on
 }
 
-// MockERC20CallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
-type MockERC20CallerRaw struct {
-	Contract *MockERC20Caller // Generic read-only contract binding to access the raw methods on
+// MockErc20CallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type MockErc20CallerRaw struct {
+	Contract *MockErc20Caller // Generic read-only contract binding to access the raw methods on
 }
 
-// MockERC20TransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
-type MockERC20TransactorRaw struct {
-	Contract *MockERC20Transactor // Generic write-only contract binding to access the raw methods on
+// MockErc20TransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type MockErc20TransactorRaw struct {
+	Contract *MockErc20Transactor // Generic write-only contract binding to access the raw methods on
 }
 
-// NewMockERC20 creates a new instance of MockERC20, bound to a specific deployed contract.
-func NewMockERC20(address common.Address, backend bind.ContractBackend) (*MockERC20, error) {
-	contract, err := bindMockERC20(address, backend, backend, backend)
+// NewMockErc20 creates a new instance of MockErc20, bound to a specific deployed contract.
+func NewMockErc20(address common.Address, backend bind.ContractBackend) (*MockErc20, error) {
+	contract, err := bindMockErc20(address, backend, backend, backend)
 	if err != nil {
 		return nil, err
 	}
-	return &MockERC20{MockERC20Caller: MockERC20Caller{contract: contract}, MockERC20Transactor: MockERC20Transactor{contract: contract}, MockERC20Filterer: MockERC20Filterer{contract: contract}}, nil
+	return &MockErc20{MockErc20Caller: MockErc20Caller{contract: contract}, MockErc20Transactor: MockErc20Transactor{contract: contract}, MockErc20Filterer: MockErc20Filterer{contract: contract}}, nil
 }
 
-// NewMockERC20Caller creates a new read-only instance of MockERC20, bound to a specific deployed contract.
-func NewMockERC20Caller(address common.Address, caller bind.ContractCaller) (*MockERC20Caller, error) {
-	contract, err := bindMockERC20(address, caller, nil, nil)
+// NewMockErc20Caller creates a new read-only instance of MockErc20, bound to a specific deployed contract.
+func NewMockErc20Caller(address common.Address, caller bind.ContractCaller) (*MockErc20Caller, error) {
+	contract, err := bindMockErc20(address, caller, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &MockERC20Caller{contract: contract}, nil
+	return &MockErc20Caller{contract: contract}, nil
 }
 
-// NewMockERC20Transactor creates a new write-only instance of MockERC20, bound to a specific deployed contract.
-func NewMockERC20Transactor(address common.Address, transactor bind.ContractTransactor) (*MockERC20Transactor, error) {
-	contract, err := bindMockERC20(address, nil, transactor, nil)
+// NewMockErc20Transactor creates a new write-only instance of MockErc20, bound to a specific deployed contract.
+func NewMockErc20Transactor(address common.Address, transactor bind.ContractTransactor) (*MockErc20Transactor, error) {
+	contract, err := bindMockErc20(address, nil, transactor, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &MockERC20Transactor{contract: contract}, nil
+	return &MockErc20Transactor{contract: contract}, nil
 }
 
-// NewMockERC20Filterer creates a new log filterer instance of MockERC20, bound to a specific deployed contract.
-func NewMockERC20Filterer(address common.Address, filterer bind.ContractFilterer) (*MockERC20Filterer, error) {
-	contract, err := bindMockERC20(address, nil, nil, filterer)
+// NewMockErc20Filterer creates a new log filterer instance of MockErc20, bound to a specific deployed contract.
+func NewMockErc20Filterer(address common.Address, filterer bind.ContractFilterer) (*MockErc20Filterer, error) {
+	contract, err := bindMockErc20(address, nil, nil, filterer)
 	if err != nil {
 		return nil, err
 	}
-	return &MockERC20Filterer{contract: contract}, nil
+	return &MockErc20Filterer{contract: contract}, nil
 }
 
-// bindMockERC20 binds a generic wrapper to an already deployed contract.
-func bindMockERC20(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := abi.JSON(strings.NewReader(MockERC20ABI))
+// bindMockErc20 binds a generic wrapper to an already deployed contract.
+func bindMockErc20(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := abi.JSON(strings.NewReader(MockErc20ABI))
 	if err != nil {
 		return nil, err
 	}
@@ -137,46 +137,46 @@ func bindMockERC20(address common.Address, caller bind.ContractCaller, transacto
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_MockERC20 *MockERC20Raw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _MockERC20.Contract.MockERC20Caller.contract.Call(opts, result, method, params...)
+func (_MockErc20 *MockErc20Raw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _MockErc20.Contract.MockErc20Caller.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_MockERC20 *MockERC20Raw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _MockERC20.Contract.MockERC20Transactor.contract.Transfer(opts)
+func (_MockErc20 *MockErc20Raw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _MockErc20.Contract.MockErc20Transactor.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_MockERC20 *MockERC20Raw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _MockERC20.Contract.MockERC20Transactor.contract.Transact(opts, method, params...)
+func (_MockErc20 *MockErc20Raw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _MockErc20.Contract.MockErc20Transactor.contract.Transact(opts, method, params...)
 }
 
 // Call invokes the (constant) contract method with params as input values and
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_MockERC20 *MockERC20CallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _MockERC20.Contract.contract.Call(opts, result, method, params...)
+func (_MockErc20 *MockErc20CallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _MockErc20.Contract.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_MockERC20 *MockERC20TransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _MockERC20.Contract.contract.Transfer(opts)
+func (_MockErc20 *MockErc20TransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _MockErc20.Contract.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_MockERC20 *MockERC20TransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _MockERC20.Contract.contract.Transact(opts, method, params...)
+func (_MockErc20 *MockErc20TransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _MockErc20.Contract.contract.Transact(opts, method, params...)
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
 //
 // Solidity: function allowance(address owner, address spender) view returns(uint256)
-func (_MockERC20 *MockERC20Caller) Allowance(opts *bind.CallOpts, owner common.Address, spender common.Address) (*big.Int, error) {
+func (_MockErc20 *MockErc20Caller) Allowance(opts *bind.CallOpts, owner common.Address, spender common.Address) (*big.Int, error) {
 	var out []interface{}
-	err := _MockERC20.contract.Call(opts, &out, "allowance", owner, spender)
+	err := _MockErc20.contract.Call(opts, &out, "allowance", owner, spender)
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -191,23 +191,23 @@ func (_MockERC20 *MockERC20Caller) Allowance(opts *bind.CallOpts, owner common.A
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
 //
 // Solidity: function allowance(address owner, address spender) view returns(uint256)
-func (_MockERC20 *MockERC20Session) Allowance(owner common.Address, spender common.Address) (*big.Int, error) {
-	return _MockERC20.Contract.Allowance(&_MockERC20.CallOpts, owner, spender)
+func (_MockErc20 *MockErc20Session) Allowance(owner common.Address, spender common.Address) (*big.Int, error) {
+	return _MockErc20.Contract.Allowance(&_MockErc20.CallOpts, owner, spender)
 }
 
 // Allowance is a free data retrieval call binding the contract method 0xdd62ed3e.
 //
 // Solidity: function allowance(address owner, address spender) view returns(uint256)
-func (_MockERC20 *MockERC20CallerSession) Allowance(owner common.Address, spender common.Address) (*big.Int, error) {
-	return _MockERC20.Contract.Allowance(&_MockERC20.CallOpts, owner, spender)
+func (_MockErc20 *MockErc20CallerSession) Allowance(owner common.Address, spender common.Address) (*big.Int, error) {
+	return _MockErc20.Contract.Allowance(&_MockErc20.CallOpts, owner, spender)
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
 //
 // Solidity: function balanceOf(address account) view returns(uint256)
-func (_MockERC20 *MockERC20Caller) BalanceOf(opts *bind.CallOpts, account common.Address) (*big.Int, error) {
+func (_MockErc20 *MockErc20Caller) BalanceOf(opts *bind.CallOpts, account common.Address) (*big.Int, error) {
 	var out []interface{}
-	err := _MockERC20.contract.Call(opts, &out, "balanceOf", account)
+	err := _MockErc20.contract.Call(opts, &out, "balanceOf", account)
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -222,23 +222,23 @@ func (_MockERC20 *MockERC20Caller) BalanceOf(opts *bind.CallOpts, account common
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
 //
 // Solidity: function balanceOf(address account) view returns(uint256)
-func (_MockERC20 *MockERC20Session) BalanceOf(account common.Address) (*big.Int, error) {
-	return _MockERC20.Contract.BalanceOf(&_MockERC20.CallOpts, account)
+func (_MockErc20 *MockErc20Session) BalanceOf(account common.Address) (*big.Int, error) {
+	return _MockErc20.Contract.BalanceOf(&_MockErc20.CallOpts, account)
 }
 
 // BalanceOf is a free data retrieval call binding the contract method 0x70a08231.
 //
 // Solidity: function balanceOf(address account) view returns(uint256)
-func (_MockERC20 *MockERC20CallerSession) BalanceOf(account common.Address) (*big.Int, error) {
-	return _MockERC20.Contract.BalanceOf(&_MockERC20.CallOpts, account)
+func (_MockErc20 *MockErc20CallerSession) BalanceOf(account common.Address) (*big.Int, error) {
+	return _MockErc20.Contract.BalanceOf(&_MockErc20.CallOpts, account)
 }
 
 // Decimals is a free data retrieval call binding the contract method 0x313ce567.
 //
 // Solidity: function decimals() view returns(uint8)
-func (_MockERC20 *MockERC20Caller) Decimals(opts *bind.CallOpts) (uint8, error) {
+func (_MockErc20 *MockErc20Caller) Decimals(opts *bind.CallOpts) (uint8, error) {
 	var out []interface{}
-	err := _MockERC20.contract.Call(opts, &out, "decimals")
+	err := _MockErc20.contract.Call(opts, &out, "decimals")
 
 	if err != nil {
 		return *new(uint8), err
@@ -253,23 +253,23 @@ func (_MockERC20 *MockERC20Caller) Decimals(opts *bind.CallOpts) (uint8, error) 
 // Decimals is a free data retrieval call binding the contract method 0x313ce567.
 //
 // Solidity: function decimals() view returns(uint8)
-func (_MockERC20 *MockERC20Session) Decimals() (uint8, error) {
-	return _MockERC20.Contract.Decimals(&_MockERC20.CallOpts)
+func (_MockErc20 *MockErc20Session) Decimals() (uint8, error) {
+	return _MockErc20.Contract.Decimals(&_MockErc20.CallOpts)
 }
 
 // Decimals is a free data retrieval call binding the contract method 0x313ce567.
 //
 // Solidity: function decimals() view returns(uint8)
-func (_MockERC20 *MockERC20CallerSession) Decimals() (uint8, error) {
-	return _MockERC20.Contract.Decimals(&_MockERC20.CallOpts)
+func (_MockErc20 *MockErc20CallerSession) Decimals() (uint8, error) {
+	return _MockErc20.Contract.Decimals(&_MockErc20.CallOpts)
 }
 
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
 //
 // Solidity: function name() view returns(string)
-func (_MockERC20 *MockERC20Caller) Name(opts *bind.CallOpts) (string, error) {
+func (_MockErc20 *MockErc20Caller) Name(opts *bind.CallOpts) (string, error) {
 	var out []interface{}
-	err := _MockERC20.contract.Call(opts, &out, "name")
+	err := _MockErc20.contract.Call(opts, &out, "name")
 
 	if err != nil {
 		return *new(string), err
@@ -284,23 +284,23 @@ func (_MockERC20 *MockERC20Caller) Name(opts *bind.CallOpts) (string, error) {
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
 //
 // Solidity: function name() view returns(string)
-func (_MockERC20 *MockERC20Session) Name() (string, error) {
-	return _MockERC20.Contract.Name(&_MockERC20.CallOpts)
+func (_MockErc20 *MockErc20Session) Name() (string, error) {
+	return _MockErc20.Contract.Name(&_MockErc20.CallOpts)
 }
 
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
 //
 // Solidity: function name() view returns(string)
-func (_MockERC20 *MockERC20CallerSession) Name() (string, error) {
-	return _MockERC20.Contract.Name(&_MockERC20.CallOpts)
+func (_MockErc20 *MockErc20CallerSession) Name() (string, error) {
+	return _MockErc20.Contract.Name(&_MockErc20.CallOpts)
 }
 
 // Symbol is a free data retrieval call binding the contract method 0x95d89b41.
 //
 // Solidity: function symbol() view returns(string)
-func (_MockERC20 *MockERC20Caller) Symbol(opts *bind.CallOpts) (string, error) {
+func (_MockErc20 *MockErc20Caller) Symbol(opts *bind.CallOpts) (string, error) {
 	var out []interface{}
-	err := _MockERC20.contract.Call(opts, &out, "symbol")
+	err := _MockErc20.contract.Call(opts, &out, "symbol")
 
 	if err != nil {
 		return *new(string), err
@@ -315,23 +315,23 @@ func (_MockERC20 *MockERC20Caller) Symbol(opts *bind.CallOpts) (string, error) {
 // Symbol is a free data retrieval call binding the contract method 0x95d89b41.
 //
 // Solidity: function symbol() view returns(string)
-func (_MockERC20 *MockERC20Session) Symbol() (string, error) {
-	return _MockERC20.Contract.Symbol(&_MockERC20.CallOpts)
+func (_MockErc20 *MockErc20Session) Symbol() (string, error) {
+	return _MockErc20.Contract.Symbol(&_MockErc20.CallOpts)
 }
 
 // Symbol is a free data retrieval call binding the contract method 0x95d89b41.
 //
 // Solidity: function symbol() view returns(string)
-func (_MockERC20 *MockERC20CallerSession) Symbol() (string, error) {
-	return _MockERC20.Contract.Symbol(&_MockERC20.CallOpts)
+func (_MockErc20 *MockErc20CallerSession) Symbol() (string, error) {
+	return _MockErc20.Contract.Symbol(&_MockErc20.CallOpts)
 }
 
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
 //
 // Solidity: function totalSupply() view returns(uint256)
-func (_MockERC20 *MockERC20Caller) TotalSupply(opts *bind.CallOpts) (*big.Int, error) {
+func (_MockErc20 *MockErc20Caller) TotalSupply(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
-	err := _MockERC20.contract.Call(opts, &out, "totalSupply")
+	err := _MockErc20.contract.Call(opts, &out, "totalSupply")
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -346,125 +346,125 @@ func (_MockERC20 *MockERC20Caller) TotalSupply(opts *bind.CallOpts) (*big.Int, e
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
 //
 // Solidity: function totalSupply() view returns(uint256)
-func (_MockERC20 *MockERC20Session) TotalSupply() (*big.Int, error) {
-	return _MockERC20.Contract.TotalSupply(&_MockERC20.CallOpts)
+func (_MockErc20 *MockErc20Session) TotalSupply() (*big.Int, error) {
+	return _MockErc20.Contract.TotalSupply(&_MockErc20.CallOpts)
 }
 
 // TotalSupply is a free data retrieval call binding the contract method 0x18160ddd.
 //
 // Solidity: function totalSupply() view returns(uint256)
-func (_MockERC20 *MockERC20CallerSession) TotalSupply() (*big.Int, error) {
-	return _MockERC20.Contract.TotalSupply(&_MockERC20.CallOpts)
+func (_MockErc20 *MockErc20CallerSession) TotalSupply() (*big.Int, error) {
+	return _MockErc20.Contract.TotalSupply(&_MockErc20.CallOpts)
 }
 
 // Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
 //
 // Solidity: function approve(address spender, uint256 amount) returns(bool)
-func (_MockERC20 *MockERC20Transactor) Approve(opts *bind.TransactOpts, spender common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _MockERC20.contract.Transact(opts, "approve", spender, amount)
+func (_MockErc20 *MockErc20Transactor) Approve(opts *bind.TransactOpts, spender common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _MockErc20.contract.Transact(opts, "approve", spender, amount)
 }
 
 // Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
 //
 // Solidity: function approve(address spender, uint256 amount) returns(bool)
-func (_MockERC20 *MockERC20Session) Approve(spender common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _MockERC20.Contract.Approve(&_MockERC20.TransactOpts, spender, amount)
+func (_MockErc20 *MockErc20Session) Approve(spender common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _MockErc20.Contract.Approve(&_MockErc20.TransactOpts, spender, amount)
 }
 
 // Approve is a paid mutator transaction binding the contract method 0x095ea7b3.
 //
 // Solidity: function approve(address spender, uint256 amount) returns(bool)
-func (_MockERC20 *MockERC20TransactorSession) Approve(spender common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _MockERC20.Contract.Approve(&_MockERC20.TransactOpts, spender, amount)
+func (_MockErc20 *MockErc20TransactorSession) Approve(spender common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _MockErc20.Contract.Approve(&_MockErc20.TransactOpts, spender, amount)
 }
 
 // DecreaseAllowance is a paid mutator transaction binding the contract method 0xa457c2d7.
 //
 // Solidity: function decreaseAllowance(address spender, uint256 subtractedValue) returns(bool)
-func (_MockERC20 *MockERC20Transactor) DecreaseAllowance(opts *bind.TransactOpts, spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
-	return _MockERC20.contract.Transact(opts, "decreaseAllowance", spender, subtractedValue)
+func (_MockErc20 *MockErc20Transactor) DecreaseAllowance(opts *bind.TransactOpts, spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
+	return _MockErc20.contract.Transact(opts, "decreaseAllowance", spender, subtractedValue)
 }
 
 // DecreaseAllowance is a paid mutator transaction binding the contract method 0xa457c2d7.
 //
 // Solidity: function decreaseAllowance(address spender, uint256 subtractedValue) returns(bool)
-func (_MockERC20 *MockERC20Session) DecreaseAllowance(spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
-	return _MockERC20.Contract.DecreaseAllowance(&_MockERC20.TransactOpts, spender, subtractedValue)
+func (_MockErc20 *MockErc20Session) DecreaseAllowance(spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
+	return _MockErc20.Contract.DecreaseAllowance(&_MockErc20.TransactOpts, spender, subtractedValue)
 }
 
 // DecreaseAllowance is a paid mutator transaction binding the contract method 0xa457c2d7.
 //
 // Solidity: function decreaseAllowance(address spender, uint256 subtractedValue) returns(bool)
-func (_MockERC20 *MockERC20TransactorSession) DecreaseAllowance(spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
-	return _MockERC20.Contract.DecreaseAllowance(&_MockERC20.TransactOpts, spender, subtractedValue)
+func (_MockErc20 *MockErc20TransactorSession) DecreaseAllowance(spender common.Address, subtractedValue *big.Int) (*types.Transaction, error) {
+	return _MockErc20.Contract.DecreaseAllowance(&_MockErc20.TransactOpts, spender, subtractedValue)
 }
 
 // IncreaseAllowance is a paid mutator transaction binding the contract method 0x39509351.
 //
 // Solidity: function increaseAllowance(address spender, uint256 addedValue) returns(bool)
-func (_MockERC20 *MockERC20Transactor) IncreaseAllowance(opts *bind.TransactOpts, spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
-	return _MockERC20.contract.Transact(opts, "increaseAllowance", spender, addedValue)
+func (_MockErc20 *MockErc20Transactor) IncreaseAllowance(opts *bind.TransactOpts, spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
+	return _MockErc20.contract.Transact(opts, "increaseAllowance", spender, addedValue)
 }
 
 // IncreaseAllowance is a paid mutator transaction binding the contract method 0x39509351.
 //
 // Solidity: function increaseAllowance(address spender, uint256 addedValue) returns(bool)
-func (_MockERC20 *MockERC20Session) IncreaseAllowance(spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
-	return _MockERC20.Contract.IncreaseAllowance(&_MockERC20.TransactOpts, spender, addedValue)
+func (_MockErc20 *MockErc20Session) IncreaseAllowance(spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
+	return _MockErc20.Contract.IncreaseAllowance(&_MockErc20.TransactOpts, spender, addedValue)
 }
 
 // IncreaseAllowance is a paid mutator transaction binding the contract method 0x39509351.
 //
 // Solidity: function increaseAllowance(address spender, uint256 addedValue) returns(bool)
-func (_MockERC20 *MockERC20TransactorSession) IncreaseAllowance(spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
-	return _MockERC20.Contract.IncreaseAllowance(&_MockERC20.TransactOpts, spender, addedValue)
+func (_MockErc20 *MockErc20TransactorSession) IncreaseAllowance(spender common.Address, addedValue *big.Int) (*types.Transaction, error) {
+	return _MockErc20.Contract.IncreaseAllowance(&_MockErc20.TransactOpts, spender, addedValue)
 }
 
 // Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
 //
 // Solidity: function transfer(address recipient, uint256 amount) returns(bool)
-func (_MockERC20 *MockERC20Transactor) Transfer(opts *bind.TransactOpts, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _MockERC20.contract.Transact(opts, "transfer", recipient, amount)
+func (_MockErc20 *MockErc20Transactor) Transfer(opts *bind.TransactOpts, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _MockErc20.contract.Transact(opts, "transfer", recipient, amount)
 }
 
 // Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
 //
 // Solidity: function transfer(address recipient, uint256 amount) returns(bool)
-func (_MockERC20 *MockERC20Session) Transfer(recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _MockERC20.Contract.Transfer(&_MockERC20.TransactOpts, recipient, amount)
+func (_MockErc20 *MockErc20Session) Transfer(recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _MockErc20.Contract.Transfer(&_MockErc20.TransactOpts, recipient, amount)
 }
 
 // Transfer is a paid mutator transaction binding the contract method 0xa9059cbb.
 //
 // Solidity: function transfer(address recipient, uint256 amount) returns(bool)
-func (_MockERC20 *MockERC20TransactorSession) Transfer(recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _MockERC20.Contract.Transfer(&_MockERC20.TransactOpts, recipient, amount)
+func (_MockErc20 *MockErc20TransactorSession) Transfer(recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _MockErc20.Contract.Transfer(&_MockErc20.TransactOpts, recipient, amount)
 }
 
 // TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
 //
 // Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
-func (_MockERC20 *MockERC20Transactor) TransferFrom(opts *bind.TransactOpts, sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _MockERC20.contract.Transact(opts, "transferFrom", sender, recipient, amount)
+func (_MockErc20 *MockErc20Transactor) TransferFrom(opts *bind.TransactOpts, sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _MockErc20.contract.Transact(opts, "transferFrom", sender, recipient, amount)
 }
 
 // TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
 //
 // Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
-func (_MockERC20 *MockERC20Session) TransferFrom(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _MockERC20.Contract.TransferFrom(&_MockERC20.TransactOpts, sender, recipient, amount)
+func (_MockErc20 *MockErc20Session) TransferFrom(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _MockErc20.Contract.TransferFrom(&_MockErc20.TransactOpts, sender, recipient, amount)
 }
 
 // TransferFrom is a paid mutator transaction binding the contract method 0x23b872dd.
 //
 // Solidity: function transferFrom(address sender, address recipient, uint256 amount) returns(bool)
-func (_MockERC20 *MockERC20TransactorSession) TransferFrom(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
-	return _MockERC20.Contract.TransferFrom(&_MockERC20.TransactOpts, sender, recipient, amount)
+func (_MockErc20 *MockErc20TransactorSession) TransferFrom(sender common.Address, recipient common.Address, amount *big.Int) (*types.Transaction, error) {
+	return _MockErc20.Contract.TransferFrom(&_MockErc20.TransactOpts, sender, recipient, amount)
 }
 
-// MockERC20ApprovalIterator is returned from FilterApproval and is used to iterate over the raw logs and unpacked data for Approval events raised by the MockERC20 contract.
-type MockERC20ApprovalIterator struct {
-	Event *MockERC20Approval // Event containing the contract specifics and raw log
+// MockErc20ApprovalIterator is returned from FilterApproval and is used to iterate over the raw logs and unpacked data for Approval events raised by the MockErc20 contract.
+type MockErc20ApprovalIterator struct {
+	Event *MockErc20Approval // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -478,7 +478,7 @@ type MockERC20ApprovalIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *MockERC20ApprovalIterator) Next() bool {
+func (it *MockErc20ApprovalIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -487,7 +487,7 @@ func (it *MockERC20ApprovalIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(MockERC20Approval)
+			it.Event = new(MockErc20Approval)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -502,7 +502,7 @@ func (it *MockERC20ApprovalIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(MockERC20Approval)
+		it.Event = new(MockErc20Approval)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -518,19 +518,19 @@ func (it *MockERC20ApprovalIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *MockERC20ApprovalIterator) Error() error {
+func (it *MockErc20ApprovalIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *MockERC20ApprovalIterator) Close() error {
+func (it *MockErc20ApprovalIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// MockERC20Approval represents a Approval event raised by the MockERC20 contract.
-type MockERC20Approval struct {
+// MockErc20Approval represents a Approval event raised by the MockErc20 contract.
+type MockErc20Approval struct {
 	Owner   common.Address
 	Spender common.Address
 	Value   *big.Int
@@ -540,7 +540,7 @@ type MockERC20Approval struct {
 // FilterApproval is a free log retrieval operation binding the contract event 0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925.
 //
 // Solidity: event Approval(address indexed owner, address indexed spender, uint256 value)
-func (_MockERC20 *MockERC20Filterer) FilterApproval(opts *bind.FilterOpts, owner []common.Address, spender []common.Address) (*MockERC20ApprovalIterator, error) {
+func (_MockErc20 *MockErc20Filterer) FilterApproval(opts *bind.FilterOpts, owner []common.Address, spender []common.Address) (*MockErc20ApprovalIterator, error) {
 
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
@@ -551,17 +551,17 @@ func (_MockERC20 *MockERC20Filterer) FilterApproval(opts *bind.FilterOpts, owner
 		spenderRule = append(spenderRule, spenderItem)
 	}
 
-	logs, sub, err := _MockERC20.contract.FilterLogs(opts, "Approval", ownerRule, spenderRule)
+	logs, sub, err := _MockErc20.contract.FilterLogs(opts, "Approval", ownerRule, spenderRule)
 	if err != nil {
 		return nil, err
 	}
-	return &MockERC20ApprovalIterator{contract: _MockERC20.contract, event: "Approval", logs: logs, sub: sub}, nil
+	return &MockErc20ApprovalIterator{contract: _MockErc20.contract, event: "Approval", logs: logs, sub: sub}, nil
 }
 
 // WatchApproval is a free log subscription operation binding the contract event 0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925.
 //
 // Solidity: event Approval(address indexed owner, address indexed spender, uint256 value)
-func (_MockERC20 *MockERC20Filterer) WatchApproval(opts *bind.WatchOpts, sink chan<- *MockERC20Approval, owner []common.Address, spender []common.Address) (event.Subscription, error) {
+func (_MockErc20 *MockErc20Filterer) WatchApproval(opts *bind.WatchOpts, sink chan<- *MockErc20Approval, owner []common.Address, spender []common.Address) (event.Subscription, error) {
 
 	var ownerRule []interface{}
 	for _, ownerItem := range owner {
@@ -572,7 +572,7 @@ func (_MockERC20 *MockERC20Filterer) WatchApproval(opts *bind.WatchOpts, sink ch
 		spenderRule = append(spenderRule, spenderItem)
 	}
 
-	logs, sub, err := _MockERC20.contract.WatchLogs(opts, "Approval", ownerRule, spenderRule)
+	logs, sub, err := _MockErc20.contract.WatchLogs(opts, "Approval", ownerRule, spenderRule)
 	if err != nil {
 		return nil, err
 	}
@@ -582,8 +582,8 @@ func (_MockERC20 *MockERC20Filterer) WatchApproval(opts *bind.WatchOpts, sink ch
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(MockERC20Approval)
-				if err := _MockERC20.contract.UnpackLog(event, "Approval", log); err != nil {
+				event := new(MockErc20Approval)
+				if err := _MockErc20.contract.UnpackLog(event, "Approval", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -607,18 +607,18 @@ func (_MockERC20 *MockERC20Filterer) WatchApproval(opts *bind.WatchOpts, sink ch
 // ParseApproval is a log parse operation binding the contract event 0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925.
 //
 // Solidity: event Approval(address indexed owner, address indexed spender, uint256 value)
-func (_MockERC20 *MockERC20Filterer) ParseApproval(log types.Log) (*MockERC20Approval, error) {
-	event := new(MockERC20Approval)
-	if err := _MockERC20.contract.UnpackLog(event, "Approval", log); err != nil {
+func (_MockErc20 *MockErc20Filterer) ParseApproval(log types.Log) (*MockErc20Approval, error) {
+	event := new(MockErc20Approval)
+	if err := _MockErc20.contract.UnpackLog(event, "Approval", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
 	return event, nil
 }
 
-// MockERC20TransferIterator is returned from FilterTransfer and is used to iterate over the raw logs and unpacked data for Transfer events raised by the MockERC20 contract.
-type MockERC20TransferIterator struct {
-	Event *MockERC20Transfer // Event containing the contract specifics and raw log
+// MockErc20TransferIterator is returned from FilterTransfer and is used to iterate over the raw logs and unpacked data for Transfer events raised by the MockErc20 contract.
+type MockErc20TransferIterator struct {
+	Event *MockErc20Transfer // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -632,7 +632,7 @@ type MockERC20TransferIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *MockERC20TransferIterator) Next() bool {
+func (it *MockErc20TransferIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -641,7 +641,7 @@ func (it *MockERC20TransferIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(MockERC20Transfer)
+			it.Event = new(MockErc20Transfer)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -656,7 +656,7 @@ func (it *MockERC20TransferIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(MockERC20Transfer)
+		it.Event = new(MockErc20Transfer)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -672,19 +672,19 @@ func (it *MockERC20TransferIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *MockERC20TransferIterator) Error() error {
+func (it *MockErc20TransferIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *MockERC20TransferIterator) Close() error {
+func (it *MockErc20TransferIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// MockERC20Transfer represents a Transfer event raised by the MockERC20 contract.
-type MockERC20Transfer struct {
+// MockErc20Transfer represents a Transfer event raised by the MockErc20 contract.
+type MockErc20Transfer struct {
 	From  common.Address
 	To    common.Address
 	Value *big.Int
@@ -694,7 +694,7 @@ type MockERC20Transfer struct {
 // FilterTransfer is a free log retrieval operation binding the contract event 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef.
 //
 // Solidity: event Transfer(address indexed from, address indexed to, uint256 value)
-func (_MockERC20 *MockERC20Filterer) FilterTransfer(opts *bind.FilterOpts, from []common.Address, to []common.Address) (*MockERC20TransferIterator, error) {
+func (_MockErc20 *MockErc20Filterer) FilterTransfer(opts *bind.FilterOpts, from []common.Address, to []common.Address) (*MockErc20TransferIterator, error) {
 
 	var fromRule []interface{}
 	for _, fromItem := range from {
@@ -705,17 +705,17 @@ func (_MockERC20 *MockERC20Filterer) FilterTransfer(opts *bind.FilterOpts, from 
 		toRule = append(toRule, toItem)
 	}
 
-	logs, sub, err := _MockERC20.contract.FilterLogs(opts, "Transfer", fromRule, toRule)
+	logs, sub, err := _MockErc20.contract.FilterLogs(opts, "Transfer", fromRule, toRule)
 	if err != nil {
 		return nil, err
 	}
-	return &MockERC20TransferIterator{contract: _MockERC20.contract, event: "Transfer", logs: logs, sub: sub}, nil
+	return &MockErc20TransferIterator{contract: _MockErc20.contract, event: "Transfer", logs: logs, sub: sub}, nil
 }
 
 // WatchTransfer is a free log subscription operation binding the contract event 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef.
 //
 // Solidity: event Transfer(address indexed from, address indexed to, uint256 value)
-func (_MockERC20 *MockERC20Filterer) WatchTransfer(opts *bind.WatchOpts, sink chan<- *MockERC20Transfer, from []common.Address, to []common.Address) (event.Subscription, error) {
+func (_MockErc20 *MockErc20Filterer) WatchTransfer(opts *bind.WatchOpts, sink chan<- *MockErc20Transfer, from []common.Address, to []common.Address) (event.Subscription, error) {
 
 	var fromRule []interface{}
 	for _, fromItem := range from {
@@ -726,7 +726,7 @@ func (_MockERC20 *MockERC20Filterer) WatchTransfer(opts *bind.WatchOpts, sink ch
 		toRule = append(toRule, toItem)
 	}
 
-	logs, sub, err := _MockERC20.contract.WatchLogs(opts, "Transfer", fromRule, toRule)
+	logs, sub, err := _MockErc20.contract.WatchLogs(opts, "Transfer", fromRule, toRule)
 	if err != nil {
 		return nil, err
 	}
@@ -736,8 +736,8 @@ func (_MockERC20 *MockERC20Filterer) WatchTransfer(opts *bind.WatchOpts, sink ch
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(MockERC20Transfer)
-				if err := _MockERC20.contract.UnpackLog(event, "Transfer", log); err != nil {
+				event := new(MockErc20Transfer)
+				if err := _MockErc20.contract.UnpackLog(event, "Transfer", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -761,9 +761,9 @@ func (_MockERC20 *MockERC20Filterer) WatchTransfer(opts *bind.WatchOpts, sink ch
 // ParseTransfer is a log parse operation binding the contract event 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef.
 //
 // Solidity: event Transfer(address indexed from, address indexed to, uint256 value)
-func (_MockERC20 *MockERC20Filterer) ParseTransfer(log types.Log) (*MockERC20Transfer, error) {
-	event := new(MockERC20Transfer)
-	if err := _MockERC20.contract.UnpackLog(event, "Transfer", log); err != nil {
+func (_MockErc20 *MockErc20Filterer) ParseTransfer(log types.Log) (*MockErc20Transfer, error) {
+	event := new(MockErc20Transfer)
+	if err := _MockErc20.contract.UnpackLog(event, "Transfer", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

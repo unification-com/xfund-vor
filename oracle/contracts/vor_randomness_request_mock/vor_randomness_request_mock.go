@@ -26,107 +26,107 @@ var (
 	_ = event.NewSubscription
 )
 
-// VORRandomnessRequestMockABI is the input ABI used to generate the binding from.
-const VORRandomnessRequestMockABI = "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"keyHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"seed\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"requestID\",\"type\":\"bytes32\"}],\"name\":\"RandomnessRequest\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_keyHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_consumerSeed\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_feePaid\",\"type\":\"uint256\"}],\"name\":\"randomnessRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+// VorRandomnessRequestMockABI is the input ABI used to generate the binding from.
+const VorRandomnessRequestMockABI = "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"keyHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"seed\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"requestID\",\"type\":\"bytes32\"}],\"name\":\"RandomnessRequest\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_keyHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_consumerSeed\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_feePaid\",\"type\":\"uint256\"}],\"name\":\"randomnessRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
 
-// VORRandomnessRequestMock is an auto generated Go binding around an Ethereum contract.
-type VORRandomnessRequestMock struct {
-	VORRandomnessRequestMockCaller     // Read-only binding to the contract
-	VORRandomnessRequestMockTransactor // Write-only binding to the contract
-	VORRandomnessRequestMockFilterer   // Log filterer for contract events
+// VorRandomnessRequestMock is an auto generated Go binding around an Ethereum contract.
+type VorRandomnessRequestMock struct {
+	VorRandomnessRequestMockCaller     // Read-only binding to the contract
+	VorRandomnessRequestMockTransactor // Write-only binding to the contract
+	VorRandomnessRequestMockFilterer   // Log filterer for contract events
 }
 
-// VORRandomnessRequestMockCaller is an auto generated read-only Go binding around an Ethereum contract.
-type VORRandomnessRequestMockCaller struct {
+// VorRandomnessRequestMockCaller is an auto generated read-only Go binding around an Ethereum contract.
+type VorRandomnessRequestMockCaller struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// VORRandomnessRequestMockTransactor is an auto generated write-only Go binding around an Ethereum contract.
-type VORRandomnessRequestMockTransactor struct {
+// VorRandomnessRequestMockTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type VorRandomnessRequestMockTransactor struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// VORRandomnessRequestMockFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
-type VORRandomnessRequestMockFilterer struct {
+// VorRandomnessRequestMockFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type VorRandomnessRequestMockFilterer struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// VORRandomnessRequestMockSession is an auto generated Go binding around an Ethereum contract,
+// VorRandomnessRequestMockSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
-type VORRandomnessRequestMockSession struct {
-	Contract     *VORRandomnessRequestMock // Generic contract binding to set the session for
+type VorRandomnessRequestMockSession struct {
+	Contract     *VorRandomnessRequestMock // Generic contract binding to set the session for
 	CallOpts     bind.CallOpts             // Call options to use throughout this session
 	TransactOpts bind.TransactOpts         // Transaction auth options to use throughout this session
 }
 
-// VORRandomnessRequestMockCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// VorRandomnessRequestMockCallerSession is an auto generated read-only Go binding around an Ethereum contract,
 // with pre-set call options.
-type VORRandomnessRequestMockCallerSession struct {
-	Contract *VORRandomnessRequestMockCaller // Generic contract caller binding to set the session for
+type VorRandomnessRequestMockCallerSession struct {
+	Contract *VorRandomnessRequestMockCaller // Generic contract caller binding to set the session for
 	CallOpts bind.CallOpts                   // Call options to use throughout this session
 }
 
-// VORRandomnessRequestMockTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// VorRandomnessRequestMockTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
 // with pre-set transact options.
-type VORRandomnessRequestMockTransactorSession struct {
-	Contract     *VORRandomnessRequestMockTransactor // Generic contract transactor binding to set the session for
+type VorRandomnessRequestMockTransactorSession struct {
+	Contract     *VorRandomnessRequestMockTransactor // Generic contract transactor binding to set the session for
 	TransactOpts bind.TransactOpts                   // Transaction auth options to use throughout this session
 }
 
-// VORRandomnessRequestMockRaw is an auto generated low-level Go binding around an Ethereum contract.
-type VORRandomnessRequestMockRaw struct {
-	Contract *VORRandomnessRequestMock // Generic contract binding to access the raw methods on
+// VorRandomnessRequestMockRaw is an auto generated low-level Go binding around an Ethereum contract.
+type VorRandomnessRequestMockRaw struct {
+	Contract *VorRandomnessRequestMock // Generic contract binding to access the raw methods on
 }
 
-// VORRandomnessRequestMockCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
-type VORRandomnessRequestMockCallerRaw struct {
-	Contract *VORRandomnessRequestMockCaller // Generic read-only contract binding to access the raw methods on
+// VorRandomnessRequestMockCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type VorRandomnessRequestMockCallerRaw struct {
+	Contract *VorRandomnessRequestMockCaller // Generic read-only contract binding to access the raw methods on
 }
 
-// VORRandomnessRequestMockTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
-type VORRandomnessRequestMockTransactorRaw struct {
-	Contract *VORRandomnessRequestMockTransactor // Generic write-only contract binding to access the raw methods on
+// VorRandomnessRequestMockTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type VorRandomnessRequestMockTransactorRaw struct {
+	Contract *VorRandomnessRequestMockTransactor // Generic write-only contract binding to access the raw methods on
 }
 
-// NewVORRandomnessRequestMock creates a new instance of VORRandomnessRequestMock, bound to a specific deployed contract.
-func NewVORRandomnessRequestMock(address common.Address, backend bind.ContractBackend) (*VORRandomnessRequestMock, error) {
-	contract, err := bindVORRandomnessRequestMock(address, backend, backend, backend)
+// NewVorRandomnessRequestMock creates a new instance of VorRandomnessRequestMock, bound to a specific deployed contract.
+func NewVorRandomnessRequestMock(address common.Address, backend bind.ContractBackend) (*VorRandomnessRequestMock, error) {
+	contract, err := bindVorRandomnessRequestMock(address, backend, backend, backend)
 	if err != nil {
 		return nil, err
 	}
-	return &VORRandomnessRequestMock{VORRandomnessRequestMockCaller: VORRandomnessRequestMockCaller{contract: contract}, VORRandomnessRequestMockTransactor: VORRandomnessRequestMockTransactor{contract: contract}, VORRandomnessRequestMockFilterer: VORRandomnessRequestMockFilterer{contract: contract}}, nil
+	return &VorRandomnessRequestMock{VorRandomnessRequestMockCaller: VorRandomnessRequestMockCaller{contract: contract}, VorRandomnessRequestMockTransactor: VorRandomnessRequestMockTransactor{contract: contract}, VorRandomnessRequestMockFilterer: VorRandomnessRequestMockFilterer{contract: contract}}, nil
 }
 
-// NewVORRandomnessRequestMockCaller creates a new read-only instance of VORRandomnessRequestMock, bound to a specific deployed contract.
-func NewVORRandomnessRequestMockCaller(address common.Address, caller bind.ContractCaller) (*VORRandomnessRequestMockCaller, error) {
-	contract, err := bindVORRandomnessRequestMock(address, caller, nil, nil)
+// NewVorRandomnessRequestMockCaller creates a new read-only instance of VorRandomnessRequestMock, bound to a specific deployed contract.
+func NewVorRandomnessRequestMockCaller(address common.Address, caller bind.ContractCaller) (*VorRandomnessRequestMockCaller, error) {
+	contract, err := bindVorRandomnessRequestMock(address, caller, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &VORRandomnessRequestMockCaller{contract: contract}, nil
+	return &VorRandomnessRequestMockCaller{contract: contract}, nil
 }
 
-// NewVORRandomnessRequestMockTransactor creates a new write-only instance of VORRandomnessRequestMock, bound to a specific deployed contract.
-func NewVORRandomnessRequestMockTransactor(address common.Address, transactor bind.ContractTransactor) (*VORRandomnessRequestMockTransactor, error) {
-	contract, err := bindVORRandomnessRequestMock(address, nil, transactor, nil)
+// NewVorRandomnessRequestMockTransactor creates a new write-only instance of VorRandomnessRequestMock, bound to a specific deployed contract.
+func NewVorRandomnessRequestMockTransactor(address common.Address, transactor bind.ContractTransactor) (*VorRandomnessRequestMockTransactor, error) {
+	contract, err := bindVorRandomnessRequestMock(address, nil, transactor, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &VORRandomnessRequestMockTransactor{contract: contract}, nil
+	return &VorRandomnessRequestMockTransactor{contract: contract}, nil
 }
 
-// NewVORRandomnessRequestMockFilterer creates a new log filterer instance of VORRandomnessRequestMock, bound to a specific deployed contract.
-func NewVORRandomnessRequestMockFilterer(address common.Address, filterer bind.ContractFilterer) (*VORRandomnessRequestMockFilterer, error) {
-	contract, err := bindVORRandomnessRequestMock(address, nil, nil, filterer)
+// NewVorRandomnessRequestMockFilterer creates a new log filterer instance of VorRandomnessRequestMock, bound to a specific deployed contract.
+func NewVorRandomnessRequestMockFilterer(address common.Address, filterer bind.ContractFilterer) (*VorRandomnessRequestMockFilterer, error) {
+	contract, err := bindVorRandomnessRequestMock(address, nil, nil, filterer)
 	if err != nil {
 		return nil, err
 	}
-	return &VORRandomnessRequestMockFilterer{contract: contract}, nil
+	return &VorRandomnessRequestMockFilterer{contract: contract}, nil
 }
 
-// bindVORRandomnessRequestMock binds a generic wrapper to an already deployed contract.
-func bindVORRandomnessRequestMock(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := abi.JSON(strings.NewReader(VORRandomnessRequestMockABI))
+// bindVorRandomnessRequestMock binds a generic wrapper to an already deployed contract.
+func bindVorRandomnessRequestMock(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := abi.JSON(strings.NewReader(VorRandomnessRequestMockABI))
 	if err != nil {
 		return nil, err
 	}
@@ -137,46 +137,46 @@ func bindVORRandomnessRequestMock(address common.Address, caller bind.ContractCa
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _VORRandomnessRequestMock.Contract.VORRandomnessRequestMockCaller.contract.Call(opts, result, method, params...)
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _VorRandomnessRequestMock.Contract.VorRandomnessRequestMockCaller.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _VORRandomnessRequestMock.Contract.VORRandomnessRequestMockTransactor.contract.Transfer(opts)
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _VorRandomnessRequestMock.Contract.VorRandomnessRequestMockTransactor.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _VORRandomnessRequestMock.Contract.VORRandomnessRequestMockTransactor.contract.Transact(opts, method, params...)
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _VorRandomnessRequestMock.Contract.VorRandomnessRequestMockTransactor.contract.Transact(opts, method, params...)
 }
 
 // Call invokes the (constant) contract method with params as input values and
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _VORRandomnessRequestMock.Contract.contract.Call(opts, result, method, params...)
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _VorRandomnessRequestMock.Contract.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _VORRandomnessRequestMock.Contract.contract.Transfer(opts)
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _VorRandomnessRequestMock.Contract.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _VORRandomnessRequestMock.Contract.contract.Transact(opts, method, params...)
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _VorRandomnessRequestMock.Contract.contract.Transact(opts, method, params...)
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
 //
 // Solidity: function owner() view returns(address)
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockCaller) Owner(opts *bind.CallOpts) (common.Address, error) {
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockCaller) Owner(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
-	err := _VORRandomnessRequestMock.contract.Call(opts, &out, "owner")
+	err := _VorRandomnessRequestMock.contract.Call(opts, &out, "owner")
 
 	if err != nil {
 		return *new(common.Address), err
@@ -191,83 +191,83 @@ func (_VORRandomnessRequestMock *VORRandomnessRequestMockCaller) Owner(opts *bin
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
 //
 // Solidity: function owner() view returns(address)
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockSession) Owner() (common.Address, error) {
-	return _VORRandomnessRequestMock.Contract.Owner(&_VORRandomnessRequestMock.CallOpts)
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockSession) Owner() (common.Address, error) {
+	return _VorRandomnessRequestMock.Contract.Owner(&_VorRandomnessRequestMock.CallOpts)
 }
 
 // Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
 //
 // Solidity: function owner() view returns(address)
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockCallerSession) Owner() (common.Address, error) {
-	return _VORRandomnessRequestMock.Contract.Owner(&_VORRandomnessRequestMock.CallOpts)
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockCallerSession) Owner() (common.Address, error) {
+	return _VorRandomnessRequestMock.Contract.Owner(&_VorRandomnessRequestMock.CallOpts)
 }
 
 // RandomnessRequest is a paid mutator transaction binding the contract method 0x264eb1cf.
 //
 // Solidity: function randomnessRequest(bytes32 _keyHash, uint256 _consumerSeed, uint256 _feePaid) returns()
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockTransactor) RandomnessRequest(opts *bind.TransactOpts, _keyHash [32]byte, _consumerSeed *big.Int, _feePaid *big.Int) (*types.Transaction, error) {
-	return _VORRandomnessRequestMock.contract.Transact(opts, "randomnessRequest", _keyHash, _consumerSeed, _feePaid)
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockTransactor) RandomnessRequest(opts *bind.TransactOpts, _keyHash [32]byte, _consumerSeed *big.Int, _feePaid *big.Int) (*types.Transaction, error) {
+	return _VorRandomnessRequestMock.contract.Transact(opts, "randomnessRequest", _keyHash, _consumerSeed, _feePaid)
 }
 
 // RandomnessRequest is a paid mutator transaction binding the contract method 0x264eb1cf.
 //
 // Solidity: function randomnessRequest(bytes32 _keyHash, uint256 _consumerSeed, uint256 _feePaid) returns()
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockSession) RandomnessRequest(_keyHash [32]byte, _consumerSeed *big.Int, _feePaid *big.Int) (*types.Transaction, error) {
-	return _VORRandomnessRequestMock.Contract.RandomnessRequest(&_VORRandomnessRequestMock.TransactOpts, _keyHash, _consumerSeed, _feePaid)
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockSession) RandomnessRequest(_keyHash [32]byte, _consumerSeed *big.Int, _feePaid *big.Int) (*types.Transaction, error) {
+	return _VorRandomnessRequestMock.Contract.RandomnessRequest(&_VorRandomnessRequestMock.TransactOpts, _keyHash, _consumerSeed, _feePaid)
 }
 
 // RandomnessRequest is a paid mutator transaction binding the contract method 0x264eb1cf.
 //
 // Solidity: function randomnessRequest(bytes32 _keyHash, uint256 _consumerSeed, uint256 _feePaid) returns()
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockTransactorSession) RandomnessRequest(_keyHash [32]byte, _consumerSeed *big.Int, _feePaid *big.Int) (*types.Transaction, error) {
-	return _VORRandomnessRequestMock.Contract.RandomnessRequest(&_VORRandomnessRequestMock.TransactOpts, _keyHash, _consumerSeed, _feePaid)
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockTransactorSession) RandomnessRequest(_keyHash [32]byte, _consumerSeed *big.Int, _feePaid *big.Int) (*types.Transaction, error) {
+	return _VorRandomnessRequestMock.Contract.RandomnessRequest(&_VorRandomnessRequestMock.TransactOpts, _keyHash, _consumerSeed, _feePaid)
 }
 
 // RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
 //
 // Solidity: function renounceOwnership() returns()
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockTransactor) RenounceOwnership(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _VORRandomnessRequestMock.contract.Transact(opts, "renounceOwnership")
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockTransactor) RenounceOwnership(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _VorRandomnessRequestMock.contract.Transact(opts, "renounceOwnership")
 }
 
 // RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
 //
 // Solidity: function renounceOwnership() returns()
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockSession) RenounceOwnership() (*types.Transaction, error) {
-	return _VORRandomnessRequestMock.Contract.RenounceOwnership(&_VORRandomnessRequestMock.TransactOpts)
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockSession) RenounceOwnership() (*types.Transaction, error) {
+	return _VorRandomnessRequestMock.Contract.RenounceOwnership(&_VorRandomnessRequestMock.TransactOpts)
 }
 
 // RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
 //
 // Solidity: function renounceOwnership() returns()
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockTransactorSession) RenounceOwnership() (*types.Transaction, error) {
-	return _VORRandomnessRequestMock.Contract.RenounceOwnership(&_VORRandomnessRequestMock.TransactOpts)
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockTransactorSession) RenounceOwnership() (*types.Transaction, error) {
+	return _VorRandomnessRequestMock.Contract.RenounceOwnership(&_VorRandomnessRequestMock.TransactOpts)
 }
 
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
 //
 // Solidity: function transferOwnership(address newOwner) returns()
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockTransactor) TransferOwnership(opts *bind.TransactOpts, newOwner common.Address) (*types.Transaction, error) {
-	return _VORRandomnessRequestMock.contract.Transact(opts, "transferOwnership", newOwner)
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockTransactor) TransferOwnership(opts *bind.TransactOpts, newOwner common.Address) (*types.Transaction, error) {
+	return _VorRandomnessRequestMock.contract.Transact(opts, "transferOwnership", newOwner)
 }
 
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
 //
 // Solidity: function transferOwnership(address newOwner) returns()
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockSession) TransferOwnership(newOwner common.Address) (*types.Transaction, error) {
-	return _VORRandomnessRequestMock.Contract.TransferOwnership(&_VORRandomnessRequestMock.TransactOpts, newOwner)
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockSession) TransferOwnership(newOwner common.Address) (*types.Transaction, error) {
+	return _VorRandomnessRequestMock.Contract.TransferOwnership(&_VorRandomnessRequestMock.TransactOpts, newOwner)
 }
 
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
 //
 // Solidity: function transferOwnership(address newOwner) returns()
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockTransactorSession) TransferOwnership(newOwner common.Address) (*types.Transaction, error) {
-	return _VORRandomnessRequestMock.Contract.TransferOwnership(&_VORRandomnessRequestMock.TransactOpts, newOwner)
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockTransactorSession) TransferOwnership(newOwner common.Address) (*types.Transaction, error) {
+	return _VorRandomnessRequestMock.Contract.TransferOwnership(&_VorRandomnessRequestMock.TransactOpts, newOwner)
 }
 
-// VORRandomnessRequestMockOwnershipTransferredIterator is returned from FilterOwnershipTransferred and is used to iterate over the raw logs and unpacked data for OwnershipTransferred events raised by the VORRandomnessRequestMock contract.
-type VORRandomnessRequestMockOwnershipTransferredIterator struct {
-	Event *VORRandomnessRequestMockOwnershipTransferred // Event containing the contract specifics and raw log
+// VorRandomnessRequestMockOwnershipTransferredIterator is returned from FilterOwnershipTransferred and is used to iterate over the raw logs and unpacked data for OwnershipTransferred events raised by the VorRandomnessRequestMock contract.
+type VorRandomnessRequestMockOwnershipTransferredIterator struct {
+	Event *VorRandomnessRequestMockOwnershipTransferred // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -281,7 +281,7 @@ type VORRandomnessRequestMockOwnershipTransferredIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *VORRandomnessRequestMockOwnershipTransferredIterator) Next() bool {
+func (it *VorRandomnessRequestMockOwnershipTransferredIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -290,7 +290,7 @@ func (it *VORRandomnessRequestMockOwnershipTransferredIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(VORRandomnessRequestMockOwnershipTransferred)
+			it.Event = new(VorRandomnessRequestMockOwnershipTransferred)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -305,7 +305,7 @@ func (it *VORRandomnessRequestMockOwnershipTransferredIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(VORRandomnessRequestMockOwnershipTransferred)
+		it.Event = new(VorRandomnessRequestMockOwnershipTransferred)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -321,19 +321,19 @@ func (it *VORRandomnessRequestMockOwnershipTransferredIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *VORRandomnessRequestMockOwnershipTransferredIterator) Error() error {
+func (it *VorRandomnessRequestMockOwnershipTransferredIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *VORRandomnessRequestMockOwnershipTransferredIterator) Close() error {
+func (it *VorRandomnessRequestMockOwnershipTransferredIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// VORRandomnessRequestMockOwnershipTransferred represents a OwnershipTransferred event raised by the VORRandomnessRequestMock contract.
-type VORRandomnessRequestMockOwnershipTransferred struct {
+// VorRandomnessRequestMockOwnershipTransferred represents a OwnershipTransferred event raised by the VorRandomnessRequestMock contract.
+type VorRandomnessRequestMockOwnershipTransferred struct {
 	PreviousOwner common.Address
 	NewOwner      common.Address
 	Raw           types.Log // Blockchain specific contextual infos
@@ -342,7 +342,7 @@ type VORRandomnessRequestMockOwnershipTransferred struct {
 // FilterOwnershipTransferred is a free log retrieval operation binding the contract event 0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0.
 //
 // Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockFilterer) FilterOwnershipTransferred(opts *bind.FilterOpts, previousOwner []common.Address, newOwner []common.Address) (*VORRandomnessRequestMockOwnershipTransferredIterator, error) {
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockFilterer) FilterOwnershipTransferred(opts *bind.FilterOpts, previousOwner []common.Address, newOwner []common.Address) (*VorRandomnessRequestMockOwnershipTransferredIterator, error) {
 
 	var previousOwnerRule []interface{}
 	for _, previousOwnerItem := range previousOwner {
@@ -353,17 +353,17 @@ func (_VORRandomnessRequestMock *VORRandomnessRequestMockFilterer) FilterOwnersh
 		newOwnerRule = append(newOwnerRule, newOwnerItem)
 	}
 
-	logs, sub, err := _VORRandomnessRequestMock.contract.FilterLogs(opts, "OwnershipTransferred", previousOwnerRule, newOwnerRule)
+	logs, sub, err := _VorRandomnessRequestMock.contract.FilterLogs(opts, "OwnershipTransferred", previousOwnerRule, newOwnerRule)
 	if err != nil {
 		return nil, err
 	}
-	return &VORRandomnessRequestMockOwnershipTransferredIterator{contract: _VORRandomnessRequestMock.contract, event: "OwnershipTransferred", logs: logs, sub: sub}, nil
+	return &VorRandomnessRequestMockOwnershipTransferredIterator{contract: _VorRandomnessRequestMock.contract, event: "OwnershipTransferred", logs: logs, sub: sub}, nil
 }
 
 // WatchOwnershipTransferred is a free log subscription operation binding the contract event 0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0.
 //
 // Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockFilterer) WatchOwnershipTransferred(opts *bind.WatchOpts, sink chan<- *VORRandomnessRequestMockOwnershipTransferred, previousOwner []common.Address, newOwner []common.Address) (event.Subscription, error) {
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockFilterer) WatchOwnershipTransferred(opts *bind.WatchOpts, sink chan<- *VorRandomnessRequestMockOwnershipTransferred, previousOwner []common.Address, newOwner []common.Address) (event.Subscription, error) {
 
 	var previousOwnerRule []interface{}
 	for _, previousOwnerItem := range previousOwner {
@@ -374,7 +374,7 @@ func (_VORRandomnessRequestMock *VORRandomnessRequestMockFilterer) WatchOwnershi
 		newOwnerRule = append(newOwnerRule, newOwnerItem)
 	}
 
-	logs, sub, err := _VORRandomnessRequestMock.contract.WatchLogs(opts, "OwnershipTransferred", previousOwnerRule, newOwnerRule)
+	logs, sub, err := _VorRandomnessRequestMock.contract.WatchLogs(opts, "OwnershipTransferred", previousOwnerRule, newOwnerRule)
 	if err != nil {
 		return nil, err
 	}
@@ -384,8 +384,8 @@ func (_VORRandomnessRequestMock *VORRandomnessRequestMockFilterer) WatchOwnershi
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(VORRandomnessRequestMockOwnershipTransferred)
-				if err := _VORRandomnessRequestMock.contract.UnpackLog(event, "OwnershipTransferred", log); err != nil {
+				event := new(VorRandomnessRequestMockOwnershipTransferred)
+				if err := _VorRandomnessRequestMock.contract.UnpackLog(event, "OwnershipTransferred", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -409,18 +409,18 @@ func (_VORRandomnessRequestMock *VORRandomnessRequestMockFilterer) WatchOwnershi
 // ParseOwnershipTransferred is a log parse operation binding the contract event 0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0.
 //
 // Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockFilterer) ParseOwnershipTransferred(log types.Log) (*VORRandomnessRequestMockOwnershipTransferred, error) {
-	event := new(VORRandomnessRequestMockOwnershipTransferred)
-	if err := _VORRandomnessRequestMock.contract.UnpackLog(event, "OwnershipTransferred", log); err != nil {
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockFilterer) ParseOwnershipTransferred(log types.Log) (*VorRandomnessRequestMockOwnershipTransferred, error) {
+	event := new(VorRandomnessRequestMockOwnershipTransferred)
+	if err := _VorRandomnessRequestMock.contract.UnpackLog(event, "OwnershipTransferred", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
 	return event, nil
 }
 
-// VORRandomnessRequestMockRandomnessRequestIterator is returned from FilterRandomnessRequest and is used to iterate over the raw logs and unpacked data for RandomnessRequest events raised by the VORRandomnessRequestMock contract.
-type VORRandomnessRequestMockRandomnessRequestIterator struct {
-	Event *VORRandomnessRequestMockRandomnessRequest // Event containing the contract specifics and raw log
+// VorRandomnessRequestMockRandomnessRequestIterator is returned from FilterRandomnessRequest and is used to iterate over the raw logs and unpacked data for RandomnessRequest events raised by the VorRandomnessRequestMock contract.
+type VorRandomnessRequestMockRandomnessRequestIterator struct {
+	Event *VorRandomnessRequestMockRandomnessRequest // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -434,7 +434,7 @@ type VORRandomnessRequestMockRandomnessRequestIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *VORRandomnessRequestMockRandomnessRequestIterator) Next() bool {
+func (it *VorRandomnessRequestMockRandomnessRequestIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -443,7 +443,7 @@ func (it *VORRandomnessRequestMockRandomnessRequestIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(VORRandomnessRequestMockRandomnessRequest)
+			it.Event = new(VorRandomnessRequestMockRandomnessRequest)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -458,7 +458,7 @@ func (it *VORRandomnessRequestMockRandomnessRequestIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(VORRandomnessRequestMockRandomnessRequest)
+		it.Event = new(VorRandomnessRequestMockRandomnessRequest)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -474,19 +474,19 @@ func (it *VORRandomnessRequestMockRandomnessRequestIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *VORRandomnessRequestMockRandomnessRequestIterator) Error() error {
+func (it *VorRandomnessRequestMockRandomnessRequestIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *VORRandomnessRequestMockRandomnessRequestIterator) Close() error {
+func (it *VorRandomnessRequestMockRandomnessRequestIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// VORRandomnessRequestMockRandomnessRequest represents a RandomnessRequest event raised by the VORRandomnessRequestMock contract.
-type VORRandomnessRequestMockRandomnessRequest struct {
+// VorRandomnessRequestMockRandomnessRequest represents a RandomnessRequest event raised by the VorRandomnessRequestMock contract.
+type VorRandomnessRequestMockRandomnessRequest struct {
 	KeyHash   [32]byte
 	Seed      *big.Int
 	Sender    common.Address
@@ -498,21 +498,21 @@ type VORRandomnessRequestMockRandomnessRequest struct {
 // FilterRandomnessRequest is a free log retrieval operation binding the contract event 0xebb37373bb11123e38f964627878b02c247f92f3913df7cf3f270b5222c8d2be.
 //
 // Solidity: event RandomnessRequest(bytes32 keyHash, uint256 seed, address sender, uint256 fee, bytes32 requestID)
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockFilterer) FilterRandomnessRequest(opts *bind.FilterOpts) (*VORRandomnessRequestMockRandomnessRequestIterator, error) {
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockFilterer) FilterRandomnessRequest(opts *bind.FilterOpts) (*VorRandomnessRequestMockRandomnessRequestIterator, error) {
 
-	logs, sub, err := _VORRandomnessRequestMock.contract.FilterLogs(opts, "RandomnessRequest")
+	logs, sub, err := _VorRandomnessRequestMock.contract.FilterLogs(opts, "RandomnessRequest")
 	if err != nil {
 		return nil, err
 	}
-	return &VORRandomnessRequestMockRandomnessRequestIterator{contract: _VORRandomnessRequestMock.contract, event: "RandomnessRequest", logs: logs, sub: sub}, nil
+	return &VorRandomnessRequestMockRandomnessRequestIterator{contract: _VorRandomnessRequestMock.contract, event: "RandomnessRequest", logs: logs, sub: sub}, nil
 }
 
 // WatchRandomnessRequest is a free log subscription operation binding the contract event 0xebb37373bb11123e38f964627878b02c247f92f3913df7cf3f270b5222c8d2be.
 //
 // Solidity: event RandomnessRequest(bytes32 keyHash, uint256 seed, address sender, uint256 fee, bytes32 requestID)
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockFilterer) WatchRandomnessRequest(opts *bind.WatchOpts, sink chan<- *VORRandomnessRequestMockRandomnessRequest) (event.Subscription, error) {
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockFilterer) WatchRandomnessRequest(opts *bind.WatchOpts, sink chan<- *VorRandomnessRequestMockRandomnessRequest) (event.Subscription, error) {
 
-	logs, sub, err := _VORRandomnessRequestMock.contract.WatchLogs(opts, "RandomnessRequest")
+	logs, sub, err := _VorRandomnessRequestMock.contract.WatchLogs(opts, "RandomnessRequest")
 	if err != nil {
 		return nil, err
 	}
@@ -522,8 +522,8 @@ func (_VORRandomnessRequestMock *VORRandomnessRequestMockFilterer) WatchRandomne
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(VORRandomnessRequestMockRandomnessRequest)
-				if err := _VORRandomnessRequestMock.contract.UnpackLog(event, "RandomnessRequest", log); err != nil {
+				event := new(VorRandomnessRequestMockRandomnessRequest)
+				if err := _VorRandomnessRequestMock.contract.UnpackLog(event, "RandomnessRequest", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -547,9 +547,9 @@ func (_VORRandomnessRequestMock *VORRandomnessRequestMockFilterer) WatchRandomne
 // ParseRandomnessRequest is a log parse operation binding the contract event 0xebb37373bb11123e38f964627878b02c247f92f3913df7cf3f270b5222c8d2be.
 //
 // Solidity: event RandomnessRequest(bytes32 keyHash, uint256 seed, address sender, uint256 fee, bytes32 requestID)
-func (_VORRandomnessRequestMock *VORRandomnessRequestMockFilterer) ParseRandomnessRequest(log types.Log) (*VORRandomnessRequestMockRandomnessRequest, error) {
-	event := new(VORRandomnessRequestMockRandomnessRequest)
-	if err := _VORRandomnessRequestMock.contract.UnpackLog(event, "RandomnessRequest", log); err != nil {
+func (_VorRandomnessRequestMock *VorRandomnessRequestMockFilterer) ParseRandomnessRequest(log types.Log) (*VorRandomnessRequestMockRandomnessRequest, error) {
+	event := new(VorRandomnessRequestMockRandomnessRequest)
+	if err := _VorRandomnessRequestMock.contract.UnpackLog(event, "RandomnessRequest", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

@@ -21,7 +21,7 @@ import (
 type VORRandomnessRequestMockListener struct {
 	contractAddress common.Address
 	client          *ethclient.Client
-	instance        *vor_randomness_request_mock.VORRandomnessRequestMock
+	instance        *vor_randomness_request_mock.VorRandomnessRequestMock
 	query           ethereum.FilterQuery
 	wg              *sync.WaitGroup
 	service         *service.Service
@@ -34,7 +34,7 @@ func NewVORRandomnessRequestMockListener(contractHexAddress string, ethHostAddre
 		return nil, err
 	}
 	contractAddress := common.HexToAddress(contractHexAddress)
-	instance, err := vor_randomness_request_mock.NewVORRandomnessRequestMock(contractAddress, client)
+	instance, err := vor_randomness_request_mock.NewVorRandomnessRequestMock(contractAddress, client)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func (d *VORRandomnessRequestMockListener) Request() error {
 		return err
 	}
 
-	contractAbi, err := abi.JSON(strings.NewReader(vor_randomness_request_mock.VORRandomnessRequestMockABI))
+	contractAbi, err := abi.JSON(strings.NewReader(vor_randomness_request_mock.VorRandomnessRequestMockABI))
 	if err != nil {
 		return err
 	}
@@ -104,7 +104,7 @@ func (d *VORRandomnessRequestMockListener) Request() error {
 			fmt.Println("Log Name: RandomnessRequest")
 
 			//var randomnessRequestEvent contractModel.LogRandomnessRequest
-			event := vor_randomness_request_mock.VORRandomnessRequestMockRandomnessRequest{}
+			event := vor_randomness_request_mock.VorRandomnessRequestMockRandomnessRequest{}
 			err := contractAbi.UnpackIntoInterface(&event, "RandomnessRequest", vLog.Data)
 			if err != nil {
 				return err

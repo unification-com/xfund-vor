@@ -23,7 +23,7 @@ import (
 type VORCoordinatorListener struct {
 	contractAddress common.Address
 	client          *ethclient.Client
-	instance        *vor_coordinator.VORCoordinator
+	instance        *vor_coordinator.VorCoordinator
 	query           ethereum.FilterQuery
 	wg              *sync.WaitGroup
 	service         *service.Service
@@ -37,7 +37,7 @@ func NewVORCoordinatorListener(contractHexAddress string, ethHostAddress string,
 		return nil, err
 	}
 	contractAddress := common.HexToAddress(contractHexAddress)
-	instance, err := vor_coordinator.NewVORCoordinator(contractAddress, client)
+	instance, err := vor_coordinator.NewVorCoordinator(contractAddress, client)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (d *VORCoordinatorListener) Request() error {
 		return err
 	}
 
-	contractAbi, err := abi.JSON(strings.NewReader(string(vor_coordinator.VORCoordinatorABI)))
+	contractAbi, err := abi.JSON(strings.NewReader(string(vor_coordinator.VorCoordinatorABI)))
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func (d *VORCoordinatorListener) Request() error {
 			fmt.Println("Log Name: RandomnessRequest")
 
 			//var randomnessRequestEvent contractModel.LogRandomnessRequest
-			event := vor_coordinator.VORCoordinatorRandomnessRequest{}
+			event := vor_coordinator.VorCoordinatorRandomnessRequest{}
 			err := contractAbi.UnpackIntoInterface(&event, "RandomnessRequest", vLog.Data)
 			if err != nil {
 				return err
