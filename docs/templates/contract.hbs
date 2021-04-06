@@ -1,0 +1,69 @@
+# {{{natspec.title}}}
+{{{natspec.devdoc}}}
+
+{{#if ownFunctions}}
+## Functions:
+{{#ownFunctions}}
+{{#if (or (eq visibility "public") (eq visibility "external"))}}
+- [`{{name}}({{args}})`](#{{anchor}})
+{{/if}}
+{{/ownFunctions}}
+{{/if}}
+
+{{#if ownEvents}}
+## Events:
+{{#ownEvents}}
+- [`{{name}}({{args}})`](#{{anchor}})
+{{/ownEvents}}
+{{/if}}
+
+{{#if ownModifiers}}
+## Modifiers:
+{{#ownModifiers}}
+- [`{{name}}({{args}})`](#{{anchor}})
+{{/ownModifiers}}
+{{/if}}
+
+{{#ownFunctions}}
+{{#if (or (eq visibility "public") (eq visibility "external"))}}
+<a name="{{anchor~}}"></a>
+### Function `{{name}}({{args}}){{#if outputs}} -> {{outputs}}{{/if}}`
+{{#if natspec.devdoc}}{{natspec.devdoc}}{{else}}No description{{/if}}
+{{#if natspec.params}}
+#### Parameters:
+{{#natspec.params}}
+- `{{param}}`: {{description}}
+{{/natspec.params}}
+{{/if}}
+{{#if natspec.returns}}
+#### Return Values:
+{{#natspec.returns}}
+- {{param}} {{description}}
+{{/natspec.returns}}
+{{/if}}
+{{/if}}
+{{/ownFunctions}}
+
+{{#ownEvents}}
+<a name="{{anchor~}}"></a>
+### Event `{{name}}({{args}})`
+{{#if natspec.devdoc}}{{natspec.devdoc}}{{else}}No description{{/if}}
+{{#if natspec.params}}
+#### Parameters:
+{{#natspec.params}}
+- `{{param}}`: {{description}}
+{{/natspec.params}}
+{{/if}}
+{{/ownEvents}}
+
+{{#ownModifiers}}
+<a name="{{anchor~}}"></a>
+### Modifier `{{name}}({{args}})`
+{{#if natspec.devdoc}}{{natspec.devdoc}}{{else}}No description{{/if}}
+{{#if natspec.params}}
+#### Parameters:
+{{#natspec.params}}
+- `{{param}}`: {{description}}
+{{/natspec.params}}
+{{/if}}
+{{/ownModifiers}}

@@ -13,6 +13,7 @@
     "docs:compile": "rimraf docs/.vuepress/dist && yarn run docs:api:build && vuepress build docs",
     "docs:dev": "vuepress dev docs"
   },
+  "license": "MIT",
   "devDependencies": {
     "@chainsafe/truffle-plugin-abigen": "^0.0.2",
     "@openzeppelin/test-helpers": "^0.5.10",
