@@ -5,8 +5,7 @@ const VORD20 = artifacts.require("VORD20");
 
 module.exports = function (deployer, network) {
 
-    const expectedGasFirst = 130000;
-    const expectedGas = 100000;
+    const expectedGas = 110000;
 
     switch (network) {
         default:
@@ -17,7 +16,7 @@ module.exports = function (deployer, network) {
                 const xfund = erc20.address
 
                 const block = await deployer.deploy(BlockhashStore);
-                const vor = await deployer.deploy(VORCoordinator, xfund, block.address, expectedGasFirst, expectedGas);
+                const vor = await deployer.deploy(VORCoordinator, xfund, block.address, expectedGas);
 
                 // For tests, you must substitute the correct values
                 await deployer.deploy(VORD20, vor.address, xfund, web3.utils.fromAscii('keyHash'), web3.utils.toWei('1', 'ether'));
@@ -26,14 +25,14 @@ module.exports = function (deployer, network) {
         case "rinkeby":
         case "rinkeby-fork":
             deployer.then(async () => {
-                const block = await deployer.deploy(BlockhashStore);
-                await deployer.deploy(VORCoordinator, "0x245330351344f9301690d5d8de2a07f5f32e1149", block.address, expectedGasFirst, expectedGas);
+                // const block = await deployer.deploy(BlockhashStore);
+                await deployer.deploy(VORCoordinator, "0x245330351344f9301690d5d8de2a07f5f32e1149", "0x95AE62E3E2261615970375CC8af8c7E6923627Fa", expectedGas);
             });
             break
         case "mainnet":
             deployer.then(async () => {
                 const block = await deployer.deploy(BlockhashStore);
-                await deployer.deploy(VORCoordinator, "0x892A6f9dF0147e5f079b0993F486F9acA3c87881", block.address, expectedGasFirst, expectedGas);
+                await deployer.deploy(VORCoordinator, "0x892A6f9dF0147e5f079b0993F486F9acA3c87881", block.address, expectedGas);
             });
             break
     }

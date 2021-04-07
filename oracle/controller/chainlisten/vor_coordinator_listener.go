@@ -104,10 +104,10 @@ func (d *VORCoordinatorListener) Request() error {
 	if err != nil {
 		return err
 	}
-	logRandomnessRequestSig := []byte("RandomnessRequest(bytes32,uint256,address,uint256,bytes32)")
-	logRandomnessRequestHash := crypto.Keccak256Hash(logRandomnessRequestSig)
-	logRandomnessRequestFulfilledSig := []byte("RandomnessRequestFulfilled(bytes32,uint256)")
-	logRandomnessRequestFulfilledHash := crypto.Keccak256Hash(logRandomnessRequestFulfilledSig)
+
+	logRandomnessRequestHash := crypto.Keccak256Hash([]byte("RandomnessRequest(bytes32,uint256,address,uint256,bytes32)"))
+	logRandomnessRequestFulfilledHash := crypto.Keccak256Hash([]byte("RandomnessRequestFulfilled(bytes32,uint256)"))
+	logGasRefundedToProviderHash := crypto.Keccak256Hash([]byte("GasRefundedToProvider(bytes32,address,address,uint256)"))
 
 	fmt.Println("logs: ", logs)
 
@@ -115,6 +115,10 @@ func (d *VORCoordinatorListener) Request() error {
 		fmt.Println("----------------------------------------")
 		fmt.Println("Log Block Number: ", vLog.BlockNumber)
 		fmt.Println("Log Index: ", vLog.Index)
+
+		txRec, _ := d.client.TransactionReceipt(context.Background(), vLog.TxHash)
+		tx, _, _ := d.client.TransactionByHash(context.Background(), vLog.TxHash)
+
 		if index == len(logs)-1 {
 			err = d.SetLastBlockNumber(vLog.BlockNumber)
 		}
@@ -155,13 +159,39 @@ func (d *VORCoordinatorListener) Request() error {
 			fmt.Println("Log Name: RandomnessRequestFulfilled")
 			event := vor_coordinator.VorCoordinatorRandomnessRequestFulfilled{}
 			err := contractAbi.UnpackIntoInterface(&event, "RandomnessRequestFulfilled", vLog.Data)
+			fmt.Println(event)
 			if err != nil {
 				return err
 			}
 
-			txRec, err := d.client.TransactionReceipt(context.Background(), vLog.TxHash)
+			err = d.service.Store.RandomnessRequest.UpdateFulfillment(
+				common.Bytes2Hex(event.RequestId[:]),
+				vLog.TxHash.Hex(),
+				"success",
+				txRec.GasUsed,
+				vLog.BlockNumber,
+				tx.GasPrice().Uint64(),
+				)
+			if err != nil {
+				return err
+			}
 
-			err = d.service.Store.RandomnessRequest.UpdateFulfillment(common.Bytes2Hex(event.RequestId[:]), vLog.TxHash.Hex(), "success", txRec.GasUsed, vLog.BlockNumber)
+			continue
+		case logGasRefundedToProviderHash.Hex():
+			fmt.Println("Log Name: GasRefundedToProvider")
+			event := vor_coordinator.VorCoordinatorGasRefundedToProvider{}
+			err := contractAbi.UnpackIntoInterface(&event, "GasRefundedToProvider", vLog.Data)
+			fmt.Println(event)
+			if err != nil {
+				return err
+			}
+			err = d.service.Store.RandomnessRequest.UpdateGasRefund(
+				common.Bytes2Hex(event.RequestId[:]),
+				event.Amount.Uint64(),
+				txRec.GasUsed,
+				tx.GasPrice().Uint64(),
+				)
+
 			if err != nil {
 				return err
 			}
