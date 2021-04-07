@@ -1,4 +1,4 @@
-package sqlite_test
+package db_test
 
 import (
 	"context"
@@ -6,12 +6,10 @@ import (
 	"oracle/config"
 	"oracle/store"
 	"oracle/store/keystorage"
-	"oracle/store/sqlite"
 	"runtime/debug"
 	"testing"
 )
 
-var sqliteDB *sqlite.DB
 var keystore *keystorage.Keystorage
 var Config *config.Config
 var Log = logrus.New()
@@ -30,7 +28,7 @@ func TestRandomnessRequestStore_Insert(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = thestore.RandomnessRequest.Insert("keyHashStore", "SeedHex", "SenderHex", "RequestIDHex", "BlockHashHex", 1, "TransactionID", "Status")
+	err = thestore.RandomnessRequest.InsertNewRequest("keyHashStore", "Seed", "Sender", "RequestId", "ReqBlockHash", 1, "RequestTxHash", "Status")
 	debug.PrintStack()
 	if err != nil {
 		t.Error(err)
