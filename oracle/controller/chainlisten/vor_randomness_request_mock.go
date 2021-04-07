@@ -44,7 +44,7 @@ func NewVORRandomnessRequestMockListener(contractHexAddress string, ethHostAddre
 	if blockNumber, _ := service.Store.Keystorage.GetBlockNumber(); blockNumber != 0 {
 		lastBlock = big.NewInt(blockNumber)
 	} else if lastRequest != nil {
-		lastBlock = big.NewInt(int64(lastRequest.GetBlockNumber()))
+		lastBlock = big.NewInt(int64(lastRequest.GetReqBlockNumber()))
 	} else if config.Conf.FirstBlockNumber != 0 {
 		lastBlock = big.NewInt(int64(config.Conf.FirstBlockNumber))
 	} else {
@@ -129,7 +129,7 @@ func (d *VORRandomnessRequestMockListener) Request() error {
 				status = "success"
 			}
 			seedHex, err := utils.Uint256ToHex(event.Seed)
-			err = d.service.Store.RandomnessRequest.Insert(common.Bytes2Hex(event.KeyHash[:]), seedHex, event.Sender.Hex(), common.Bytes2Hex(event.RequestID[:]), vLog.BlockHash.Hex(), vLog.BlockNumber, vLog.TxHash.Hex(), status)
+			err = d.service.Store.RandomnessRequest.InsertNewRequest(common.Bytes2Hex(event.KeyHash[:]), seedHex, event.Sender.Hex(), common.Bytes2Hex(event.RequestID[:]), vLog.BlockHash.Hex(), vLog.BlockNumber, vLog.TxHash.Hex(), status)
 			continue
 		default:
 			fmt.Println("vLog: ", vLog)
