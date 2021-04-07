@@ -65,4 +65,3 @@ func (d RandomnessRequestStore) Last() (models.IRandomnessRequestStoreModel, err
 	err := d.db.Last(&request).Error
 	return request, err
 }
-

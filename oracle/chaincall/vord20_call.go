@@ -108,7 +108,7 @@ func (d *VORD20Caller) RollDice(seed *big.Int) (*types.Transaction, error) {
 	return d.instance.RollDice(d.transactOpts, seed, common.HexToAddress(d.oracleAddress))
 }
 
-func (d VORD20Caller) TopUpGas( _keyHash [32]byte) (*types.Transaction, error) {
+func (d VORD20Caller) TopUpGas(_keyHash [32]byte) (*types.Transaction, error) {
 	defer d.RenewTransactOpts()
 	return d.instance.TopUpGas(d.transactOpts, _keyHash)
 }
