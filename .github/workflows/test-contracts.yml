@@ -31,9 +31,10 @@ jobs:
             if [[ $file != contracts/* && $file != test/* ]]; then
               echo "This modified file is not under the 'contracts' or 'test' folder."
               echo "::set-output name=run_job::false"
-              break
             else
+              echo "Found modified file under the 'contracts' or 'test' folder."
               echo "::set-output name=run_job::true"
+              break
             fi
           done < files.txt
 
