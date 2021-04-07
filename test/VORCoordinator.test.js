@@ -11,7 +11,6 @@ const VORD20 = artifacts.require('VORD20');
 
 contract('VORCoordinator', ([owner, oracle, alice]) => {
 
-    const expectedGasFirst = 130000;
     const expectedGas = 100000;
 
     beforeEach(async () => {
@@ -22,7 +21,7 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
 
         this.xFund = await MockERC20.new('xFUND', 'xFUND', web3.utils.toWei('1000000000', 'ether'), { from: owner });
         this.blockhashStore = await BlockhashStore.new({ from: owner });
-        this.vorCoordinator = await VORCoordinator.new(this.xFund.address, this.blockhashStore.address, expectedGasFirst, expectedGas, { from: owner });
+        this.vorCoordinator = await VORCoordinator.new(this.xFund.address, this.blockhashStore.address, expectedGas, { from: owner });
 
         this.vorD20 = await VORD20.new(this.vorCoordinator.address, this.xFund.address, this.keyHash, this.fee, { from: owner });
         await this.xFund.transfer(this.vorD20.address, this.deposit, { from: owner });
