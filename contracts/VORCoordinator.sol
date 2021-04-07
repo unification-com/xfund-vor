@@ -5,11 +5,12 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./interfaces/XFundTokenInterface.sol";
+
 import "./interfaces/BlockHashStoreInterface.sol";
+import "./interfaces/IERC20_Ex.sol";
+import "./interfaces/IVORConsumerBase.sol";
 import "./VOR.sol";
 import "./VORRequestIDBase.sol";
-import "./VORConsumerBase.sol";
 
 /**
  * @title VORCoordinator coordinates on-chain verifiable-randomness requests
@@ -19,21 +20,19 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
     using SafeMath for uint256;
     using Address for address;
 
-    XFundTokenInterface internal xFUND;
+    IERC20_Ex internal xFUND;
     BlockHashStoreInterface internal blockHashStore;
 
-    uint256 private EXPECTED_GAS_FIRST_FULFILMENT;
-    uint256 private EXPECTED_GAS;
+    uint256 private EXPECTED_BASE_GAS;
 
     uint256 private totalGasDeposits;
     uint256 private gasTopUpLimit;
 
-    constructor(address _xfund, address _blockHashStore, uint256 _expectedGasFirst, uint256 _expectedGas) public {
-        xFUND = XFundTokenInterface(_xfund);
+    constructor(address _xfund, address _blockHashStore, uint256 _expectedBaseGas) public {
+        xFUND = IERC20_Ex(_xfund);
         blockHashStore = BlockHashStoreInterface(_blockHashStore);
         gasTopUpLimit = 1 ether;
-        EXPECTED_GAS_FIRST_FULFILMENT = _expectedGasFirst;
-        EXPECTED_GAS = _expectedGas;
+        EXPECTED_BASE_GAS = _expectedBaseGas;
     }
 
     struct Callback {
@@ -75,8 +74,6 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
     /* (consumer, struct Consumer) */
     mapping(address => Consumer) private gasDeposits;
 
-    mapping(address => bool) public consumerPreviousFulfillment;
-
     event RandomnessRequest(
         bytes32 keyHash,
         uint256 seed,
@@ -91,17 +88,17 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
 
     event RandomnessRequestFulfilled(bytes32 requestId, uint256 output);
 
-    event GasToppedUp(address indexed consumer, address indexed provider, uint256 amount);
+    event GasToppedUp(address consumer, address provider, uint256 amount);
 
-    event GasWithdrawnByConsumer(address indexed consumer, address indexed provider, uint256 amount);
+    event GasWithdrawnByConsumer(address consumer, address provider, uint256 amount);
 
-    event SetGasTopUpLimit(address indexed sender, uint256 oldLimit, uint256 newLimit);
+    event SetGasTopUpLimit(address sender, uint256 oldLimit, uint256 newLimit);
 
-    event SetBaseGasRates(address indexed sender, uint256 oldFirstExpected, uint256 newFirstExpected, uint256 oldExpected, uint256 newExpected);
+    event SetBaseGasRate(address sender, uint256 oldBaseRate, uint256 newBaseRate);
 
-    event GasRefundedToProvider(address indexed consumer, address indexed provider, uint256 amount);
+    event GasRefundedToProvider(bytes32 requestId, address consumer, address provider, uint256 amount);
 
-    event SetProviderPaysGas(address indexed provider, bool providerPays);
+    event SetProviderPaysGas(address provider, bool providerPays);
 
     /**
      * @dev getTotalGasDeposits - get total gas deposited in VORCoordinator
@@ -163,29 +160,36 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
     }
 
     /**
-     * @dev setBaseGasRates set the base expected gas values used for calculating gas
+     * @dev setBaseGasRate set the base expected gas value used for calculating gas
      * refunds
      *
-     * @param _newExpectedGasFirst expected gas units consumed for first fulfilment
-     * @param _newExpectedGas expected gas units consumed for subsequent fulfilments
+     * @param _newExpectedGasRate expected gas units consumed for first fulfilment
      * @return success
      */
-    function setBaseGasRates(uint256 _newExpectedGasFirst, uint256 _newExpectedGas) external onlyOwner returns (bool success) {
-        uint256 oldFirstExpected = EXPECTED_GAS_FIRST_FULFILMENT;
-        uint256 oldExpected = EXPECTED_GAS;
-        EXPECTED_GAS_FIRST_FULFILMENT = _newExpectedGasFirst;
-        EXPECTED_GAS = _newExpectedGas;
-        emit SetBaseGasRates(msg.sender, oldFirstExpected, _newExpectedGasFirst, oldExpected, _newExpectedGas);
+    function setBaseGasRate(uint256 _newExpectedGasRate) external onlyOwner returns (bool success) {
+        uint256 oldExpected = EXPECTED_BASE_GAS;
+        EXPECTED_BASE_GAS = _newExpectedGasRate;
+        emit SetBaseGasRate(msg.sender, oldExpected, _newExpectedGasRate);
         return true;
     }
 
     /**
-     * @notice Commits calling address to serve randomness
-     * @param _fee minimum xFUND payment required to serve randomness
-     * @param _oracle the address of the node with the proving key
-     * @param _publicProvingKey public key used to prove randomness
-     * @param _providerPaysGas true if provider will pay gas
+     * @dev getBaseGasRate get the base expected gas values used for calculating gas
+     * refunds
+     *
+     * @return EXPECTED_BASE_GAS
      */
+    function getBaseGasRate() external view returns (uint256) {
+        return EXPECTED_BASE_GAS;
+    }
+
+    /**
+ * @notice Commits calling address to serve randomness
+ * @param _fee minimum xFUND payment required to serve randomness
+ * @param _oracle the address of the node with the proving key
+ * @param _publicProvingKey public key used to prove randomness
+ * @param _providerPaysGas true if provider will pay gas
+ */
     function registerProvingKey(
         uint256 _fee,
         address payable _oracle,
@@ -386,7 +390,7 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
         uint256 gasUsedToCall = gasLeftStart - gasleft();
 
         if (gasPayer != oracle) {
-            require(refundGas(callback.callbackContract, oracle, gasUsedToCall));
+            require(refundGas(callback.callbackContract, oracle, gasUsedToCall, requestId));
         }
 
         emit RandomnessRequestFulfilled(requestId, randomness);
@@ -402,7 +406,7 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
     function callBackWithRandomness(bytes32 requestId, uint256 randomness, address consumerContract) internal {
         // Dummy variable; allows access to method selector in next line. See
         // https://github.com/ethereum/solidity/issues/3506#issuecomment-553727797
-        VORConsumerBase v;
+        IVORConsumerBase v;
         bytes memory resp = abi.encodeWithSelector(v.rawFulfillRandomness.selector, requestId, randomness);
         // The bound b here comes from https://eips.ethereum.org/EIPS/eip-150. The
         // actual gas available to the consuming contract will be b-floor(b/64).
@@ -479,14 +483,9 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
      * @param _gasUsedToCall amount of gas consumed calling the Consumer's
      * @return success if the execution was successful.
      */
-    function refundGas(address _consumer, address payable _provider, uint256 _gasUsedToCall) private returns (bool){
+    function refundGas(address _consumer, address payable _provider, uint256 _gasUsedToCall, bytes32 _requestId) private returns (bool){
         // calculate how much should be refunded to the provider
-        uint256 baseGas = EXPECTED_GAS_FIRST_FULFILMENT;
-        if(consumerPreviousFulfillment[_consumer]) {
-            baseGas = EXPECTED_GAS;
-        }
-
-        consumerPreviousFulfillment[_consumer] = true;
+        uint256 baseGas = EXPECTED_BASE_GAS;
 
         uint256 totalGasUsed = baseGas + _gasUsedToCall;
         uint256 ethRefund = totalGasUsed.mul(tx.gasprice);
@@ -506,7 +505,7 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
         // update total held for consumer contract/provider pair
         gasDeposits[_consumer].providers[_provider] = gasDeposits[_consumer].providers[_provider].sub(ethRefund);
 
-        emit GasRefundedToProvider(_consumer, _provider, ethRefund);
+        emit GasRefundedToProvider(_requestId, _consumer, _provider, ethRefund);
         // refund the provider
         Address.sendValue(_provider, ethRefund);
         return true;
