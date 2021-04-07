@@ -3,17 +3,39 @@ const BlockhashStore = artifacts.require("BlockhashStore");
 const VORCoordinator = artifacts.require("VORCoordinator");
 const VORD20 = artifacts.require("VORD20");
 
-module.exports = function(deployer) {
-  deployer.then(async () => {
-    // const xfund = "0x0000000000000000000000000000000000000000"
-    // When deploying to mainnet, you need to change to the real address of the contract
-    const erc20 = await deployer.deploy(MockERC20, 'xFUND', 'xFUND', web3.utils.toWei('1000000000', 'ether'));
-    const xfund = erc20.address
+module.exports = function (deployer, network) {
 
-    const block = await deployer.deploy(BlockhashStore);
-    const vor = await deployer.deploy(VORCoordinator, xfund, block.address);
+    const expectedGasFirst = 130000;
+    const expectedGas = 100000;
 
-    // For tests, you must substitute the correct values
-    await deployer.deploy(VORD20, vor.address, xfund, web3.utils.fromAscii('keyHash'), web3.utils.toWei('1', 'ether'));
-  });
+    switch (network) {
+        default:
+        case "development":
+        case "develop":
+            deployer.then(async () => {
+                const erc20 = await deployer.deploy(MockERC20, 'xFUND', 'xFUND', web3.utils.toWei('1000000000', 'ether'));
+                const xfund = erc20.address
+
+                const block = await deployer.deploy(BlockhashStore);
+                const vor = await deployer.deploy(VORCoordinator, xfund, block.address, expectedGasFirst, expectedGas);
+
+                // For tests, you must substitute the correct values
+                await deployer.deploy(VORD20, vor.address, xfund, web3.utils.fromAscii('keyHash'), web3.utils.toWei('1', 'ether'));
+            });
+            break
+        case "rinkeby":
+        case "rinkeby-fork":
+            deployer.then(async () => {
+                const block = await deployer.deploy(BlockhashStore);
+                await deployer.deploy(VORCoordinator, "0x245330351344f9301690d5d8de2a07f5f32e1149", block.address, expectedGasFirst, expectedGas);
+            });
+            break
+        case "mainnet":
+            deployer.then(async () => {
+                const block = await deployer.deploy(BlockhashStore);
+                await deployer.deploy(VORCoordinator, "0x892A6f9dF0147e5f079b0993F486F9acA3c87881", block.address, expectedGasFirst, expectedGas);
+            });
+            break
+    }
+
 };

@@ -20,7 +20,7 @@ import (
 type VORRandomnessRequestMockCaller struct {
 	contractAddress common.Address
 	client          *ethclient.Client
-	instance        *vor_randomness_request_mock.VORRandomnessRequestMock
+	instance        *vor_randomness_request_mock.VorRandomnessRequestMock
 	transactOpts    *bind.TransactOpts
 	callOpts        *bind.CallOpts
 
@@ -37,7 +37,7 @@ func NewVORRandomnessRequestMockCaller(contractStringAddress string, ethHostAddr
 	}
 	fmt.Println("contractStringAddress: ", contractStringAddress)
 	contractAddress := common.HexToAddress(contractStringAddress)
-	instance, err := vor_randomness_request_mock.NewVORRandomnessRequestMock(contractAddress, client)
+	instance, err := vor_randomness_request_mock.NewVorRandomnessRequestMock(contractAddress, client)
 	if err != nil {
 		return nil, err
 	}

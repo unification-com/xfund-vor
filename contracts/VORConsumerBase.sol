@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.0;
+pragma solidity 0.6.12;
 
+import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./interfaces/XFundTokenInterface.sol";
 import "./interfaces/IVORCoordinator.sol";
@@ -99,8 +101,9 @@ import "./VORRequestIDBase.sol";
  * @dev cost. This cost scales with the number of blocks the VOR oracle waits
  * @dev until it calls responds to a request.
  */
-abstract contract VORConsumerBase is VORRequestIDBase {
+abstract contract VORConsumerBase is VORRequestIDBase, Ownable {
     using SafeMath for uint256;
+    using Address for address;
 
     /**
      * @notice fulfillRandomness handles the VOR response. Your contract must
@@ -144,8 +147,7 @@ abstract contract VORConsumerBase is VORRequestIDBase {
      * @dev concurrent requests. It is passed as the first argument to
      * @dev fulfillRandomness.
      */
-    function requestRandomness(bytes32 _keyHash, uint256 _fee, uint256 _seed) internal returns (bytes32 requestId) {
-        xFUND.approve(vorCoordinator, _fee);
+    function requestRandomness(bytes32 _keyHash, uint256 _fee, uint256 _seed) internal onlyOwner returns (bytes32 requestId) {
         IVORCoordinator(vorCoordinator).randomnessRequest(_keyHash, _seed, _fee);
         // This is the seed passed to VORCoordinator. The oracle will mix this with
         // the hash of the block containing this request to obtain the seed/input
@@ -161,17 +163,42 @@ abstract contract VORConsumerBase is VORRequestIDBase {
         return makeRequestId(_keyHash, vORSeed);
     }
 
+    function increaseVorCoordinatorAllowance(uint256 _amount) public onlyOwner {
+        xFUND.increaseAllowance(vorCoordinator, _amount);
+    }
+
     /**
-     * @dev topUpGas consumer contract calls this function to top up gas
+     * @dev topUpGas consumer calls this function to top up gas
      * Gas is the ETH held by this contract which is used to refund Tx costs
      * to the VOR provider for fulfilling a request.
      *
      * @param _keyHash ID of public key against which randomness is generated
-     * @param _amount amount of ETH to send
      */
-    function topUpGas(bytes32 _keyHash, uint256 _amount) internal {
-        address provider = IVORCoordinator(vorCoordinator).getProviderAddress(_keyHash);
-        IVORCoordinator(vorCoordinator).topUpGas{ value: _amount }(provider);
+    function topUpGas(bytes32 _keyHash) public payable onlyOwner {
+        IVORCoordinator(vorCoordinator).topUpGas{ value: msg.value }(_keyHash);
+    }
+
+    /**
+    * @dev withDrawGasTopUp allows the Consumer contract's owner to withdraw any ETH
+    * held by the VORCoordinator for the specified data provider. All ETH held will be withdrawn
+    * and forwarded to the Consumer contract owner's wallet.
+    *
+    * @param _keyHash ID of public key against which randomness is generated
+    */
+    function withDrawGasTopUp(bytes32 _keyHash) public onlyOwner {
+        uint256 amount = IVORCoordinator(vorCoordinator).withDrawGasTopUpForProvider(_keyHash);
+        if(amount > 0) {
+            Address.sendValue(payable(owner()), amount);
+        }
+    }
+
+    /**
+     * @notice Withdraw xFUND from this contract.
+     * @param to the address to withdraw xFUND to
+     * @param value the amount of xFUND to withdraw
+     */
+    function withdrawXFUND(address to, uint256 value) public onlyOwner {
+        require(xFUND.transfer(to, value), "Not enough xFUND");
     }
 
     XFundTokenInterface internal immutable xFUND;

@@ -29,11 +29,11 @@ jobs:
           do
             echo $file
             if [[ $file != contracts/* && $file != test/* ]]; then
-              echo "This modified file is not under the 'contracts' or 'test' folder."
               echo "::set-output name=run_job::false"
-              break
             else
+              echo "Found modified file under the 'contracts' or 'test' folder. Run contract unit tests."
               echo "::set-output name=run_job::true"
+              break
             fi
           done < files.txt
 
@@ -46,6 +46,6 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '12'
-      - run: npm ci
-      - run: npm test
-
+      - run: rm -rf node_modules
+      - run: yarn install --frozen-lockfile
+      - run: yarn test

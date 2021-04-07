@@ -21,7 +21,7 @@ import (
 type VORRandomnessRequestMockListener struct {
 	contractAddress common.Address
 	client          *ethclient.Client
-	instance        *vor_randomness_request_mock.VORRandomnessRequestMock
+	instance        *vor_randomness_request_mock.VorRandomnessRequestMock
 	query           ethereum.FilterQuery
 	wg              *sync.WaitGroup
 	service         *service.Service
@@ -34,7 +34,7 @@ func NewVORRandomnessRequestMockListener(contractHexAddress string, ethHostAddre
 		return nil, err
 	}
 	contractAddress := common.HexToAddress(contractHexAddress)
-	instance, err := vor_randomness_request_mock.NewVORRandomnessRequestMock(contractAddress, client)
+	instance, err := vor_randomness_request_mock.NewVorRandomnessRequestMock(contractAddress, client)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func NewVORRandomnessRequestMockListener(contractHexAddress string, ethHostAddre
 	if blockNumber, _ := service.Store.Keystorage.GetBlockNumber(); blockNumber != 0 {
 		lastBlock = big.NewInt(blockNumber)
 	} else if lastRequest != nil {
-		lastBlock = big.NewInt(int64(lastRequest.GetBlockNumber()))
+		lastBlock = big.NewInt(int64(lastRequest.GetReqBlockNumber()))
 	} else if config.Conf.FirstBlockNumber != 0 {
 		lastBlock = big.NewInt(int64(config.Conf.FirstBlockNumber))
 	} else {
@@ -82,7 +82,7 @@ func (d *VORRandomnessRequestMockListener) Request() error {
 		return err
 	}
 
-	contractAbi, err := abi.JSON(strings.NewReader(vor_randomness_request_mock.VORRandomnessRequestMockABI))
+	contractAbi, err := abi.JSON(strings.NewReader(vor_randomness_request_mock.VorRandomnessRequestMockABI))
 	if err != nil {
 		return err
 	}
@@ -104,7 +104,7 @@ func (d *VORRandomnessRequestMockListener) Request() error {
 			fmt.Println("Log Name: RandomnessRequest")
 
 			//var randomnessRequestEvent contractModel.LogRandomnessRequest
-			event := vor_randomness_request_mock.VORRandomnessRequestMockRandomnessRequest{}
+			event := vor_randomness_request_mock.VorRandomnessRequestMockRandomnessRequest{}
 			err := contractAbi.UnpackIntoInterface(&event, "RandomnessRequest", vLog.Data)
 			if err != nil {
 				return err
@@ -129,7 +129,7 @@ func (d *VORRandomnessRequestMockListener) Request() error {
 				status = "success"
 			}
 			seedHex, err := utils.Uint256ToHex(event.Seed)
-			err = d.service.Store.RandomnessRequest.Insert(common.Bytes2Hex(event.KeyHash[:]), seedHex, event.Sender.Hex(), common.Bytes2Hex(event.RequestID[:]), vLog.BlockHash.Hex(), vLog.BlockNumber, vLog.TxHash.Hex(), status)
+			err = d.service.Store.RandomnessRequest.InsertNewRequest(common.Bytes2Hex(event.KeyHash[:]), seedHex, event.Sender.Hex(), common.Bytes2Hex(event.RequestID[:]), vLog.BlockHash.Hex(), vLog.BlockNumber, vLog.TxHash.Hex(), status)
 			continue
 		default:
 			fmt.Println("vLog: ", vLog)

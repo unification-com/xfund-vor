@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.6;
+pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
@@ -22,16 +22,18 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
     XFundTokenInterface internal xFUND;
     BlockHashStoreInterface internal blockHashStore;
 
-    uint256 public constant EXPECTED_GAS_FIRST_FULFILMENT = 90550;
-    uint256 public constant EXPECTED_GAS = 56290;
+    uint256 private EXPECTED_GAS_FIRST_FULFILMENT;
+    uint256 private EXPECTED_GAS;
 
     uint256 private totalGasDeposits;
     uint256 private gasTopUpLimit;
 
-    constructor(address _xfund, address _blockHashStore) public {
+    constructor(address _xfund, address _blockHashStore, uint256 _expectedGasFirst, uint256 _expectedGas) public {
         xFUND = XFundTokenInterface(_xfund);
         blockHashStore = BlockHashStoreInterface(_blockHashStore);
         gasTopUpLimit = 1 ether;
+        EXPECTED_GAS_FIRST_FULFILMENT = _expectedGasFirst;
+        EXPECTED_GAS = _expectedGas;
     }
 
     struct Callback {
@@ -91,18 +93,40 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
 
     event GasToppedUp(address indexed consumer, address indexed provider, uint256 amount);
 
+    event GasWithdrawnByConsumer(address indexed consumer, address indexed provider, uint256 amount);
+
     event SetGasTopUpLimit(address indexed sender, uint256 oldLimit, uint256 newLimit);
+
+    event SetBaseGasRates(address indexed sender, uint256 oldFirstExpected, uint256 newFirstExpected, uint256 oldExpected, uint256 newExpected);
 
     event GasRefundedToProvider(address indexed consumer, address indexed provider, uint256 amount);
 
     event SetProviderPaysGas(address indexed provider, bool providerPays);
 
     /**
-     * @dev getTotalGasDeposits - get total gas deposited in Router
+     * @dev getTotalGasDeposits - get total gas deposited in VORCoordinator
      * @return uint256
      */
     function getTotalGasDeposits() external view returns (uint256) {
         return totalGasDeposits;
+    }
+
+    /**
+     * @dev getGasDepositsForConsumer - get gas deposited in VORCoordinator by a consumer
+     * @return uint256
+     */
+    function getGasDepositsForConsumer(address _consumer) external view returns (uint256) {
+        return gasDeposits[_consumer].amount;
+    }
+
+    /**
+     * @dev getGasDepositsForConsumerProvider - get gas deposited in VORCoordinator by a consumer
+     * for a given provider
+     * @return uint256
+     */
+    function getGasDepositsForConsumerProvider(address _consumer, bytes32 _keyHash) external view returns (uint256) {
+        address provider = serviceAgreements[_keyHash].vOROracle;
+        return gasDeposits[_consumer].providers[provider];
     }
 
     /**
@@ -135,6 +159,23 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
         uint256 oldGasTopUpLimit = gasTopUpLimit;
         gasTopUpLimit = _gasTopUpLimit;
         emit SetGasTopUpLimit(msg.sender, oldGasTopUpLimit, _gasTopUpLimit);
+        return true;
+    }
+
+    /**
+     * @dev setBaseGasRates set the base expected gas values used for calculating gas
+     * refunds
+     *
+     * @param _newExpectedGasFirst expected gas units consumed for first fulfilment
+     * @param _newExpectedGas expected gas units consumed for subsequent fulfilments
+     * @return success
+     */
+    function setBaseGasRates(uint256 _newExpectedGasFirst, uint256 _newExpectedGas) external onlyOwner returns (bool success) {
+        uint256 oldFirstExpected = EXPECTED_GAS_FIRST_FULFILMENT;
+        uint256 oldExpected = EXPECTED_GAS;
+        EXPECTED_GAS_FIRST_FULFILMENT = _newExpectedGasFirst;
+        EXPECTED_GAS = _newExpectedGas;
+        emit SetBaseGasRates(msg.sender, oldFirstExpected, _newExpectedGasFirst, oldExpected, _newExpectedGas);
         return true;
     }
 
@@ -248,28 +289,71 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
      *
      * Can only top up for authorised providers
      *
-     * @param _provider address of VOR provider
+     * @param _keyHash ID of the VOR public key against which to generate output
      * @return success
      */
-    function topUpGas(address _provider) external payable nonReentrant returns (bool success) {
+    function topUpGas(bytes32 _keyHash) external payable nonReentrant returns (bool success) {
         uint256 amount = msg.value;
+        address provider = serviceAgreements[_keyHash].vOROracle;
         // msg.sender is the address of the Consumer's smart contract
         address consumer = msg.sender;
         require(address(consumer).isContract(), "only a contract can top up gas");
+        require(provider != address(0), "_provider cannot be zero address");
         require(amount > 0, "cannot top up zero");
         require(amount <= gasTopUpLimit, "cannot top up more than gasTopUpLimit");
 
-        // total held by Router contract
+        // total held by VORCoordinator contract
         totalGasDeposits = totalGasDeposits.add(amount);
 
         // Total held for consumer contract
         gasDeposits[consumer].amount = gasDeposits[consumer].amount.add(amount);
 
         // Total held for consumer contract/provider pair
-        gasDeposits[consumer].providers[_provider] = gasDeposits[consumer].providers[_provider].add(amount);
+        gasDeposits[consumer].providers[provider] = gasDeposits[consumer].providers[provider].add(amount);
 
-        emit GasToppedUp(consumer, _provider, amount);
+        emit GasToppedUp(consumer, provider, amount);
         return true;
+    }
+
+    /**
+     * @dev withDrawGasTopUpForProvider data consumer contract calls this function to
+     * withdraw any remaining ETH stored in the Router for gas refunds for a specified
+     * data provider.
+     *
+     * Consumer contract will then transfer through to the consumer contract's
+     * owner.
+     *
+     * NOTE - data provider authorisation is not checked, since a consumer needs to
+     * be able to withdraw for a data provide that has been revoked.
+     *
+     * @param _keyHash ID of the VOR public key against which to generate output
+     * @return amountWithdrawn
+     */
+    function withDrawGasTopUpForProvider(bytes32 _keyHash) external nonReentrant returns (uint256 amountWithdrawn) {
+        // msg.sender is the consumer's contract
+        address payable consumer = msg.sender;
+        address provider = serviceAgreements[_keyHash].vOROracle;
+        require(address(consumer).isContract(), "only a contract can withdraw gas");
+        require(provider != address(0), "_provider cannot be zero address");
+
+        uint256 amount = gasDeposits[consumer].providers[provider];
+        if(amount > 0) {
+            // total held by Router contract
+            totalGasDeposits = totalGasDeposits.sub(amount);
+
+            // Total held for consumer contract
+            gasDeposits[consumer].amount = gasDeposits[consumer].amount.sub(amount);
+
+            // Total held for consumer contract/provider pair
+            gasDeposits[consumer].providers[provider] = gasDeposits[consumer].providers[provider].sub(amount);
+
+            emit GasWithdrawnByConsumer(consumer, provider, amount);
+
+            // send back to consumer contract
+            Address.sendValue(consumer, amount);
+        }
+
+        return amount;
     }
 
     /**

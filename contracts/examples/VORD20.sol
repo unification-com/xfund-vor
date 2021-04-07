@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.6;
+pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../VORConsumerBase.sol";
@@ -9,7 +9,7 @@ import "../VORConsumerBase.sol";
  * of a 20 sided die
  * @dev This is only an example implementation and not necessarily suitable for mainnet.
  */
-contract VORD20 is VORConsumerBase, Ownable {
+contract VORD20 is Ownable, VORConsumerBase {
     using SafeMath for uint256;
 
     uint256 private constant _ROLL_IN_PROGRESS = 42;
@@ -37,17 +37,6 @@ contract VORD20 is VORConsumerBase, Ownable {
     {
         _sKeyHash = keyHash;
         _sFee = fee;
-    }
-
-    /**
-     * @dev topUpGas consumer contract calls this function to top up gas
-     * Gas is the ETH held by this contract which is used to refund Tx costs
-     * to the VOR provider for fulfilling a request.
-     *
-     * @param _amount amount of ETH to send
-     */
-    function topUpGas(uint256 _amount) public onlyOwner {
-        topUpGas(_sKeyHash, _amount);
     }
 
     /**
@@ -96,18 +85,6 @@ contract VORD20 is VORConsumerBase, Ownable {
         require(_sResults[player] != 0, "Dice not rolled");
         require(_sResults[player] != _ROLL_IN_PROGRESS, "Roll in progress");
         return getHouseName(_sResults[player]);
-    }
-
-    /**
-     * @notice Withdraw xFUND from this contract.
-     * @dev this is an example only, and in a real contract withdrawals should
-     * happen according to the established withdrawal pattern: 
-     * https://docs.soliditylang.org/en/v0.4.24/common-patterns.html#withdrawal-from-contracts
-     * @param to the address to withdraw xFUND to
-     * @param value the amount of xFUND to withdraw
-     */
-    function withdrawXFUND(address to, uint256 value) public onlyOwner {
-        require(xFUND.transfer(to, value), "Not enough xFUND");
     }
 
     /**

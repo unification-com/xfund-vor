@@ -20,7 +20,7 @@ import (
 type VORD20Caller struct {
 	contractAddress common.Address
 	client          *ethclient.Client
-	instance        *vord_20.VORD20
+	instance        *vord_20.Vord20
 	transactOpts    *bind.TransactOpts
 	callOpts        *bind.CallOpts
 
@@ -38,7 +38,7 @@ func NewVORD20Caller(contractStringAddress string, ethHostAddress string, chainI
 	}
 	fmt.Println("contractStringAddress: ", contractStringAddress)
 	contractAddress := common.HexToAddress(contractStringAddress)
-	instance, err := vord_20.NewVORD20(contractAddress, client)
+	instance, err := vord_20.NewVord20(contractAddress, client)
 	if err != nil {
 		return nil, err
 	}
@@ -108,9 +108,9 @@ func (d *VORD20Caller) RollDice(seed *big.Int) (*types.Transaction, error) {
 	return d.instance.RollDice(d.transactOpts, seed, common.HexToAddress(d.oracleAddress))
 }
 
-func (d VORD20Caller) TopUpGas(amount *big.Int) (*types.Transaction, error) {
+func (d VORD20Caller) TopUpGas(_keyHash [32]byte) (*types.Transaction, error) {
 	defer d.RenewTransactOpts()
-	return d.instance.TopUpGas(d.transactOpts, amount)
+	return d.instance.TopUpGas(d.transactOpts, _keyHash)
 }
 
 func (d *VORD20Caller) SetFee(fee *big.Int) (*types.Transaction, error) {

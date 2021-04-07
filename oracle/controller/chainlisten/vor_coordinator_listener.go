@@ -23,7 +23,7 @@ import (
 type VORCoordinatorListener struct {
 	contractAddress common.Address
 	client          *ethclient.Client
-	instance        *vor_coordinator.VORCoordinator
+	instance        *vor_coordinator.VorCoordinator
 	query           ethereum.FilterQuery
 	wg              *sync.WaitGroup
 	service         *service.Service
@@ -37,7 +37,7 @@ func NewVORCoordinatorListener(contractHexAddress string, ethHostAddress string,
 		return nil, err
 	}
 	contractAddress := common.HexToAddress(contractHexAddress)
-	instance, err := vor_coordinator.NewVORCoordinator(contractAddress, client)
+	instance, err := vor_coordinator.NewVorCoordinator(contractAddress, client)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func NewVORCoordinatorListener(contractHexAddress string, ethHostAddress string,
 	if blockNumber, _ := service.Store.Keystorage.GetBlockNumber(); blockNumber != 0 {
 		lastBlock = big.NewInt(blockNumber + 1)
 	} else if lastRequest != nil {
-		lastBlock = big.NewInt(int64(lastRequest.GetBlockNumber()))
+		lastBlock = big.NewInt(int64(lastRequest.GetReqBlockNumber()))
 	} else if config.Conf.FirstBlockNumber != 0 {
 		lastBlock = big.NewInt(int64(config.Conf.FirstBlockNumber + 1))
 	} else {
@@ -100,14 +100,15 @@ func (d *VORCoordinatorListener) Request() error {
 		return err
 	}
 
-	contractAbi, err := abi.JSON(strings.NewReader(string(vor_coordinator.VORCoordinatorABI)))
+	contractAbi, err := abi.JSON(strings.NewReader(string(vor_coordinator.VorCoordinatorABI)))
 	if err != nil {
 		return err
 	}
 	logRandomnessRequestSig := []byte("RandomnessRequest(bytes32,uint256,address,uint256,bytes32)")
 	logRandomnessRequestHash := crypto.Keccak256Hash(logRandomnessRequestSig)
+	logRandomnessRequestFulfilledSig := []byte("RandomnessRequestFulfilled(bytes32,uint256)")
+	logRandomnessRequestFulfilledHash := crypto.Keccak256Hash(logRandomnessRequestFulfilledSig)
 
-	fmt.Println("logRandomnessRequestHash hex: ", logRandomnessRequestHash.Hex())
 	fmt.Println("logs: ", logs)
 
 	for index, vLog := range logs {
@@ -122,7 +123,7 @@ func (d *VORCoordinatorListener) Request() error {
 			fmt.Println("Log Name: RandomnessRequest")
 
 			//var randomnessRequestEvent contractModel.LogRandomnessRequest
-			event := vor_coordinator.VORCoordinatorRandomnessRequest{}
+			event := vor_coordinator.VorCoordinatorRandomnessRequest{}
 			err := contractAbi.UnpackIntoInterface(&event, "RandomnessRequest", vLog.Data)
 			if err != nil {
 				return err
@@ -142,13 +143,29 @@ func (d *VORCoordinatorListener) Request() error {
 					fmt.Println(err)
 					status = "failed"
 				} else {
-					status = "success"
+					status = "pending"
 				}
 				seedHex, err := utils.Uint256ToHex(event.Seed)
-				err = d.service.Store.RandomnessRequest.Insert(common.Bytes2Hex(event.KeyHash[:]), seedHex, event.Sender.Hex(), common.Bytes2Hex(event.RequestID[:]), vLog.BlockHash.Hex(), vLog.BlockNumber, vLog.TxHash.Hex(), status)
+				err = d.service.Store.RandomnessRequest.InsertNewRequest(common.Bytes2Hex(event.KeyHash[:]), seedHex, event.Sender.Hex(), common.Bytes2Hex(event.RequestID[:]), vLog.BlockHash.Hex(), vLog.BlockNumber, vLog.TxHash.Hex(), status)
 			} else {
 				fmt.Println("Looks like it's addressed not to me =(")
 			}
+			continue
+		case logRandomnessRequestFulfilledHash.Hex():
+			fmt.Println("Log Name: RandomnessRequestFulfilled")
+			event := vor_coordinator.VorCoordinatorRandomnessRequestFulfilled{}
+			err := contractAbi.UnpackIntoInterface(&event, "RandomnessRequestFulfilled", vLog.Data)
+			if err != nil {
+				return err
+			}
+
+			txRec, err := d.client.TransactionReceipt(context.Background(), vLog.TxHash)
+
+			err = d.service.Store.RandomnessRequest.UpdateFulfillment(common.Bytes2Hex(event.RequestId[:]), vLog.TxHash.Hex(), "success", txRec.GasUsed, vLog.BlockNumber)
+			if err != nil {
+				return err
+			}
+
 			continue
 		default:
 			fmt.Println("vLog: ", vLog)

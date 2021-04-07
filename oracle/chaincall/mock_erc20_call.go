@@ -19,7 +19,7 @@ import (
 type MockERC20Caller struct {
 	contractAddress  common.Address
 	client           *ethclient.Client
-	instance         *mock_erc20.MockERC20
+	instance         *mock_erc20.MockErc20
 	transactOpts     *bind.TransactOpts
 	callOpts         *bind.CallOpts
 	context          context.Context
@@ -35,7 +35,7 @@ func NewMockERC20Caller(contractStringAddress string, ethHostAddress string, cha
 		return nil, err
 	}
 	contractAddress := common.HexToAddress(contractStringAddress)
-	instance, err := mock_erc20.NewMockERC20(contractAddress, client)
+	instance, err := mock_erc20.NewMockErc20(contractAddress, client)
 	if err != nil {
 		return nil, err
 	}

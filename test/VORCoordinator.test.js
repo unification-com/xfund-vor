@@ -10,6 +10,10 @@ const VORCoordinator = artifacts.require('VORCoordinator');
 const VORD20 = artifacts.require('VORD20');
 
 contract('VORCoordinator', ([owner, oracle, alice]) => {
+
+    const expectedGasFirst = 130000;
+    const expectedGas = 100000;
+
     beforeEach(async () => {
         this.keyHash = web3.utils.fromAscii('keyHash');
         this.fee = web3.utils.toWei('0.1', 'ether');
@@ -18,7 +22,7 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
 
         this.xFund = await MockERC20.new('xFUND', 'xFUND', web3.utils.toWei('1000000000', 'ether'), { from: owner });
         this.blockhashStore = await BlockhashStore.new({ from: owner });
-        this.vorCoordinator = await VORCoordinator.new(this.xFund.address, this.blockhashStore.address, { from: owner });
+        this.vorCoordinator = await VORCoordinator.new(this.xFund.address, this.blockhashStore.address, expectedGasFirst, expectedGas, { from: owner });
 
         this.vorD20 = await VORD20.new(this.vorCoordinator.address, this.xFund.address, this.keyHash, this.fee, { from: owner });
         await this.xFund.transfer(this.vorD20.address, this.deposit, { from: owner });
@@ -83,6 +87,8 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
     });
 
     it('returns the correct callbacks', async () => {
+
+        await this.vorD20.increaseVorCoordinatorAllowance(new BN(this.fee));
         const seed = 12345;
         const rollResult = await this.vorD20.rollDice(seed, alice);
 
@@ -148,20 +154,50 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
     });
 
     it('returns the correct total gas deposits', async () => {
-        const actualBalance = await web3.eth.getBalance(alice);
-        expect(actualBalance).to.be.bignumber.equal(new BN(web3.utils.toWei('100', 'ether')));
+        const publicProvingKey = [new BN('0'), new BN('0')];
+        const keyHash = await this.vorCoordinator.hashOfKey(publicProvingKey);
+        await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey, true);
+        await this.vorD20.topUpGas(keyHash, { from: owner, value: web3.utils.toWei('1', 'ether') });
 
-        await web3.eth.sendTransaction({ from: alice, to: this.vorD20.address, value: web3.utils.toWei('1', 'ether') });
-
-        await this.vorD20.topUpGas(web3.utils.toWei('1', 'ether'));
         const totalGasDeposits = await this.vorCoordinator.getTotalGasDeposits();
         expect(totalGasDeposits).to.be.bignumber.equal(new BN(web3.utils.toWei('1', 'ether')));
+
+        const provider = await this.vorCoordinator.getProviderAddress(keyHash)
+
+        const consumerTotalDeposits = await this.vorCoordinator.getGasDepositsForConsumer(this.vorD20.address);
+        expect(consumerTotalDeposits).to.be.bignumber.equal(new BN(web3.utils.toWei('1', 'ether')));
+
+        const consumerProviderDeposits = await this.vorCoordinator.getGasDepositsForConsumerProvider(this.vorD20.address, keyHash);
+        expect(consumerProviderDeposits).to.be.bignumber.equal(new BN(web3.utils.toWei('1', 'ether')));
     });
 
     it('topUpGas reject', async () => {
         await expectRevert(
-            this.vorCoordinator.topUpGas(oracle, { from: owner, value: web3.utils.toWei('1', 'ether') }),
+            this.vorCoordinator.topUpGas(this.keyHash, { from: owner, value: web3.utils.toWei('1', 'ether') }),
             `only a contract can top up gas`
+        );
+    });
+
+    it('correctly withDrawGasTopUpForProvider', async () => {
+        const publicProvingKey = [new BN('0'), new BN('0')];
+        const keyHash = await this.vorCoordinator.hashOfKey(publicProvingKey);
+        await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey, true);
+        await this.vorD20.topUpGas(keyHash, { from: owner, to: this.vorD20.address, value: web3.utils.toWei('1', 'ether') });
+
+        const totalGasDeposits = await this.vorCoordinator.getTotalGasDeposits();
+        expect(totalGasDeposits).to.be.bignumber.equal(new BN(web3.utils.toWei('1', 'ether')));
+
+        await this.vorD20.withDrawGasTopUp(keyHash, { from: owner})
+
+        const consumerTotalDeposits = await this.vorCoordinator.getGasDepositsForConsumer(this.vorD20.address);
+        expect(consumerTotalDeposits).to.be.bignumber.equal(new BN(web3.utils.toWei('0', 'ether')));
+
+    });
+
+    it('withDrawGasTopUpForProvider reject', async () => {
+        await expectRevert(
+            this.vorCoordinator.withDrawGasTopUpForProvider(this.keyHash, { from: owner }),
+            `only a contract can withdraw gas`
         );
     });
 });

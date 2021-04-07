@@ -38,7 +38,12 @@ func TestVORD20Caller_TopUpGas(t *testing.T) {
 		t.Error(err)
 	}
 
-	tx, err := VORD20Caller.TopUpGas(big.NewInt(10000))
+	keyHash, err := VORD20Caller.KeyHash()
+	if err != nil {
+		t.Error(err)
+	}
+
+	tx, err := VORD20Caller.TopUpGas(keyHash)
 	if err != nil {
 		t.Error(err)
 	}

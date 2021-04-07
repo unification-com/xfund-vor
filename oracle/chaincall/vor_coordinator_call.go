@@ -20,7 +20,7 @@ import (
 type VORCoordinatorCaller struct {
 	contractAddress common.Address
 	client          *ethclient.Client
-	instance        *vor_coordinator.VORCoordinator
+	instance        *vor_coordinator.VorCoordinator
 	transactOpts    *bind.TransactOpts
 	callOpts        *bind.CallOpts
 
@@ -39,7 +39,7 @@ func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string
 	}
 	//fmt.Println("contractStringAddress: ", contractStringAddress)
 	contractAddress := common.HexToAddress(contractStringAddress)
-	instance, err := vor_coordinator.NewVORCoordinator(contractAddress, client)
+	instance, err := vor_coordinator.NewVorCoordinator(contractAddress, client)
 	if err != nil {
 		return nil, err
 	}
@@ -151,11 +151,11 @@ func (d *VORCoordinatorCaller) ChangeFee(fee *big.Int) (*types.Transaction, erro
 	return d.instance.ChangeFee(d.transactOpts, d.publicProvingKey, fee)
 }
 
-func (d *VORCoordinatorCaller) TopUpGas(gas *big.Int) (*types.Transaction, error) {
-	defer d.RenewTransactOpts()
-	d.transactOpts.Value = gas
-	return d.instance.TopUpGas(d.transactOpts, common.HexToAddress(d.oracleAddress))
-}
+//func (d *VORCoordinatorCaller) TopUpGas(gas *big.Int) (*types.Transaction, error) {
+//	defer d.RenewTransactOpts()
+//	d.transactOpts.Value = gas
+//	return d.instance.TopUpGas(d.transactOpts, common.HexToAddress(d.oracleAddress))
+//}
 
 func (d *VORCoordinatorCaller) SetProviderPaysGas(providerPaysFee bool) (*types.Transaction, error) {
 	defer d.RenewTransactOpts()
