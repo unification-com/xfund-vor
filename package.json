@@ -36,16 +36,10 @@
   },
   "files": [
     "/contracts/**/*.sol",
-    "/build/contracts/*.json",
     "/docs/**/*.md",
-    "!/abigenBindings/**/*",
-    "!/contracts/mocks",
-    "!/contracts/examples",
+    "!/contracts/mocks/*",
     "!/contracts/Migrations.sol",
-    "!/build/contracts/*Mock.json",
-    "!/build/contracts/Mock*.json",
-    "!/build/contracts/Migrations.json",
-    "!/build/contracts/Ownable.json",
-    "!/build/contracts/VORD20.json"
+    "!/contracts/*Mock.json",
+    "!/contracts/Mock*.json"
   ]
 }
