@@ -4,7 +4,7 @@ pragma solidity 0.6.12;
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./interfaces/XFundTokenInterface.sol";
+import "./interfaces/IERC20_Ex.sol";
 import "./interfaces/IVORCoordinator.sol";
 import "./VORRequestIDBase.sol";
 
@@ -105,6 +105,8 @@ abstract contract VORConsumerBase is VORRequestIDBase, Ownable {
     using SafeMath for uint256;
     using Address for address;
 
+    event EthWithdrawn(address receiver, uint256 amount);
+
     /**
      * @notice fulfillRandomness handles the VOR response. Your contract must
      * @notice implement it. See "SECURITY CONSIDERATIONS" above for important
@@ -188,8 +190,15 @@ abstract contract VORConsumerBase is VORRequestIDBase, Ownable {
     function withDrawGasTopUp(bytes32 _keyHash) public onlyOwner {
         uint256 amount = IVORCoordinator(vorCoordinator).withDrawGasTopUpForProvider(_keyHash);
         if(amount > 0) {
-            Address.sendValue(payable(owner()), amount);
+            require(withdrawEth(amount));
         }
+    }
+
+    function withdrawEth(uint256 amount) public onlyOwner returns (bool success) {
+        require(address(this).balance >= amount, "not enough balance");
+        emit EthWithdrawn(owner(), amount);
+        Address.sendValue(payable(owner()), amount);
+        return true;
     }
 
     /**
@@ -201,7 +210,7 @@ abstract contract VORConsumerBase is VORRequestIDBase, Ownable {
         require(xFUND.transfer(to, value), "Not enough xFUND");
     }
 
-    XFundTokenInterface internal immutable xFUND;
+    IERC20_Ex internal immutable xFUND;
     address private immutable vorCoordinator;
 
     // Nonces for each VOR key from which randomness has been requested.
@@ -217,7 +226,7 @@ abstract contract VORConsumerBase is VORRequestIDBase, Ownable {
      */
     constructor(address _vorCoordinator, address _xfund) public {
         vorCoordinator = _vorCoordinator;
-        xFUND = XFundTokenInterface(_xfund);
+        xFUND = IERC20_Ex(_xfund);
     }
 
     // rawFulfillRandomness is called by VORCoordinator when it receives a valid VOR
