@@ -27,7 +27,7 @@ var (
 )
 
 // VorCoordinatorABI is the input ABI used to generate the binding from.
-const VorCoordinatorABI = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_xfund\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_blockHashStore\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_expectedGasFirst\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_expectedGas\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"keyHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"name\":\"ChangeFee\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"consumer\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"provider\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"GasRefundedToProvider\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"consumer\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"provider\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"GasToppedUp\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"consumer\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"provider\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"GasWithdrawnByConsumer\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"keyHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"name\":\"NewServiceAgreement\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"keyHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"seed\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"requestID\",\"type\":\"bytes32\"}],\"name\":\"RandomnessRequest\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"requestId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"output\",\"type\":\"uint256\"}],\"name\":\"RandomnessRequestFulfilled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"oldFirstExpected\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newFirstExpected\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"oldExpected\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newExpected\",\"type\":\"uint256\"}],\"name\":\"SetBaseGasRates\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"oldLimit\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newLimit\",\"type\":\"uint256\"}],\"name\":\"SetGasTopUpLimit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"provider\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"providerPays\",\"type\":\"bool\"}],\"name\":\"SetProviderPaysGas\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"PRESEED_OFFSET\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"PROOF_LENGTH\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"PUBLIC_KEY_OFFSET\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"callbacks\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"callbackContract\",\"type\":\"address\"},{\"internalType\":\"uint96\",\"name\":\"randomnessFee\",\"type\":\"uint96\"},{\"internalType\":\"bytes32\",\"name\":\"seedAndBlockNum\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"consumerPreviousFulfillment\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"serviceAgreements\",\"outputs\":[{\"internalType\":\"addresspayable\",\"name\":\"vOROracle\",\"type\":\"address\"},{\"internalType\":\"uint96\",\"name\":\"fee\",\"type\":\"uint96\"},{\"internalType\":\"bool\",\"name\":\"providerPaysGas\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"withdrawableTokens\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getTotalGasDeposits\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_consumer\",\"type\":\"address\"}],\"name\":\"getGasDepositsForConsumer\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_consumer\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"_keyHash\",\"type\":\"bytes32\"}],\"name\":\"getGasDepositsForConsumerProvider\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getGasTopUpLimit\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_keyHash\",\"type\":\"bytes32\"}],\"name\":\"getProviderAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_gasTopUpLimit\",\"type\":\"uint256\"}],\"name\":\"setGasTopUpLimit\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_newExpectedGasFirst\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_newExpectedGas\",\"type\":\"uint256\"}],\"name\":\"setBaseGasRates\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_fee\",\"type\":\"uint256\"},{\"internalType\":\"addresspayable\",\"name\":\"_oracle\",\"type\":\"address\"},{\"internalType\":\"uint256[2]\",\"name\":\"_publicProvingKey\",\"type\":\"uint256[2]\"},{\"internalType\":\"bool\",\"name\":\"_providerPaysGas\",\"type\":\"bool\"}],\"name\":\"registerProvingKey\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[2]\",\"name\":\"_publicProvingKey\",\"type\":\"uint256[2]\"},{\"internalType\":\"uint256\",\"name\":\"_fee\",\"type\":\"uint256\"}],\"name\":\"changeFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[2]\",\"name\":\"_publicProvingKey\",\"type\":\"uint256[2]\"},{\"internalType\":\"bool\",\"name\":\"_providerPays\",\"type\":\"bool\"}],\"name\":\"setProviderPaysGas\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"withdraw\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_keyHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_consumerSeed\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_feePaid\",\"type\":\"uint256\"}],\"name\":\"randomnessRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_keyHash\",\"type\":\"bytes32\"}],\"name\":\"topUpGas\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_keyHash\",\"type\":\"bytes32\"}],\"name\":\"withDrawGasTopUpForProvider\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountWithdrawn\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[2]\",\"name\":\"_publicKey\",\"type\":\"uint256[2]\"}],\"name\":\"hashOfKey\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_proof\",\"type\":\"bytes\"}],\"name\":\"fulfillRandomnessRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+const VorCoordinatorABI = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_xfund\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_blockHashStore\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_expectedBaseGas\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"keyHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"name\":\"ChangeFee\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"requestId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"consumer\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"provider\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"GasRefundedToProvider\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"consumer\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"provider\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"GasToppedUp\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"consumer\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"provider\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"GasWithdrawnByConsumer\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"keyHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"name\":\"NewServiceAgreement\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"keyHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"seed\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"requestID\",\"type\":\"bytes32\"}],\"name\":\"RandomnessRequest\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"requestId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"output\",\"type\":\"uint256\"}],\"name\":\"RandomnessRequestFulfilled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"oldBaseRate\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newBaseRate\",\"type\":\"uint256\"}],\"name\":\"SetBaseGasRate\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"oldLimit\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newLimit\",\"type\":\"uint256\"}],\"name\":\"SetGasTopUpLimit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"provider\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"providerPays\",\"type\":\"bool\"}],\"name\":\"SetProviderPaysGas\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"PRESEED_OFFSET\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"PROOF_LENGTH\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"PUBLIC_KEY_OFFSET\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"callbacks\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"callbackContract\",\"type\":\"address\"},{\"internalType\":\"uint96\",\"name\":\"randomnessFee\",\"type\":\"uint96\"},{\"internalType\":\"bytes32\",\"name\":\"seedAndBlockNum\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"serviceAgreements\",\"outputs\":[{\"internalType\":\"addresspayable\",\"name\":\"vOROracle\",\"type\":\"address\"},{\"internalType\":\"uint96\",\"name\":\"fee\",\"type\":\"uint96\"},{\"internalType\":\"bool\",\"name\":\"providerPaysGas\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"withdrawableTokens\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"getTotalGasDeposits\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_consumer\",\"type\":\"address\"}],\"name\":\"getGasDepositsForConsumer\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_consumer\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"_keyHash\",\"type\":\"bytes32\"}],\"name\":\"getGasDepositsForConsumerProvider\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"getGasTopUpLimit\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_keyHash\",\"type\":\"bytes32\"}],\"name\":\"getProviderAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_gasTopUpLimit\",\"type\":\"uint256\"}],\"name\":\"setGasTopUpLimit\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_newExpectedGasRate\",\"type\":\"uint256\"}],\"name\":\"setBaseGasRate\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getBaseGasRate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_fee\",\"type\":\"uint256\"},{\"internalType\":\"addresspayable\",\"name\":\"_oracle\",\"type\":\"address\"},{\"internalType\":\"uint256[2]\",\"name\":\"_publicProvingKey\",\"type\":\"uint256[2]\"},{\"internalType\":\"bool\",\"name\":\"_providerPaysGas\",\"type\":\"bool\"}],\"name\":\"registerProvingKey\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[2]\",\"name\":\"_publicProvingKey\",\"type\":\"uint256[2]\"},{\"internalType\":\"uint256\",\"name\":\"_fee\",\"type\":\"uint256\"}],\"name\":\"changeFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[2]\",\"name\":\"_publicProvingKey\",\"type\":\"uint256[2]\"},{\"internalType\":\"bool\",\"name\":\"_providerPays\",\"type\":\"bool\"}],\"name\":\"setProviderPaysGas\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"withdraw\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_keyHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_consumerSeed\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_feePaid\",\"type\":\"uint256\"}],\"name\":\"randomnessRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_keyHash\",\"type\":\"bytes32\"}],\"name\":\"topUpGas\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"}],\"stateMutability\":\"payable\",\"type\":\"function\",\"payable\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_keyHash\",\"type\":\"bytes32\"}],\"name\":\"withDrawGasTopUpForProvider\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"amountWithdrawn\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[2]\",\"name\":\"_publicKey\",\"type\":\"uint256[2]\"}],\"name\":\"hashOfKey\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_proof\",\"type\":\"bytes\"}],\"name\":\"fulfillRandomnessRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
 
 // VorCoordinator is an auto generated Go binding around an Ethereum contract.
 type VorCoordinator struct {
@@ -314,35 +314,35 @@ func (_VorCoordinator *VorCoordinatorCallerSession) Callbacks(arg0 [32]byte) (st
 	return _VorCoordinator.Contract.Callbacks(&_VorCoordinator.CallOpts, arg0)
 }
 
-// ConsumerPreviousFulfillment is a free data retrieval call binding the contract method 0xa0fb3bd4.
+// GetBaseGasRate is a free data retrieval call binding the contract method 0x3e54a1cf.
 //
-// Solidity: function consumerPreviousFulfillment(address ) view returns(bool)
-func (_VorCoordinator *VorCoordinatorCaller) ConsumerPreviousFulfillment(opts *bind.CallOpts, arg0 common.Address) (bool, error) {
+// Solidity: function getBaseGasRate() view returns(uint256)
+func (_VorCoordinator *VorCoordinatorCaller) GetBaseGasRate(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
-	err := _VorCoordinator.contract.Call(opts, &out, "consumerPreviousFulfillment", arg0)
+	err := _VorCoordinator.contract.Call(opts, &out, "getBaseGasRate")
 
 	if err != nil {
-		return *new(bool), err
+		return *new(*big.Int), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
 
 }
 
-// ConsumerPreviousFulfillment is a free data retrieval call binding the contract method 0xa0fb3bd4.
+// GetBaseGasRate is a free data retrieval call binding the contract method 0x3e54a1cf.
 //
-// Solidity: function consumerPreviousFulfillment(address ) view returns(bool)
-func (_VorCoordinator *VorCoordinatorSession) ConsumerPreviousFulfillment(arg0 common.Address) (bool, error) {
-	return _VorCoordinator.Contract.ConsumerPreviousFulfillment(&_VorCoordinator.CallOpts, arg0)
+// Solidity: function getBaseGasRate() view returns(uint256)
+func (_VorCoordinator *VorCoordinatorSession) GetBaseGasRate() (*big.Int, error) {
+	return _VorCoordinator.Contract.GetBaseGasRate(&_VorCoordinator.CallOpts)
 }
 
-// ConsumerPreviousFulfillment is a free data retrieval call binding the contract method 0xa0fb3bd4.
+// GetBaseGasRate is a free data retrieval call binding the contract method 0x3e54a1cf.
 //
-// Solidity: function consumerPreviousFulfillment(address ) view returns(bool)
-func (_VorCoordinator *VorCoordinatorCallerSession) ConsumerPreviousFulfillment(arg0 common.Address) (bool, error) {
-	return _VorCoordinator.Contract.ConsumerPreviousFulfillment(&_VorCoordinator.CallOpts, arg0)
+// Solidity: function getBaseGasRate() view returns(uint256)
+func (_VorCoordinator *VorCoordinatorCallerSession) GetBaseGasRate() (*big.Int, error) {
+	return _VorCoordinator.Contract.GetBaseGasRate(&_VorCoordinator.CallOpts)
 }
 
 // GetGasDepositsForConsumer is a free data retrieval call binding the contract method 0xda907ecf.
@@ -748,25 +748,25 @@ func (_VorCoordinator *VorCoordinatorTransactorSession) RenounceOwnership() (*ty
 	return _VorCoordinator.Contract.RenounceOwnership(&_VorCoordinator.TransactOpts)
 }
 
-// SetBaseGasRates is a paid mutator transaction binding the contract method 0xca8771cd.
+// SetBaseGasRate is a paid mutator transaction binding the contract method 0x700b230b.
 //
-// Solidity: function setBaseGasRates(uint256 _newExpectedGasFirst, uint256 _newExpectedGas) returns(bool success)
-func (_VorCoordinator *VorCoordinatorTransactor) SetBaseGasRates(opts *bind.TransactOpts, _newExpectedGasFirst *big.Int, _newExpectedGas *big.Int) (*types.Transaction, error) {
-	return _VorCoordinator.contract.Transact(opts, "setBaseGasRates", _newExpectedGasFirst, _newExpectedGas)
+// Solidity: function setBaseGasRate(uint256 _newExpectedGasRate) returns(bool success)
+func (_VorCoordinator *VorCoordinatorTransactor) SetBaseGasRate(opts *bind.TransactOpts, _newExpectedGasRate *big.Int) (*types.Transaction, error) {
+	return _VorCoordinator.contract.Transact(opts, "setBaseGasRate", _newExpectedGasRate)
 }
 
-// SetBaseGasRates is a paid mutator transaction binding the contract method 0xca8771cd.
+// SetBaseGasRate is a paid mutator transaction binding the contract method 0x700b230b.
 //
-// Solidity: function setBaseGasRates(uint256 _newExpectedGasFirst, uint256 _newExpectedGas) returns(bool success)
-func (_VorCoordinator *VorCoordinatorSession) SetBaseGasRates(_newExpectedGasFirst *big.Int, _newExpectedGas *big.Int) (*types.Transaction, error) {
-	return _VorCoordinator.Contract.SetBaseGasRates(&_VorCoordinator.TransactOpts, _newExpectedGasFirst, _newExpectedGas)
+// Solidity: function setBaseGasRate(uint256 _newExpectedGasRate) returns(bool success)
+func (_VorCoordinator *VorCoordinatorSession) SetBaseGasRate(_newExpectedGasRate *big.Int) (*types.Transaction, error) {
+	return _VorCoordinator.Contract.SetBaseGasRate(&_VorCoordinator.TransactOpts, _newExpectedGasRate)
 }
 
-// SetBaseGasRates is a paid mutator transaction binding the contract method 0xca8771cd.
+// SetBaseGasRate is a paid mutator transaction binding the contract method 0x700b230b.
 //
-// Solidity: function setBaseGasRates(uint256 _newExpectedGasFirst, uint256 _newExpectedGas) returns(bool success)
-func (_VorCoordinator *VorCoordinatorTransactorSession) SetBaseGasRates(_newExpectedGasFirst *big.Int, _newExpectedGas *big.Int) (*types.Transaction, error) {
-	return _VorCoordinator.Contract.SetBaseGasRates(&_VorCoordinator.TransactOpts, _newExpectedGasFirst, _newExpectedGas)
+// Solidity: function setBaseGasRate(uint256 _newExpectedGasRate) returns(bool success)
+func (_VorCoordinator *VorCoordinatorTransactorSession) SetBaseGasRate(_newExpectedGasRate *big.Int) (*types.Transaction, error) {
+	return _VorCoordinator.Contract.SetBaseGasRate(&_VorCoordinator.TransactOpts, _newExpectedGasRate)
 }
 
 // SetGasTopUpLimit is a paid mutator transaction binding the contract method 0x0f3a85d8.
@@ -1099,48 +1099,31 @@ func (it *VorCoordinatorGasRefundedToProviderIterator) Close() error {
 
 // VorCoordinatorGasRefundedToProvider represents a GasRefundedToProvider event raised by the VorCoordinator contract.
 type VorCoordinatorGasRefundedToProvider struct {
-	Consumer common.Address
-	Provider common.Address
-	Amount   *big.Int
-	Raw      types.Log // Blockchain specific contextual infos
+	RequestId [32]byte
+	Consumer  common.Address
+	Provider  common.Address
+	Amount    *big.Int
+	Raw       types.Log // Blockchain specific contextual infos
 }
 
-// FilterGasRefundedToProvider is a free log retrieval operation binding the contract event 0xc5a3f3f707348b27fcecf895e59365d724538a5ba59bd84f5a216be628ac7624.
+// FilterGasRefundedToProvider is a free log retrieval operation binding the contract event 0x1eb8594566fee103949511f85434441c869abe9a988e2fb3b8967192a888b6ff.
 //
-// Solidity: event GasRefundedToProvider(address indexed consumer, address indexed provider, uint256 amount)
-func (_VorCoordinator *VorCoordinatorFilterer) FilterGasRefundedToProvider(opts *bind.FilterOpts, consumer []common.Address, provider []common.Address) (*VorCoordinatorGasRefundedToProviderIterator, error) {
+// Solidity: event GasRefundedToProvider(bytes32 requestId, address consumer, address provider, uint256 amount)
+func (_VorCoordinator *VorCoordinatorFilterer) FilterGasRefundedToProvider(opts *bind.FilterOpts) (*VorCoordinatorGasRefundedToProviderIterator, error) {
 
-	var consumerRule []interface{}
-	for _, consumerItem := range consumer {
-		consumerRule = append(consumerRule, consumerItem)
-	}
-	var providerRule []interface{}
-	for _, providerItem := range provider {
-		providerRule = append(providerRule, providerItem)
-	}
-
-	logs, sub, err := _VorCoordinator.contract.FilterLogs(opts, "GasRefundedToProvider", consumerRule, providerRule)
+	logs, sub, err := _VorCoordinator.contract.FilterLogs(opts, "GasRefundedToProvider")
 	if err != nil {
 		return nil, err
 	}
 	return &VorCoordinatorGasRefundedToProviderIterator{contract: _VorCoordinator.contract, event: "GasRefundedToProvider", logs: logs, sub: sub}, nil
 }
 
-// WatchGasRefundedToProvider is a free log subscription operation binding the contract event 0xc5a3f3f707348b27fcecf895e59365d724538a5ba59bd84f5a216be628ac7624.
+// WatchGasRefundedToProvider is a free log subscription operation binding the contract event 0x1eb8594566fee103949511f85434441c869abe9a988e2fb3b8967192a888b6ff.
 //
-// Solidity: event GasRefundedToProvider(address indexed consumer, address indexed provider, uint256 amount)
-func (_VorCoordinator *VorCoordinatorFilterer) WatchGasRefundedToProvider(opts *bind.WatchOpts, sink chan<- *VorCoordinatorGasRefundedToProvider, consumer []common.Address, provider []common.Address) (event.Subscription, error) {
+// Solidity: event GasRefundedToProvider(bytes32 requestId, address consumer, address provider, uint256 amount)
+func (_VorCoordinator *VorCoordinatorFilterer) WatchGasRefundedToProvider(opts *bind.WatchOpts, sink chan<- *VorCoordinatorGasRefundedToProvider) (event.Subscription, error) {
 
-	var consumerRule []interface{}
-	for _, consumerItem := range consumer {
-		consumerRule = append(consumerRule, consumerItem)
-	}
-	var providerRule []interface{}
-	for _, providerItem := range provider {
-		providerRule = append(providerRule, providerItem)
-	}
-
-	logs, sub, err := _VorCoordinator.contract.WatchLogs(opts, "GasRefundedToProvider", consumerRule, providerRule)
+	logs, sub, err := _VorCoordinator.contract.WatchLogs(opts, "GasRefundedToProvider")
 	if err != nil {
 		return nil, err
 	}
@@ -1172,9 +1155,9 @@ func (_VorCoordinator *VorCoordinatorFilterer) WatchGasRefundedToProvider(opts *
 	}), nil
 }
 
-// ParseGasRefundedToProvider is a log parse operation binding the contract event 0xc5a3f3f707348b27fcecf895e59365d724538a5ba59bd84f5a216be628ac7624.
+// ParseGasRefundedToProvider is a log parse operation binding the contract event 0x1eb8594566fee103949511f85434441c869abe9a988e2fb3b8967192a888b6ff.
 //
-// Solidity: event GasRefundedToProvider(address indexed consumer, address indexed provider, uint256 amount)
+// Solidity: event GasRefundedToProvider(bytes32 requestId, address consumer, address provider, uint256 amount)
 func (_VorCoordinator *VorCoordinatorFilterer) ParseGasRefundedToProvider(log types.Log) (*VorCoordinatorGasRefundedToProvider, error) {
 	event := new(VorCoordinatorGasRefundedToProvider)
 	if err := _VorCoordinator.contract.UnpackLog(event, "GasRefundedToProvider", log); err != nil {
@@ -1261,19 +1244,10 @@ type VorCoordinatorGasToppedUp struct {
 
 // FilterGasToppedUp is a free log retrieval operation binding the contract event 0x91741e86d5a4eecb6b400c9552980cc853bc8690a11d78e496e670226d2352f7.
 //
-// Solidity: event GasToppedUp(address indexed consumer, address indexed provider, uint256 amount)
-func (_VorCoordinator *VorCoordinatorFilterer) FilterGasToppedUp(opts *bind.FilterOpts, consumer []common.Address, provider []common.Address) (*VorCoordinatorGasToppedUpIterator, error) {
+// Solidity: event GasToppedUp(address consumer, address provider, uint256 amount)
+func (_VorCoordinator *VorCoordinatorFilterer) FilterGasToppedUp(opts *bind.FilterOpts) (*VorCoordinatorGasToppedUpIterator, error) {
 
-	var consumerRule []interface{}
-	for _, consumerItem := range consumer {
-		consumerRule = append(consumerRule, consumerItem)
-	}
-	var providerRule []interface{}
-	for _, providerItem := range provider {
-		providerRule = append(providerRule, providerItem)
-	}
-
-	logs, sub, err := _VorCoordinator.contract.FilterLogs(opts, "GasToppedUp", consumerRule, providerRule)
+	logs, sub, err := _VorCoordinator.contract.FilterLogs(opts, "GasToppedUp")
 	if err != nil {
 		return nil, err
 	}
@@ -1282,19 +1256,10 @@ func (_VorCoordinator *VorCoordinatorFilterer) FilterGasToppedUp(opts *bind.Filt
 
 // WatchGasToppedUp is a free log subscription operation binding the contract event 0x91741e86d5a4eecb6b400c9552980cc853bc8690a11d78e496e670226d2352f7.
 //
-// Solidity: event GasToppedUp(address indexed consumer, address indexed provider, uint256 amount)
-func (_VorCoordinator *VorCoordinatorFilterer) WatchGasToppedUp(opts *bind.WatchOpts, sink chan<- *VorCoordinatorGasToppedUp, consumer []common.Address, provider []common.Address) (event.Subscription, error) {
+// Solidity: event GasToppedUp(address consumer, address provider, uint256 amount)
+func (_VorCoordinator *VorCoordinatorFilterer) WatchGasToppedUp(opts *bind.WatchOpts, sink chan<- *VorCoordinatorGasToppedUp) (event.Subscription, error) {
 
-	var consumerRule []interface{}
-	for _, consumerItem := range consumer {
-		consumerRule = append(consumerRule, consumerItem)
-	}
-	var providerRule []interface{}
-	for _, providerItem := range provider {
-		providerRule = append(providerRule, providerItem)
-	}
-
-	logs, sub, err := _VorCoordinator.contract.WatchLogs(opts, "GasToppedUp", consumerRule, providerRule)
+	logs, sub, err := _VorCoordinator.contract.WatchLogs(opts, "GasToppedUp")
 	if err != nil {
 		return nil, err
 	}
@@ -1328,7 +1293,7 @@ func (_VorCoordinator *VorCoordinatorFilterer) WatchGasToppedUp(opts *bind.Watch
 
 // ParseGasToppedUp is a log parse operation binding the contract event 0x91741e86d5a4eecb6b400c9552980cc853bc8690a11d78e496e670226d2352f7.
 //
-// Solidity: event GasToppedUp(address indexed consumer, address indexed provider, uint256 amount)
+// Solidity: event GasToppedUp(address consumer, address provider, uint256 amount)
 func (_VorCoordinator *VorCoordinatorFilterer) ParseGasToppedUp(log types.Log) (*VorCoordinatorGasToppedUp, error) {
 	event := new(VorCoordinatorGasToppedUp)
 	if err := _VorCoordinator.contract.UnpackLog(event, "GasToppedUp", log); err != nil {
@@ -1415,19 +1380,10 @@ type VorCoordinatorGasWithdrawnByConsumer struct {
 
 // FilterGasWithdrawnByConsumer is a free log retrieval operation binding the contract event 0x020b7d7b513333b8796ebe3a21d5b1c5de7893e8b4849b894105466fd49e70dd.
 //
-// Solidity: event GasWithdrawnByConsumer(address indexed consumer, address indexed provider, uint256 amount)
-func (_VorCoordinator *VorCoordinatorFilterer) FilterGasWithdrawnByConsumer(opts *bind.FilterOpts, consumer []common.Address, provider []common.Address) (*VorCoordinatorGasWithdrawnByConsumerIterator, error) {
+// Solidity: event GasWithdrawnByConsumer(address consumer, address provider, uint256 amount)
+func (_VorCoordinator *VorCoordinatorFilterer) FilterGasWithdrawnByConsumer(opts *bind.FilterOpts) (*VorCoordinatorGasWithdrawnByConsumerIterator, error) {
 
-	var consumerRule []interface{}
-	for _, consumerItem := range consumer {
-		consumerRule = append(consumerRule, consumerItem)
-	}
-	var providerRule []interface{}
-	for _, providerItem := range provider {
-		providerRule = append(providerRule, providerItem)
-	}
-
-	logs, sub, err := _VorCoordinator.contract.FilterLogs(opts, "GasWithdrawnByConsumer", consumerRule, providerRule)
+	logs, sub, err := _VorCoordinator.contract.FilterLogs(opts, "GasWithdrawnByConsumer")
 	if err != nil {
 		return nil, err
 	}
@@ -1436,19 +1392,10 @@ func (_VorCoordinator *VorCoordinatorFilterer) FilterGasWithdrawnByConsumer(opts
 
 // WatchGasWithdrawnByConsumer is a free log subscription operation binding the contract event 0x020b7d7b513333b8796ebe3a21d5b1c5de7893e8b4849b894105466fd49e70dd.
 //
-// Solidity: event GasWithdrawnByConsumer(address indexed consumer, address indexed provider, uint256 amount)
-func (_VorCoordinator *VorCoordinatorFilterer) WatchGasWithdrawnByConsumer(opts *bind.WatchOpts, sink chan<- *VorCoordinatorGasWithdrawnByConsumer, consumer []common.Address, provider []common.Address) (event.Subscription, error) {
+// Solidity: event GasWithdrawnByConsumer(address consumer, address provider, uint256 amount)
+func (_VorCoordinator *VorCoordinatorFilterer) WatchGasWithdrawnByConsumer(opts *bind.WatchOpts, sink chan<- *VorCoordinatorGasWithdrawnByConsumer) (event.Subscription, error) {
 
-	var consumerRule []interface{}
-	for _, consumerItem := range consumer {
-		consumerRule = append(consumerRule, consumerItem)
-	}
-	var providerRule []interface{}
-	for _, providerItem := range provider {
-		providerRule = append(providerRule, providerItem)
-	}
-
-	logs, sub, err := _VorCoordinator.contract.WatchLogs(opts, "GasWithdrawnByConsumer", consumerRule, providerRule)
+	logs, sub, err := _VorCoordinator.contract.WatchLogs(opts, "GasWithdrawnByConsumer")
 	if err != nil {
 		return nil, err
 	}
@@ -1482,7 +1429,7 @@ func (_VorCoordinator *VorCoordinatorFilterer) WatchGasWithdrawnByConsumer(opts 
 
 // ParseGasWithdrawnByConsumer is a log parse operation binding the contract event 0x020b7d7b513333b8796ebe3a21d5b1c5de7893e8b4849b894105466fd49e70dd.
 //
-// Solidity: event GasWithdrawnByConsumer(address indexed consumer, address indexed provider, uint256 amount)
+// Solidity: event GasWithdrawnByConsumer(address consumer, address provider, uint256 amount)
 func (_VorCoordinator *VorCoordinatorFilterer) ParseGasWithdrawnByConsumer(log types.Log) (*VorCoordinatorGasWithdrawnByConsumer, error) {
 	event := new(VorCoordinatorGasWithdrawnByConsumer)
 	if err := _VorCoordinator.contract.UnpackLog(event, "GasWithdrawnByConsumer", log); err != nil {
@@ -2053,9 +2000,9 @@ func (_VorCoordinator *VorCoordinatorFilterer) ParseRandomnessRequestFulfilled(l
 	return event, nil
 }
 
-// VorCoordinatorSetBaseGasRatesIterator is returned from FilterSetBaseGasRates and is used to iterate over the raw logs and unpacked data for SetBaseGasRates events raised by the VorCoordinator contract.
-type VorCoordinatorSetBaseGasRatesIterator struct {
-	Event *VorCoordinatorSetBaseGasRates // Event containing the contract specifics and raw log
+// VorCoordinatorSetBaseGasRateIterator is returned from FilterSetBaseGasRate and is used to iterate over the raw logs and unpacked data for SetBaseGasRate events raised by the VorCoordinator contract.
+type VorCoordinatorSetBaseGasRateIterator struct {
+	Event *VorCoordinatorSetBaseGasRate // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -2069,7 +2016,7 @@ type VorCoordinatorSetBaseGasRatesIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *VorCoordinatorSetBaseGasRatesIterator) Next() bool {
+func (it *VorCoordinatorSetBaseGasRateIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -2078,7 +2025,7 @@ func (it *VorCoordinatorSetBaseGasRatesIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(VorCoordinatorSetBaseGasRates)
+			it.Event = new(VorCoordinatorSetBaseGasRate)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -2093,7 +2040,7 @@ func (it *VorCoordinatorSetBaseGasRatesIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(VorCoordinatorSetBaseGasRates)
+		it.Event = new(VorCoordinatorSetBaseGasRate)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -2109,55 +2056,43 @@ func (it *VorCoordinatorSetBaseGasRatesIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *VorCoordinatorSetBaseGasRatesIterator) Error() error {
+func (it *VorCoordinatorSetBaseGasRateIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *VorCoordinatorSetBaseGasRatesIterator) Close() error {
+func (it *VorCoordinatorSetBaseGasRateIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// VorCoordinatorSetBaseGasRates represents a SetBaseGasRates event raised by the VorCoordinator contract.
-type VorCoordinatorSetBaseGasRates struct {
-	Sender           common.Address
-	OldFirstExpected *big.Int
-	NewFirstExpected *big.Int
-	OldExpected      *big.Int
-	NewExpected      *big.Int
-	Raw              types.Log // Blockchain specific contextual infos
+// VorCoordinatorSetBaseGasRate represents a SetBaseGasRate event raised by the VorCoordinator contract.
+type VorCoordinatorSetBaseGasRate struct {
+	Sender      common.Address
+	OldBaseRate *big.Int
+	NewBaseRate *big.Int
+	Raw         types.Log // Blockchain specific contextual infos
 }
 
-// FilterSetBaseGasRates is a free log retrieval operation binding the contract event 0x1f14c811f36e079fc63c510f5656ab9445858a5aa03fb41c7386a1b3daae8433.
+// FilterSetBaseGasRate is a free log retrieval operation binding the contract event 0x6cdad0e2cd4fb57698d2cec0dcd0b5cb18598684755dab94e1ad8e592a57da2f.
 //
-// Solidity: event SetBaseGasRates(address indexed sender, uint256 oldFirstExpected, uint256 newFirstExpected, uint256 oldExpected, uint256 newExpected)
-func (_VorCoordinator *VorCoordinatorFilterer) FilterSetBaseGasRates(opts *bind.FilterOpts, sender []common.Address) (*VorCoordinatorSetBaseGasRatesIterator, error) {
+// Solidity: event SetBaseGasRate(address sender, uint256 oldBaseRate, uint256 newBaseRate)
+func (_VorCoordinator *VorCoordinatorFilterer) FilterSetBaseGasRate(opts *bind.FilterOpts) (*VorCoordinatorSetBaseGasRateIterator, error) {
 
-	var senderRule []interface{}
-	for _, senderItem := range sender {
-		senderRule = append(senderRule, senderItem)
-	}
-
-	logs, sub, err := _VorCoordinator.contract.FilterLogs(opts, "SetBaseGasRates", senderRule)
+	logs, sub, err := _VorCoordinator.contract.FilterLogs(opts, "SetBaseGasRate")
 	if err != nil {
 		return nil, err
 	}
-	return &VorCoordinatorSetBaseGasRatesIterator{contract: _VorCoordinator.contract, event: "SetBaseGasRates", logs: logs, sub: sub}, nil
+	return &VorCoordinatorSetBaseGasRateIterator{contract: _VorCoordinator.contract, event: "SetBaseGasRate", logs: logs, sub: sub}, nil
 }
 
-// WatchSetBaseGasRates is a free log subscription operation binding the contract event 0x1f14c811f36e079fc63c510f5656ab9445858a5aa03fb41c7386a1b3daae8433.
+// WatchSetBaseGasRate is a free log subscription operation binding the contract event 0x6cdad0e2cd4fb57698d2cec0dcd0b5cb18598684755dab94e1ad8e592a57da2f.
 //
-// Solidity: event SetBaseGasRates(address indexed sender, uint256 oldFirstExpected, uint256 newFirstExpected, uint256 oldExpected, uint256 newExpected)
-func (_VorCoordinator *VorCoordinatorFilterer) WatchSetBaseGasRates(opts *bind.WatchOpts, sink chan<- *VorCoordinatorSetBaseGasRates, sender []common.Address) (event.Subscription, error) {
+// Solidity: event SetBaseGasRate(address sender, uint256 oldBaseRate, uint256 newBaseRate)
+func (_VorCoordinator *VorCoordinatorFilterer) WatchSetBaseGasRate(opts *bind.WatchOpts, sink chan<- *VorCoordinatorSetBaseGasRate) (event.Subscription, error) {
 
-	var senderRule []interface{}
-	for _, senderItem := range sender {
-		senderRule = append(senderRule, senderItem)
-	}
-
-	logs, sub, err := _VorCoordinator.contract.WatchLogs(opts, "SetBaseGasRates", senderRule)
+	logs, sub, err := _VorCoordinator.contract.WatchLogs(opts, "SetBaseGasRate")
 	if err != nil {
 		return nil, err
 	}
@@ -2167,8 +2102,8 @@ func (_VorCoordinator *VorCoordinatorFilterer) WatchSetBaseGasRates(opts *bind.W
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(VorCoordinatorSetBaseGasRates)
-				if err := _VorCoordinator.contract.UnpackLog(event, "SetBaseGasRates", log); err != nil {
+				event := new(VorCoordinatorSetBaseGasRate)
+				if err := _VorCoordinator.contract.UnpackLog(event, "SetBaseGasRate", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -2189,12 +2124,12 @@ func (_VorCoordinator *VorCoordinatorFilterer) WatchSetBaseGasRates(opts *bind.W
 	}), nil
 }
 
-// ParseSetBaseGasRates is a log parse operation binding the contract event 0x1f14c811f36e079fc63c510f5656ab9445858a5aa03fb41c7386a1b3daae8433.
+// ParseSetBaseGasRate is a log parse operation binding the contract event 0x6cdad0e2cd4fb57698d2cec0dcd0b5cb18598684755dab94e1ad8e592a57da2f.
 //
-// Solidity: event SetBaseGasRates(address indexed sender, uint256 oldFirstExpected, uint256 newFirstExpected, uint256 oldExpected, uint256 newExpected)
-func (_VorCoordinator *VorCoordinatorFilterer) ParseSetBaseGasRates(log types.Log) (*VorCoordinatorSetBaseGasRates, error) {
-	event := new(VorCoordinatorSetBaseGasRates)
-	if err := _VorCoordinator.contract.UnpackLog(event, "SetBaseGasRates", log); err != nil {
+// Solidity: event SetBaseGasRate(address sender, uint256 oldBaseRate, uint256 newBaseRate)
+func (_VorCoordinator *VorCoordinatorFilterer) ParseSetBaseGasRate(log types.Log) (*VorCoordinatorSetBaseGasRate, error) {
+	event := new(VorCoordinatorSetBaseGasRate)
+	if err := _VorCoordinator.contract.UnpackLog(event, "SetBaseGasRate", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
@@ -2278,15 +2213,10 @@ type VorCoordinatorSetGasTopUpLimit struct {
 
 // FilterSetGasTopUpLimit is a free log retrieval operation binding the contract event 0x35ab6203306e69cd89de0e2e1416a00fec248268e57b99e4d2638e3b14f277f1.
 //
-// Solidity: event SetGasTopUpLimit(address indexed sender, uint256 oldLimit, uint256 newLimit)
-func (_VorCoordinator *VorCoordinatorFilterer) FilterSetGasTopUpLimit(opts *bind.FilterOpts, sender []common.Address) (*VorCoordinatorSetGasTopUpLimitIterator, error) {
+// Solidity: event SetGasTopUpLimit(address sender, uint256 oldLimit, uint256 newLimit)
+func (_VorCoordinator *VorCoordinatorFilterer) FilterSetGasTopUpLimit(opts *bind.FilterOpts) (*VorCoordinatorSetGasTopUpLimitIterator, error) {
 
-	var senderRule []interface{}
-	for _, senderItem := range sender {
-		senderRule = append(senderRule, senderItem)
-	}
-
-	logs, sub, err := _VorCoordinator.contract.FilterLogs(opts, "SetGasTopUpLimit", senderRule)
+	logs, sub, err := _VorCoordinator.contract.FilterLogs(opts, "SetGasTopUpLimit")
 	if err != nil {
 		return nil, err
 	}
@@ -2295,15 +2225,10 @@ func (_VorCoordinator *VorCoordinatorFilterer) FilterSetGasTopUpLimit(opts *bind
 
 // WatchSetGasTopUpLimit is a free log subscription operation binding the contract event 0x35ab6203306e69cd89de0e2e1416a00fec248268e57b99e4d2638e3b14f277f1.
 //
-// Solidity: event SetGasTopUpLimit(address indexed sender, uint256 oldLimit, uint256 newLimit)
-func (_VorCoordinator *VorCoordinatorFilterer) WatchSetGasTopUpLimit(opts *bind.WatchOpts, sink chan<- *VorCoordinatorSetGasTopUpLimit, sender []common.Address) (event.Subscription, error) {
+// Solidity: event SetGasTopUpLimit(address sender, uint256 oldLimit, uint256 newLimit)
+func (_VorCoordinator *VorCoordinatorFilterer) WatchSetGasTopUpLimit(opts *bind.WatchOpts, sink chan<- *VorCoordinatorSetGasTopUpLimit) (event.Subscription, error) {
 
-	var senderRule []interface{}
-	for _, senderItem := range sender {
-		senderRule = append(senderRule, senderItem)
-	}
-
-	logs, sub, err := _VorCoordinator.contract.WatchLogs(opts, "SetGasTopUpLimit", senderRule)
+	logs, sub, err := _VorCoordinator.contract.WatchLogs(opts, "SetGasTopUpLimit")
 	if err != nil {
 		return nil, err
 	}
@@ -2337,7 +2262,7 @@ func (_VorCoordinator *VorCoordinatorFilterer) WatchSetGasTopUpLimit(opts *bind.
 
 // ParseSetGasTopUpLimit is a log parse operation binding the contract event 0x35ab6203306e69cd89de0e2e1416a00fec248268e57b99e4d2638e3b14f277f1.
 //
-// Solidity: event SetGasTopUpLimit(address indexed sender, uint256 oldLimit, uint256 newLimit)
+// Solidity: event SetGasTopUpLimit(address sender, uint256 oldLimit, uint256 newLimit)
 func (_VorCoordinator *VorCoordinatorFilterer) ParseSetGasTopUpLimit(log types.Log) (*VorCoordinatorSetGasTopUpLimit, error) {
 	event := new(VorCoordinatorSetGasTopUpLimit)
 	if err := _VorCoordinator.contract.UnpackLog(event, "SetGasTopUpLimit", log); err != nil {
@@ -2423,15 +2348,10 @@ type VorCoordinatorSetProviderPaysGas struct {
 
 // FilterSetProviderPaysGas is a free log retrieval operation binding the contract event 0xbd14da99da538efaf54d5467de2c08e022bd7054a36953bffe5854d6c6c4ab3f.
 //
-// Solidity: event SetProviderPaysGas(address indexed provider, bool providerPays)
-func (_VorCoordinator *VorCoordinatorFilterer) FilterSetProviderPaysGas(opts *bind.FilterOpts, provider []common.Address) (*VorCoordinatorSetProviderPaysGasIterator, error) {
+// Solidity: event SetProviderPaysGas(address provider, bool providerPays)
+func (_VorCoordinator *VorCoordinatorFilterer) FilterSetProviderPaysGas(opts *bind.FilterOpts) (*VorCoordinatorSetProviderPaysGasIterator, error) {
 
-	var providerRule []interface{}
-	for _, providerItem := range provider {
-		providerRule = append(providerRule, providerItem)
-	}
-
-	logs, sub, err := _VorCoordinator.contract.FilterLogs(opts, "SetProviderPaysGas", providerRule)
+	logs, sub, err := _VorCoordinator.contract.FilterLogs(opts, "SetProviderPaysGas")
 	if err != nil {
 		return nil, err
 	}
@@ -2440,15 +2360,10 @@ func (_VorCoordinator *VorCoordinatorFilterer) FilterSetProviderPaysGas(opts *bi
 
 // WatchSetProviderPaysGas is a free log subscription operation binding the contract event 0xbd14da99da538efaf54d5467de2c08e022bd7054a36953bffe5854d6c6c4ab3f.
 //
-// Solidity: event SetProviderPaysGas(address indexed provider, bool providerPays)
-func (_VorCoordinator *VorCoordinatorFilterer) WatchSetProviderPaysGas(opts *bind.WatchOpts, sink chan<- *VorCoordinatorSetProviderPaysGas, provider []common.Address) (event.Subscription, error) {
+// Solidity: event SetProviderPaysGas(address provider, bool providerPays)
+func (_VorCoordinator *VorCoordinatorFilterer) WatchSetProviderPaysGas(opts *bind.WatchOpts, sink chan<- *VorCoordinatorSetProviderPaysGas) (event.Subscription, error) {
 
-	var providerRule []interface{}
-	for _, providerItem := range provider {
-		providerRule = append(providerRule, providerItem)
-	}
-
-	logs, sub, err := _VorCoordinator.contract.WatchLogs(opts, "SetProviderPaysGas", providerRule)
+	logs, sub, err := _VorCoordinator.contract.WatchLogs(opts, "SetProviderPaysGas")
 	if err != nil {
 		return nil, err
 	}
@@ -2482,7 +2397,7 @@ func (_VorCoordinator *VorCoordinatorFilterer) WatchSetProviderPaysGas(opts *bin
 
 // ParseSetProviderPaysGas is a log parse operation binding the contract event 0xbd14da99da538efaf54d5467de2c08e022bd7054a36953bffe5854d6c6c4ab3f.
 //
-// Solidity: event SetProviderPaysGas(address indexed provider, bool providerPays)
+// Solidity: event SetProviderPaysGas(address provider, bool providerPays)
 func (_VorCoordinator *VorCoordinatorFilterer) ParseSetProviderPaysGas(log types.Log) (*VorCoordinatorSetProviderPaysGas, error) {
 	event := new(VorCoordinatorSetProviderPaysGas)
 	if err := _VorCoordinator.contract.UnpackLog(event, "SetProviderPaysGas", log); err != nil {
