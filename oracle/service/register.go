@@ -8,7 +8,7 @@ import (
 	"oracle/config"
 )
 
-func (d *Service) Register(account string, privateKey string, fee int64, providerPaysGas bool) (tx *types.Transaction, err error) {
+func (d *Service) Register(account string, privateKey string, fee int64) (tx *types.Transaction, err error) {
 	if d.Store.Keystorage.ExistsByUsername(account) {
 		return nil, fmt.Errorf("This account name is already used")
 	}
@@ -23,5 +23,5 @@ func (d *Service) Register(account string, privateKey string, fee int64, provide
 		return
 	}
 
-	return VORCoordinatorCallerNew.RegisterProvingKey(big.NewInt(fee), providerPaysGas)
+	return VORCoordinatorCallerNew.RegisterProvingKey(big.NewInt(fee))
 }

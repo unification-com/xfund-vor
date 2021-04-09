@@ -107,7 +107,6 @@ func (d *VORCoordinatorListener) Request() error {
 
 	logRandomnessRequestHash := crypto.Keccak256Hash([]byte("RandomnessRequest(bytes32,uint256,address,uint256,bytes32)"))
 	logRandomnessRequestFulfilledHash := crypto.Keccak256Hash([]byte("RandomnessRequestFulfilled(bytes32,uint256)"))
-	logGasRefundedToProviderHash := crypto.Keccak256Hash([]byte("GasRefundedToProvider(bytes32,address,address,uint256)"))
 
 	fmt.Println("logs: ", logs)
 
@@ -150,7 +149,17 @@ func (d *VORCoordinatorListener) Request() error {
 					status = "pending"
 				}
 				seedHex, err := utils.Uint256ToHex(event.Seed)
-				err = d.service.Store.RandomnessRequest.InsertNewRequest(common.Bytes2Hex(event.KeyHash[:]), seedHex, event.Sender.Hex(), common.Bytes2Hex(event.RequestID[:]), vLog.BlockHash.Hex(), vLog.BlockNumber, vLog.TxHash.Hex(), status)
+				err = d.service.Store.RandomnessRequest.InsertNewRequest(
+					common.Bytes2Hex(event.KeyHash[:]),
+					seedHex, event.Sender.Hex(),
+					common.Bytes2Hex(event.RequestID[:]),
+					vLog.BlockHash.Hex(),
+					vLog.BlockNumber,
+					vLog.TxHash.Hex(),
+					status,
+					txRec.GasUsed,
+					tx.GasPrice().Uint64(),
+					)
 			} else {
 				fmt.Println("Looks like it's addressed not to me =(")
 			}
@@ -171,27 +180,8 @@ func (d *VORCoordinatorListener) Request() error {
 				txRec.GasUsed,
 				vLog.BlockNumber,
 				tx.GasPrice().Uint64(),
+				event.Output.String(),
 				)
-			if err != nil {
-				return err
-			}
-
-			continue
-		case logGasRefundedToProviderHash.Hex():
-			fmt.Println("Log Name: GasRefundedToProvider")
-			event := vor_coordinator.VorCoordinatorGasRefundedToProvider{}
-			err := contractAbi.UnpackIntoInterface(&event, "GasRefundedToProvider", vLog.Data)
-			fmt.Println(event)
-			if err != nil {
-				return err
-			}
-			err = d.service.Store.RandomnessRequest.UpdateGasRefund(
-				common.Bytes2Hex(event.RequestId[:]),
-				event.Amount.Uint64(),
-				txRec.GasUsed,
-				tx.GasPrice().Uint64(),
-				)
-
 			if err != nil {
 				return err
 			}
