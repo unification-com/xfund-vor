@@ -46,6 +46,7 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
         // Tracks oracle commitments to VOR service
         address payable vOROracle; // Oracle committing to respond with VOR service
         uint96 fee; // Minimum payment for oracle response. Total xFUND=1e9*1e18<2^96
+        mapping(address => uint96) granularFees; // Per consumer fees if required
     }
 
     struct Consumer {
@@ -75,6 +76,7 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
     event NewServiceAgreement(bytes32 keyHash, uint256 fee);
 
     event ChangeFee(bytes32 keyHash, uint256 fee);
+    event ChangeGranularFee(bytes32 keyHash, address consumer, uint256 fee);
 
     event RandomnessRequestFulfilled(bytes32 requestId, uint256 output);
 
@@ -84,6 +86,26 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
      */
     function getProviderAddress(bytes32 _keyHash) external view returns (address) {
         return serviceAgreements[_keyHash].vOROracle;
+    }
+
+    /**
+     * @dev getProviderFee - get provider's base fee
+     * @return address
+     */
+    function getProviderFee(bytes32 _keyHash) external view returns (uint96) {
+        return serviceAgreements[_keyHash].fee;
+    }
+
+    /**
+     * @dev getProviderGranularFee - get provider's base fee
+     * @return address
+     */
+    function getProviderGranularFee(bytes32 _keyHash, address _consumer) external view returns (uint96) {
+        if(serviceAgreements[_keyHash].granularFees[_consumer] > 0) {
+            return serviceAgreements[_keyHash].granularFees[_consumer];
+        } else {
+            return serviceAgreements[_keyHash].fee;
+        }
     }
 
     /**
@@ -109,7 +131,7 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
     }
 
     /**
-     * @notice Changes the provider's commission
+     * @notice Changes the provider's base fee
      * @param _publicProvingKey public key used to prove randomness
      * @param _fee minimum xFUND payment required to serve randomness
      */
@@ -119,6 +141,19 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
         require(_fee <= 1e9 ether, "fee too high");
         serviceAgreements[keyHash].fee = uint96(_fee);
         emit ChangeFee(keyHash, _fee);
+    }
+
+    /**
+     * @notice Changes the provider's fee for a consumer contract
+     * @param _publicProvingKey public key used to prove randomness
+     * @param _fee minimum xFUND payment required to serve randomness
+     */
+    function changeGranularFee(uint256[2] calldata _publicProvingKey, uint256 _fee, address _consumer) external {
+        bytes32 keyHash = hashOfKey(_publicProvingKey);
+        require(serviceAgreements[keyHash].vOROracle == _msgSender(), "only oracle can change the fee");
+        require(_fee <= 1e9 ether, "fee too high");
+        serviceAgreements[keyHash].granularFees[_consumer] = uint96(_fee);
+        emit ChangeGranularFee(keyHash, _consumer, _fee);
     }
 
     /**
@@ -282,7 +317,11 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
      * @param _keyHash The key which the request is for
      */
     modifier sufficientXFUND(uint256 _feePaid, bytes32 _keyHash) {
-        require(_feePaid >= serviceAgreements[_keyHash].fee, "Below agreed payment");
+        if(serviceAgreements[_keyHash].granularFees[_msgSender()] > 0) {
+            require(_feePaid >= serviceAgreements[_keyHash].granularFees[_msgSender()], "Below agreed payment");
+        } else {
+            require(_feePaid >= serviceAgreements[_keyHash].fee, "Below agreed payment");
+        }
         _;
     }
 
