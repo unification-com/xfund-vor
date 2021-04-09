@@ -90,26 +90,6 @@ contract VORD20 is Ownable, VORConsumerBase {
     }
 
     /**
-     * @notice Example wrapper function for the VORConsumerBase topUpVorGas function.
-     * @dev Wrapped around an Ownable modifier to ensure only the contract owner can call it.
-     * @dev Allows contract owner to top up Eth for gas payments for providers who require
-     * this contract owner to pay for fulfillment gas fees.
-     */
-    function topUpGas() external payable onlyOwner {
-        _topUpVorGas(_sKeyHash, msg.value);
-    }
-
-    /**
-     * @notice Example wrapper function for the VORConsumerBase withDrawGasTopUpFromVor function.
-     * @dev Wrapped around an Ownable modifier to ensure only the contract owner can call it.
-     * @dev Allows contract owner to remove any Eth held by the VORCoordinator for the specified
-     * @dev key hash. Eth is returned to this contract owner's wallet.
-     */
-    function withdrawGasTopUp() external onlyOwner {
-        _withdrawGasTopUpFromVor(owner(), _sKeyHash);
-    }
-
-    /**
      * @notice Example wrapper function for the VORConsumerBase withdrawXFUND function.
      * @dev Wrapped around an Ownable modifier to ensure only the contract owner can call it.
      * @dev Allows contract owner to withdraw any xFUND currently held by this contract

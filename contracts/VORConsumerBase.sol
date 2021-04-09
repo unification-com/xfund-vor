@@ -168,38 +168,6 @@ abstract contract VORConsumerBase is VORRequestIDBase {
     }
 
     /**
-     * @dev topUpGas consumer calls this function to top up gas
-     * Gas is the ETH held by this contract which is used to refund Tx costs
-     * to the VOR provider for fulfilling a request.
-     * NOTE: this functions should be wrapped around a, for example,
-     * Ownable function such that only the contract's owner can call it.
-     *
-     * @param _keyHash bytes32 ID of public key against which randomness is generated
-     * @param _amount uint256 amount in wei to top up
-     */
-    function _topUpVorGas(bytes32 _keyHash, uint256 _amount) internal returns (bool) {
-        IVORCoordinator(vorCoordinator).topUpGas{ value: _amount }(_keyHash);
-        return true;
-    }
-
-    /**
-    * @dev withDrawGasTopUp allows the Consumer contract's owner to withdraw any ETH
-    * held by the VORCoordinator for the specified data provider. All ETH held will be withdrawn
-    * and forwarded to the Consumer contract owner's wallet.
-    * NOTE: this functions should be wrapped around a, for example,
-    * Ownable function such that only the contract's owner can call it.
-    *
-    * @param _to address to send the eth to
-    * @param _keyHash ID of public key against which randomness is generated
-    */
-    function _withdrawGasTopUpFromVor(address _to, bytes32 _keyHash) internal {
-        uint256 amount = IVORCoordinator(vorCoordinator).withdrawGasTopUpForProvider(_keyHash);
-        if(amount > 0) {
-            require(_withdrawEth(_to, amount));
-        }
-    }
-
-    /**
     * @dev withdrawEth allows the caller to withdraw any ETH
     * held by this contract and send it to the specified address.
     * NOTE: this functions should be wrapped around a, for example,
