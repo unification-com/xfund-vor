@@ -84,6 +84,38 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
         );
     });
 
+    it('returns the correct granular fee', async () => {
+        const newFee = web3.utils.toWei('0.2', 'ether');
+        const publicProvingKey = [new BN('0'), new BN('0')];
+
+        const keyHash = await this.vorCoordinator.hashOfKey(publicProvingKey);
+
+        const newServiceAgreement = await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey);
+        expectEvent(newServiceAgreement, 'NewServiceAgreement', { keyHash, fee: this.fee });
+
+        let granularFee = await this.vorCoordinator.getProviderGranularFee.call(keyHash, alice);
+        expect(granularFee).to.be.bignumber.equal(new BN(this.fee));
+
+        const changeGranularFee = await this.vorCoordinator.changeGranularFee(publicProvingKey, newFee, alice, { from: oracle });
+        expectEvent(changeGranularFee, 'ChangeGranularFee', { keyHash, consumer: alice, fee: newFee });
+
+        granularFee = await this.vorCoordinator.getProviderGranularFee.call(keyHash, alice);
+        expect(granularFee).to.be.bignumber.equal(new BN(newFee));
+
+        const baseFee = await this.vorCoordinator.getProviderFee.call(keyHash);
+        expect(baseFee).to.be.bignumber.equal(new BN(this.fee));
+
+        await expectRevert(
+            this.vorCoordinator.changeGranularFee(publicProvingKey, web3.utils.toWei('10000000000', 'ether'), alice),
+            `only oracle can change the fee`
+        );
+
+        await expectRevert(
+            this.vorCoordinator.changeGranularFee(publicProvingKey, web3.utils.toWei('10000000000', 'ether'), alice, { from: oracle }),
+            `fee too high`
+        );
+    });
+
     it('returns the correct callbacks', async () => {
 
         await this.vorD20.increaseVorAllowance(new BN(this.fee));
@@ -104,6 +136,38 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
             this.vorCoordinator.randomnessRequest(this.keyHash, seed, this.fee),
             `request can only be made by a contract`
         );
+    });
+
+
+
+    it('fails when granular fees change but not updated in consumer', async () => {
+        const publicProvingKey = [new BN('0'), new BN('0')];
+        const keyHash = await this.vorCoordinator.hashOfKey(publicProvingKey);
+        await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey);
+        const newFee = web3.utils.toWei('0.2', 'ether');
+        const seed = 12345;
+        await this.vorCoordinator.changeGranularFee(publicProvingKey, new BN(newFee), this.vorD20.address, { from: oracle });
+        await this.vorD20.setKeyHash(keyHash, { from: owner });
+        await this.vorD20.increaseVorAllowance(new BN(newFee));
+        await expectRevert(
+            this.vorD20.rollDice(seed, alice),
+            `Below agreed payment`
+        );
+    });
+
+    it('success when granular fees change', async () => {
+        const publicProvingKey = [new BN('0'), new BN('0')];
+        const keyHash = await this.vorCoordinator.hashOfKey(publicProvingKey);
+        await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey);
+        const newFee = web3.utils.toWei('0.2', 'ether');
+        const seed = 12345;
+        await this.vorCoordinator.changeGranularFee(publicProvingKey, new BN(newFee), this.vorD20.address, { from: oracle });
+        await this.vorD20.setFee(new BN(newFee), { from: owner });
+        await this.vorD20.setKeyHash(keyHash, { from: owner });
+        await this.vorD20.increaseVorAllowance(new BN(newFee));
+        const result = await this.vorD20.rollDice(seed, alice);
+        const requestId = result.logs[0].args.requestId;
+        expectEvent(result, 'DiceRolled', { requestId });
     });
 
 });
