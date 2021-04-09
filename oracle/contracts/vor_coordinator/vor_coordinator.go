@@ -27,7 +27,7 @@ var (
 )
 
 // VorCoordinatorABI is the input ABI used to generate the binding from.
-const VorCoordinatorABI = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_xfund\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_blockHashStore\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"keyHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"name\":\"ChangeFee\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"keyHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"name\":\"NewServiceAgreement\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"keyHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"seed\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"requestID\",\"type\":\"bytes32\"}],\"name\":\"RandomnessRequest\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"requestId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"output\",\"type\":\"uint256\"}],\"name\":\"RandomnessRequestFulfilled\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"PRESEED_OFFSET\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"PROOF_LENGTH\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"PUBLIC_KEY_OFFSET\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"callbacks\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"callbackContract\",\"type\":\"address\"},{\"internalType\":\"uint96\",\"name\":\"randomnessFee\",\"type\":\"uint96\"},{\"internalType\":\"bytes32\",\"name\":\"seedAndBlockNum\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"serviceAgreements\",\"outputs\":[{\"internalType\":\"addresspayable\",\"name\":\"vOROracle\",\"type\":\"address\"},{\"internalType\":\"uint96\",\"name\":\"fee\",\"type\":\"uint96\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"withdrawableTokens\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_keyHash\",\"type\":\"bytes32\"}],\"name\":\"getProviderAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_fee\",\"type\":\"uint256\"},{\"internalType\":\"addresspayable\",\"name\":\"_oracle\",\"type\":\"address\"},{\"internalType\":\"uint256[2]\",\"name\":\"_publicProvingKey\",\"type\":\"uint256[2]\"}],\"name\":\"registerProvingKey\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[2]\",\"name\":\"_publicProvingKey\",\"type\":\"uint256[2]\"},{\"internalType\":\"uint256\",\"name\":\"_fee\",\"type\":\"uint256\"}],\"name\":\"changeFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"withdraw\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_keyHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_consumerSeed\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_feePaid\",\"type\":\"uint256\"}],\"name\":\"randomnessRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[2]\",\"name\":\"_publicKey\",\"type\":\"uint256[2]\"}],\"name\":\"hashOfKey\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_proof\",\"type\":\"bytes\"}],\"name\":\"fulfillRandomnessRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+const VorCoordinatorABI = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_xfund\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_blockHashStore\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"keyHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"name\":\"ChangeFee\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"keyHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"consumer\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"name\":\"ChangeGranularFee\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"keyHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"name\":\"NewServiceAgreement\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"keyHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"seed\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"requestID\",\"type\":\"bytes32\"}],\"name\":\"RandomnessRequest\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"requestId\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"output\",\"type\":\"uint256\"}],\"name\":\"RandomnessRequestFulfilled\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"PRESEED_OFFSET\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"PROOF_LENGTH\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"PUBLIC_KEY_OFFSET\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"callbacks\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"callbackContract\",\"type\":\"address\"},{\"internalType\":\"uint96\",\"name\":\"randomnessFee\",\"type\":\"uint96\"},{\"internalType\":\"bytes32\",\"name\":\"seedAndBlockNum\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"serviceAgreements\",\"outputs\":[{\"internalType\":\"addresspayable\",\"name\":\"vOROracle\",\"type\":\"address\"},{\"internalType\":\"uint96\",\"name\":\"fee\",\"type\":\"uint96\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"withdrawableTokens\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_keyHash\",\"type\":\"bytes32\"}],\"name\":\"getProviderAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_keyHash\",\"type\":\"bytes32\"}],\"name\":\"getProviderFee\",\"outputs\":[{\"internalType\":\"uint96\",\"name\":\"\",\"type\":\"uint96\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_keyHash\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"_consumer\",\"type\":\"address\"}],\"name\":\"getProviderGranularFee\",\"outputs\":[{\"internalType\":\"uint96\",\"name\":\"\",\"type\":\"uint96\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_fee\",\"type\":\"uint256\"},{\"internalType\":\"addresspayable\",\"name\":\"_oracle\",\"type\":\"address\"},{\"internalType\":\"uint256[2]\",\"name\":\"_publicProvingKey\",\"type\":\"uint256[2]\"}],\"name\":\"registerProvingKey\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[2]\",\"name\":\"_publicProvingKey\",\"type\":\"uint256[2]\"},{\"internalType\":\"uint256\",\"name\":\"_fee\",\"type\":\"uint256\"}],\"name\":\"changeFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[2]\",\"name\":\"_publicProvingKey\",\"type\":\"uint256[2]\"},{\"internalType\":\"uint256\",\"name\":\"_fee\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_consumer\",\"type\":\"address\"}],\"name\":\"changeGranularFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_recipient\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"withdraw\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_keyHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_consumerSeed\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_feePaid\",\"type\":\"uint256\"}],\"name\":\"randomnessRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[2]\",\"name\":\"_publicKey\",\"type\":\"uint256[2]\"}],\"name\":\"hashOfKey\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_proof\",\"type\":\"bytes\"}],\"name\":\"fulfillRandomnessRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
 
 // VorCoordinator is an auto generated Go binding around an Ethereum contract.
 type VorCoordinator struct {
@@ -345,6 +345,68 @@ func (_VorCoordinator *VorCoordinatorCallerSession) GetProviderAddress(_keyHash 
 	return _VorCoordinator.Contract.GetProviderAddress(&_VorCoordinator.CallOpts, _keyHash)
 }
 
+// GetProviderFee is a free data retrieval call binding the contract method 0xda8d6d85.
+//
+// Solidity: function getProviderFee(bytes32 _keyHash) view returns(uint96)
+func (_VorCoordinator *VorCoordinatorCaller) GetProviderFee(opts *bind.CallOpts, _keyHash [32]byte) (*big.Int, error) {
+	var out []interface{}
+	err := _VorCoordinator.contract.Call(opts, &out, "getProviderFee", _keyHash)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// GetProviderFee is a free data retrieval call binding the contract method 0xda8d6d85.
+//
+// Solidity: function getProviderFee(bytes32 _keyHash) view returns(uint96)
+func (_VorCoordinator *VorCoordinatorSession) GetProviderFee(_keyHash [32]byte) (*big.Int, error) {
+	return _VorCoordinator.Contract.GetProviderFee(&_VorCoordinator.CallOpts, _keyHash)
+}
+
+// GetProviderFee is a free data retrieval call binding the contract method 0xda8d6d85.
+//
+// Solidity: function getProviderFee(bytes32 _keyHash) view returns(uint96)
+func (_VorCoordinator *VorCoordinatorCallerSession) GetProviderFee(_keyHash [32]byte) (*big.Int, error) {
+	return _VorCoordinator.Contract.GetProviderFee(&_VorCoordinator.CallOpts, _keyHash)
+}
+
+// GetProviderGranularFee is a free data retrieval call binding the contract method 0x9c92f277.
+//
+// Solidity: function getProviderGranularFee(bytes32 _keyHash, address _consumer) view returns(uint96)
+func (_VorCoordinator *VorCoordinatorCaller) GetProviderGranularFee(opts *bind.CallOpts, _keyHash [32]byte, _consumer common.Address) (*big.Int, error) {
+	var out []interface{}
+	err := _VorCoordinator.contract.Call(opts, &out, "getProviderGranularFee", _keyHash, _consumer)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// GetProviderGranularFee is a free data retrieval call binding the contract method 0x9c92f277.
+//
+// Solidity: function getProviderGranularFee(bytes32 _keyHash, address _consumer) view returns(uint96)
+func (_VorCoordinator *VorCoordinatorSession) GetProviderGranularFee(_keyHash [32]byte, _consumer common.Address) (*big.Int, error) {
+	return _VorCoordinator.Contract.GetProviderGranularFee(&_VorCoordinator.CallOpts, _keyHash, _consumer)
+}
+
+// GetProviderGranularFee is a free data retrieval call binding the contract method 0x9c92f277.
+//
+// Solidity: function getProviderGranularFee(bytes32 _keyHash, address _consumer) view returns(uint96)
+func (_VorCoordinator *VorCoordinatorCallerSession) GetProviderGranularFee(_keyHash [32]byte, _consumer common.Address) (*big.Int, error) {
+	return _VorCoordinator.Contract.GetProviderGranularFee(&_VorCoordinator.CallOpts, _keyHash, _consumer)
+}
+
 // HashOfKey is a free data retrieval call binding the contract method 0xcaf70c4a.
 //
 // Solidity: function hashOfKey(uint256[2] _publicKey) pure returns(bytes32)
@@ -502,6 +564,27 @@ func (_VorCoordinator *VorCoordinatorSession) ChangeFee(_publicProvingKey [2]*bi
 // Solidity: function changeFee(uint256[2] _publicProvingKey, uint256 _fee) returns()
 func (_VorCoordinator *VorCoordinatorTransactorSession) ChangeFee(_publicProvingKey [2]*big.Int, _fee *big.Int) (*types.Transaction, error) {
 	return _VorCoordinator.Contract.ChangeFee(&_VorCoordinator.TransactOpts, _publicProvingKey, _fee)
+}
+
+// ChangeGranularFee is a paid mutator transaction binding the contract method 0x952942f0.
+//
+// Solidity: function changeGranularFee(uint256[2] _publicProvingKey, uint256 _fee, address _consumer) returns()
+func (_VorCoordinator *VorCoordinatorTransactor) ChangeGranularFee(opts *bind.TransactOpts, _publicProvingKey [2]*big.Int, _fee *big.Int, _consumer common.Address) (*types.Transaction, error) {
+	return _VorCoordinator.contract.Transact(opts, "changeGranularFee", _publicProvingKey, _fee, _consumer)
+}
+
+// ChangeGranularFee is a paid mutator transaction binding the contract method 0x952942f0.
+//
+// Solidity: function changeGranularFee(uint256[2] _publicProvingKey, uint256 _fee, address _consumer) returns()
+func (_VorCoordinator *VorCoordinatorSession) ChangeGranularFee(_publicProvingKey [2]*big.Int, _fee *big.Int, _consumer common.Address) (*types.Transaction, error) {
+	return _VorCoordinator.Contract.ChangeGranularFee(&_VorCoordinator.TransactOpts, _publicProvingKey, _fee, _consumer)
+}
+
+// ChangeGranularFee is a paid mutator transaction binding the contract method 0x952942f0.
+//
+// Solidity: function changeGranularFee(uint256[2] _publicProvingKey, uint256 _fee, address _consumer) returns()
+func (_VorCoordinator *VorCoordinatorTransactorSession) ChangeGranularFee(_publicProvingKey [2]*big.Int, _fee *big.Int, _consumer common.Address) (*types.Transaction, error) {
+	return _VorCoordinator.Contract.ChangeGranularFee(&_VorCoordinator.TransactOpts, _publicProvingKey, _fee, _consumer)
 }
 
 // FulfillRandomnessRequest is a paid mutator transaction binding the contract method 0x5e1c1059.
@@ -759,6 +842,142 @@ func (_VorCoordinator *VorCoordinatorFilterer) WatchChangeFee(opts *bind.WatchOp
 func (_VorCoordinator *VorCoordinatorFilterer) ParseChangeFee(log types.Log) (*VorCoordinatorChangeFee, error) {
 	event := new(VorCoordinatorChangeFee)
 	if err := _VorCoordinator.contract.UnpackLog(event, "ChangeFee", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// VorCoordinatorChangeGranularFeeIterator is returned from FilterChangeGranularFee and is used to iterate over the raw logs and unpacked data for ChangeGranularFee events raised by the VorCoordinator contract.
+type VorCoordinatorChangeGranularFeeIterator struct {
+	Event *VorCoordinatorChangeGranularFee // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *VorCoordinatorChangeGranularFeeIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(VorCoordinatorChangeGranularFee)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(VorCoordinatorChangeGranularFee)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *VorCoordinatorChangeGranularFeeIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *VorCoordinatorChangeGranularFeeIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// VorCoordinatorChangeGranularFee represents a ChangeGranularFee event raised by the VorCoordinator contract.
+type VorCoordinatorChangeGranularFee struct {
+	KeyHash  [32]byte
+	Consumer common.Address
+	Fee      *big.Int
+	Raw      types.Log // Blockchain specific contextual infos
+}
+
+// FilterChangeGranularFee is a free log retrieval operation binding the contract event 0xe43e8b0e04374f9e75dfd8baf9a833a47ff1eb7ecff6d460bf968f230937da62.
+//
+// Solidity: event ChangeGranularFee(bytes32 keyHash, address consumer, uint256 fee)
+func (_VorCoordinator *VorCoordinatorFilterer) FilterChangeGranularFee(opts *bind.FilterOpts) (*VorCoordinatorChangeGranularFeeIterator, error) {
+
+	logs, sub, err := _VorCoordinator.contract.FilterLogs(opts, "ChangeGranularFee")
+	if err != nil {
+		return nil, err
+	}
+	return &VorCoordinatorChangeGranularFeeIterator{contract: _VorCoordinator.contract, event: "ChangeGranularFee", logs: logs, sub: sub}, nil
+}
+
+// WatchChangeGranularFee is a free log subscription operation binding the contract event 0xe43e8b0e04374f9e75dfd8baf9a833a47ff1eb7ecff6d460bf968f230937da62.
+//
+// Solidity: event ChangeGranularFee(bytes32 keyHash, address consumer, uint256 fee)
+func (_VorCoordinator *VorCoordinatorFilterer) WatchChangeGranularFee(opts *bind.WatchOpts, sink chan<- *VorCoordinatorChangeGranularFee) (event.Subscription, error) {
+
+	logs, sub, err := _VorCoordinator.contract.WatchLogs(opts, "ChangeGranularFee")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(VorCoordinatorChangeGranularFee)
+				if err := _VorCoordinator.contract.UnpackLog(event, "ChangeGranularFee", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseChangeGranularFee is a log parse operation binding the contract event 0xe43e8b0e04374f9e75dfd8baf9a833a47ff1eb7ecff6d460bf968f230937da62.
+//
+// Solidity: event ChangeGranularFee(bytes32 keyHash, address consumer, uint256 fee)
+func (_VorCoordinator *VorCoordinatorFilterer) ParseChangeGranularFee(log types.Log) (*VorCoordinatorChangeGranularFee, error) {
+	event := new(VorCoordinatorChangeGranularFee)
+	if err := _VorCoordinator.contract.UnpackLog(event, "ChangeGranularFee", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
