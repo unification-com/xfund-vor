@@ -21,7 +21,7 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
 
         this.xFund = await MockERC20.new('xFUND', 'xFUND', web3.utils.toWei('1000000000', 'ether'), { from: owner });
         this.blockhashStore = await BlockhashStore.new({ from: owner });
-        this.vorCoordinator = await VORCoordinator.new(this.xFund.address, this.blockhashStore.address, expectedGas, { from: owner });
+        this.vorCoordinator = await VORCoordinator.new(this.xFund.address, this.blockhashStore.address, { from: owner });
 
         this.vorD20 = await VORD20.new(this.vorCoordinator.address, this.xFund.address, this.keyHash, this.fee, { from: owner });
         await this.xFund.transfer(this.vorD20.address, this.deposit, { from: owner });
@@ -31,13 +31,12 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
         const publicProvingKey = [new BN('0'), new BN('0')];
         const keyHash = await this.vorCoordinator.hashOfKey(publicProvingKey);
 
-        const newServiceAgreement = await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey, true);
+        const newServiceAgreement = await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey);
         expectEvent(newServiceAgreement, 'NewServiceAgreement', { keyHash, fee: this.fee });
 
         const serviceAgreements = await this.vorCoordinator.serviceAgreements.call(keyHash);
         expect(serviceAgreements.vOROracle).to.be.equal(oracle);
         expect(serviceAgreements.fee).to.be.bignumber.equal(new BN(this.fee));
-        expect(serviceAgreements.providerPaysGas).to.be.equal(true);
     });
 
     it('registerProvingKey rejects', async () => {
@@ -45,19 +44,19 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
         const publicProvingKey = [new BN('0'), new BN('0')];
 
         await expectRevert(
-            this.vorCoordinator.registerProvingKey(this.fee, constants.ZERO_ADDRESS, publicProvingKey, true),
+            this.vorCoordinator.registerProvingKey(this.fee, constants.ZERO_ADDRESS, publicProvingKey),
             '_oracle must not be 0x0'
         );
 
         await expectRevert(
-            this.vorCoordinator.registerProvingKey(newFee, oracle, publicProvingKey, true),
-            `you can't charge more than all the xFUND in the world, greedy`
+            this.vorCoordinator.registerProvingKey(newFee, oracle, publicProvingKey),
+            `fee too high`
         );
 
-        await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey, true);
+        await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey);
 
         await expectRevert(
-            this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey, true),
+            this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey),
             `please register a new key`
         );
     });
@@ -68,7 +67,7 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
 
         const keyHash = await this.vorCoordinator.hashOfKey(publicProvingKey);
 
-        const newServiceAgreement = await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey, true);
+        const newServiceAgreement = await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey);
         expectEvent(newServiceAgreement, 'NewServiceAgreement', { keyHash, fee: this.fee });
 
         const changeFee = await this.vorCoordinator.changeFee(publicProvingKey, newFee, { from: oracle });
@@ -76,18 +75,18 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
 
         await expectRevert(
             this.vorCoordinator.changeFee(publicProvingKey, web3.utils.toWei('10000000000', 'ether')),
-            `only oracle can change the commission`
+            `only oracle can change the fee`
         );
 
         await expectRevert(
             this.vorCoordinator.changeFee(publicProvingKey, web3.utils.toWei('10000000000', 'ether'), { from: oracle }),
-            `you can't charge more than all the xFUND in the world, greedy`
+            `fee too high`
         );
     });
 
     it('returns the correct callbacks', async () => {
 
-        await this.vorD20.increaseVorCoordinatorAllowance(new BN(this.fee));
+        await this.vorD20.increaseVorAllowance(new BN(this.fee));
         const seed = 12345;
         const rollResult = await this.vorD20.rollDice(seed, alice);
 
@@ -107,96 +106,4 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
         );
     });
 
-    it('returns the gas top up', async () => {
-        const oldGasTopUp = await this.vorCoordinator.getGasTopUpLimit();
-        expect(oldGasTopUp).to.be.bignumber.equal(new BN(web3.utils.toWei('1', 'ether')));
-
-        await this.vorCoordinator.setGasTopUpLimit(web3.utils.toWei('2', 'ether'), { from: owner });
-        const gasTopUp = await this.vorCoordinator.getGasTopUpLimit();
-        expect(gasTopUp).to.be.bignumber.equal(new BN(web3.utils.toWei('2', 'ether')));
-    });
-
-    it('setGasTopUpLimit reject', async () => {
-        await expectRevert(
-            this.vorCoordinator.setGasTopUpLimit(web3.utils.toWei('2', 'ether'), { from: oracle }),
-            `Ownable: caller is not the owner`
-        );
-
-        await expectRevert(
-            this.vorCoordinator.setGasTopUpLimit(0, { from: owner }),
-            `_gasTopUpLimit must be > 0`
-        );
-    });
-
-    it('returns the correct provider pays gas', async () => {
-        const publicProvingKey = [new BN('0'), new BN('0')];
-        const keyHash = await this.vorCoordinator.hashOfKey(publicProvingKey);
-
-        await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey, true);
-
-        let serviceAgreements = await this.vorCoordinator.serviceAgreements.call(keyHash);
-        expect(serviceAgreements.providerPaysGas).to.be.equal(true);
-        
-        await this.vorCoordinator.setProviderPaysGas(publicProvingKey, false, { from: oracle });
-        serviceAgreements = await this.vorCoordinator.serviceAgreements.call(keyHash);
-        expect(serviceAgreements.providerPaysGas).to.be.equal(false);
-    });
-
-    it('setProviderPaysGas reject', async () => {
-        const publicProvingKey = [new BN('0'), new BN('0')];
-        await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey, true);
-
-        await expectRevert(
-            this.vorCoordinator.setProviderPaysGas(publicProvingKey, false, { from: owner }),
-            `only oracle can change who will pay gas`
-        );
-    });
-
-    it('returns the correct total gas deposits', async () => {
-        const publicProvingKey = [new BN('0'), new BN('0')];
-        const keyHash = await this.vorCoordinator.hashOfKey(publicProvingKey);
-        await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey, true);
-        await this.vorD20.topUpGas(keyHash, { from: owner, value: web3.utils.toWei('1', 'ether') });
-
-        const totalGasDeposits = await this.vorCoordinator.getTotalGasDeposits();
-        expect(totalGasDeposits).to.be.bignumber.equal(new BN(web3.utils.toWei('1', 'ether')));
-
-        const provider = await this.vorCoordinator.getProviderAddress(keyHash)
-
-        const consumerTotalDeposits = await this.vorCoordinator.getGasDepositsForConsumer(this.vorD20.address);
-        expect(consumerTotalDeposits).to.be.bignumber.equal(new BN(web3.utils.toWei('1', 'ether')));
-
-        const consumerProviderDeposits = await this.vorCoordinator.getGasDepositsForConsumerProvider(this.vorD20.address, keyHash);
-        expect(consumerProviderDeposits).to.be.bignumber.equal(new BN(web3.utils.toWei('1', 'ether')));
-    });
-
-    it('topUpGas reject', async () => {
-        await expectRevert(
-            this.vorCoordinator.topUpGas(this.keyHash, { from: owner, value: web3.utils.toWei('1', 'ether') }),
-            `only a contract can top up gas`
-        );
-    });
-
-    it('correctly withDrawGasTopUpForProvider', async () => {
-        const publicProvingKey = [new BN('0'), new BN('0')];
-        const keyHash = await this.vorCoordinator.hashOfKey(publicProvingKey);
-        await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey, true);
-        await this.vorD20.topUpGas(keyHash, { from: owner, to: this.vorD20.address, value: web3.utils.toWei('1', 'ether') });
-
-        const totalGasDeposits = await this.vorCoordinator.getTotalGasDeposits();
-        expect(totalGasDeposits).to.be.bignumber.equal(new BN(web3.utils.toWei('1', 'ether')));
-
-        await this.vorD20.withDrawGasTopUp(keyHash, { from: owner})
-
-        const consumerTotalDeposits = await this.vorCoordinator.getGasDepositsForConsumer(this.vorD20.address);
-        expect(consumerTotalDeposits).to.be.bignumber.equal(new BN(web3.utils.toWei('0', 'ether')));
-
-    });
-
-    it('withDrawGasTopUpForProvider reject', async () => {
-        await expectRevert(
-            this.vorCoordinator.withDrawGasTopUpForProvider(this.keyHash, { from: owner }),
-            `only a contract can withdraw gas`
-        );
-    });
 });

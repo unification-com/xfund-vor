@@ -25,22 +25,22 @@ contract('VORD20', ([owner, alice]) => {
         await this.xFund.transfer(this.vorD20.address, this.deposit, { from: owner });
     });
 
-    describe('#withdrawXFUND', () => {
+    describe('#withdrawToken', () => {
         describe('failure', () => {
             it('reverts when called by a non-owner', async () => {
-                await expectRevert(this.vorD20.withdrawXFUND(alice, this.deposit, { from: alice }), 'Ownable: caller is not the owner');
+                await expectRevert(this.vorD20.withdrawToken(alice, this.deposit, { from: alice }), 'Ownable: caller is not the owner');
             });
 
             it('reverts when not enough xFUND in the contract', async () => {
                 const withdrawAmount = (new BN(this.deposit)).mul(new BN('2'));
-                await expectRevert(this.vorD20.withdrawXFUND(owner, withdrawAmount, { from: owner }), 'ERC20: transfer amount exceeds balance');
+                await expectRevert(this.vorD20.withdrawToken(owner, withdrawAmount, { from: owner }), 'ERC20: transfer amount exceeds balance');
             });
         });
 
         describe('success', () => {
             it('withdraws xFUND', async () => {
                 const startingAmount = await this.xFund.balanceOf(owner);
-                await this.vorD20.withdrawXFUND(owner, this.deposit, { from: owner });
+                await this.vorD20.withdrawToken(owner, this.deposit, { from: owner });
                 const actualAmount = await this.xFund.balanceOf(owner);
                 expect(actualAmount).to.be.bignumber.equal((new BN(startingAmount)).add(new BN(this.deposit)));
             });
