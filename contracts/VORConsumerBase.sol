@@ -2,7 +2,6 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./interfaces/IERC20_Ex.sol";
 import "./interfaces/IVORCoordinator.sol";
@@ -101,11 +100,9 @@ import "./VORRequestIDBase.sol";
  * @dev cost. This cost scales with the number of blocks the VOR oracle waits
  * @dev until it calls responds to a request.
  */
-abstract contract VORConsumerBase is VORRequestIDBase, Ownable {
+abstract contract VORConsumerBase is VORRequestIDBase {
     using SafeMath for uint256;
     using Address for address;
-
-    event EthWithdrawn(address receiver, uint256 amount);
 
     /**
      * @notice fulfillRandomness handles the VOR response. Your contract must
@@ -149,7 +146,7 @@ abstract contract VORConsumerBase is VORRequestIDBase, Ownable {
      * @dev concurrent requests. It is passed as the first argument to
      * @dev fulfillRandomness.
      */
-    function requestRandomness(bytes32 _keyHash, uint256 _fee, uint256 _seed) internal onlyOwner returns (bytes32 requestId) {
+    function requestRandomness(bytes32 _keyHash, uint256 _fee, uint256 _seed) internal returns (bytes32 requestId) {
         IVORCoordinator(vorCoordinator).randomnessRequest(_keyHash, _seed, _fee);
         // This is the seed passed to VORCoordinator. The oracle will mix this with
         // the hash of the block containing this request to obtain the seed/input
@@ -157,7 +154,7 @@ abstract contract VORConsumerBase is VORRequestIDBase, Ownable {
         uint256 vORSeed = makeVORInputSeed(_keyHash, _seed, address(this), nonces[_keyHash]);
         // nonces[_keyHash] must stay in sync with
         // VORCoordinator.nonces[_keyHash][this], which was incremented by the above
-        // successful xFUND.transferAndCall (in VORCoordinator.randomnessRequest).
+        // successful VORCoordinator.randomnessRequest.
         // This provides protection against the user repeating their input seed,
         // which would result in a predictable/duplicate output, if multiple such
         // requests appeared in the same block.
@@ -165,53 +162,73 @@ abstract contract VORConsumerBase is VORRequestIDBase, Ownable {
         return makeRequestId(_keyHash, vORSeed);
     }
 
-    function increaseVorCoordinatorAllowance(uint256 _amount) public onlyOwner {
+    function _increaseVorCoordinatorAllowance(uint256 _amount) internal returns (bool) {
         xFUND.increaseAllowance(vorCoordinator, _amount);
+        return true;
     }
 
     /**
      * @dev topUpGas consumer calls this function to top up gas
      * Gas is the ETH held by this contract which is used to refund Tx costs
      * to the VOR provider for fulfilling a request.
+     * NOTE: this functions should be wrapped around a, for example,
+     * Ownable function such that only the contract's owner can call it.
      *
-     * @param _keyHash ID of public key against which randomness is generated
+     * @param _keyHash bytes32 ID of public key against which randomness is generated
+     * @param _amount uint256 amount in wei to top up
      */
-    function topUpGas(bytes32 _keyHash) public payable onlyOwner {
-        IVORCoordinator(vorCoordinator).topUpGas{ value: msg.value }(_keyHash);
+    function _topUpVorGas(bytes32 _keyHash, uint256 _amount) internal returns (bool) {
+        IVORCoordinator(vorCoordinator).topUpGas{ value: _amount }(_keyHash);
+        return true;
     }
 
     /**
     * @dev withDrawGasTopUp allows the Consumer contract's owner to withdraw any ETH
     * held by the VORCoordinator for the specified data provider. All ETH held will be withdrawn
     * and forwarded to the Consumer contract owner's wallet.
+    * NOTE: this functions should be wrapped around a, for example,
+    * Ownable function such that only the contract's owner can call it.
     *
+    * @param _to address to send the eth to
     * @param _keyHash ID of public key against which randomness is generated
     */
-    function withDrawGasTopUp(bytes32 _keyHash) public onlyOwner {
-        uint256 amount = IVORCoordinator(vorCoordinator).withDrawGasTopUpForProvider(_keyHash);
+    function _withdrawGasTopUpFromVor(address _to, bytes32 _keyHash) internal {
+        uint256 amount = IVORCoordinator(vorCoordinator).withdrawGasTopUpForProvider(_keyHash);
         if(amount > 0) {
-            require(withdrawEth(amount));
+            require(_withdrawEth(_to, amount));
         }
     }
 
-    function withdrawEth(uint256 amount) public onlyOwner returns (bool success) {
-        require(address(this).balance >= amount, "not enough balance");
-        emit EthWithdrawn(owner(), amount);
-        Address.sendValue(payable(owner()), amount);
+    /**
+    * @dev withdrawEth allows the caller to withdraw any ETH
+    * held by this contract and send it to the specified address.
+    * NOTE: this functions should be wrapped around a, for example,
+    * Ownable function such that only the contract's owner can call it.
+    *
+    * @param _to address to send the eth to
+    * @param _amount uint256 amount to withdraw
+    */
+    function _withdrawEth(address _to, uint256 _amount) internal returns (bool success) {
+        require(address(this).balance >= _amount, "not enough balance");
+        Address.sendValue(payable(_to), _amount);
         return true;
     }
 
     /**
      * @notice Withdraw xFUND from this contract.
-     * @param to the address to withdraw xFUND to
-     * @param value the amount of xFUND to withdraw
+     *
+     * NOTE: this functions should be wrapped around a, for example,
+     * Ownable function such that only the contract's owner can call it.
+     *
+     * @param _to the address to withdraw xFUND to
+     * @param _amount the amount of xFUND to withdraw
      */
-    function withdrawXFUND(address to, uint256 value) public onlyOwner {
-        require(xFUND.transfer(to, value), "Not enough xFUND");
+    function _withdrawXFUND(address _to, uint256 _amount) internal {
+        require(xFUND.transfer(_to, _amount), "Not enough xFUND");
     }
 
     IERC20_Ex internal immutable xFUND;
-    address private immutable vorCoordinator;
+    address internal immutable vorCoordinator;
 
     // Nonces for each VOR key from which randomness has been requested.
     //

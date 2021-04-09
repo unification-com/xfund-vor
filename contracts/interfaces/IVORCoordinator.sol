@@ -5,5 +5,5 @@ interface IVORCoordinator {
     function getProviderAddress(bytes32 _keyHash) external view returns (address);
     function randomnessRequest(bytes32 keyHash, uint256 consumerSeed, uint256 feePaid) external;
     function topUpGas(bytes32 _keyHash) external payable returns (bool success);
-    function withDrawGasTopUpForProvider(bytes32 _keyHash) external returns (uint256 amountWithdrawn);
+    function withdrawGasTopUpForProvider(bytes32 _keyHash) external returns (uint256 amountWithdrawn);
 }

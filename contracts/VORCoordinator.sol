@@ -221,7 +221,7 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
         emit ChangeFee(keyHash, _fee);
     }
 
-        /**
+     /**
      * @dev setProviderPaysGas - provider calls for setting who pays gas
      * for sending the fulfillRequest Tx
      * @param _providerPays bool - true if provider will pay gas
@@ -320,7 +320,7 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
     }
 
     /**
-     * @dev withDrawGasTopUpForProvider data consumer contract calls this function to
+     * @dev withdrawGasTopUpForProvider data consumer contract calls this function to
      * withdraw any remaining ETH stored in the Router for gas refunds for a specified
      * data provider.
      *
@@ -333,7 +333,7 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
      * @param _keyHash ID of the VOR public key against which to generate output
      * @return amountWithdrawn
      */
-    function withDrawGasTopUpForProvider(bytes32 _keyHash) external nonReentrant returns (uint256 amountWithdrawn) {
+    function withdrawGasTopUpForProvider(bytes32 _keyHash) external nonReentrant returns (uint256 amountWithdrawn) {
         // msg.sender is the consumer's contract
         address payable consumer = msg.sender;
         address provider = serviceAgreements[_keyHash].vOROracle;
@@ -485,9 +485,7 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
      */
     function refundGas(address _consumer, address payable _provider, uint256 _gasUsedToCall, bytes32 _requestId) private returns (bool){
         // calculate how much should be refunded to the provider
-        uint256 baseGas = EXPECTED_BASE_GAS;
-
-        uint256 totalGasUsed = baseGas + _gasUsedToCall;
+        uint256 totalGasUsed = EXPECTED_BASE_GAS + _gasUsedToCall;
         uint256 ethRefund = totalGasUsed.mul(tx.gasprice);
 
         // check there's enough

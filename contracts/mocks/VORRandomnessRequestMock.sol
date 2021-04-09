@@ -2,7 +2,7 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./VORRequestIDBase.sol";
+import "../VORRequestIDBase.sol";
 
 contract VORRandomnessRequestMock is Ownable, VORRequestIDBase {
     event RandomnessRequest(
