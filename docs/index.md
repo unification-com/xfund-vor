@@ -1,6 +1,7 @@
+![VOR](/assets/img/vor_logo.jpg "VOR")
 # VOR Introduction
 
-This documentation covers VOR (Verifiable Onchain Randomness), which allows smart contract
+This documentation covers VOR (Verifiable Open Randomness), which allows smart contract
 developers to request unpredictable, proovable randomness for their contracts, and pay for it in xFUND.
 
 There are documentation and guides covering how to integrate the `VORConsumerBase` smart contract 
@@ -15,3 +16,7 @@ See [Contract Addresses](./contracts.md).
 #### Guides
 
 1. [Quickstart](./guide/quickstart.md) - a quick introduction to getting set up
+
+#### Demos
+
+1. [NFT Competition](./demos/nft_demo.md)
