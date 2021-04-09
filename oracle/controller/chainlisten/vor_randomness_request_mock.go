@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
 	"oracle/config"
+	"oracle/contracts/vor_coordinator"
 	"oracle/contracts/vor_randomness_request_mock"
 	"oracle/service"
 	"oracle/tools/vor"
@@ -86,8 +87,8 @@ func (d *VORRandomnessRequestMockListener) Request() error {
 	if err != nil {
 		return err
 	}
-	logRandomnessRequestSig := []byte("RandomnessRequest(bytes32,uint256,address,uint256,bytes32)")
-	logRandomnessRequestHash := crypto.Keccak256Hash(logRandomnessRequestSig)
+	logRandomnessRequestHash := crypto.Keccak256Hash([]byte("RandomnessRequest(bytes32,uint256,address,uint256,bytes32)"))
+	logRandomnessRequestFulfilledHash := crypto.Keccak256Hash([]byte("RandomnessRequestFulfilled(bytes32,uint256)"))
 
 	fmt.Println("logRandomnessRequestHash: ", logRandomnessRequestHash)
 	fmt.Println("logRandomnessRequestHash hex: ", logRandomnessRequestHash.Hex())
@@ -96,6 +97,10 @@ func (d *VORRandomnessRequestMockListener) Request() error {
 		fmt.Println("----------------------------------------")
 		fmt.Println("Log Block Number: ", vLog.BlockNumber)
 		fmt.Println("Log Index: ", vLog.Index)
+
+		eventTxRec, _ := d.client.TransactionReceipt(context.Background(), vLog.TxHash)
+		eventTx, _, _ := d.client.TransactionByHash(context.Background(), vLog.TxHash)
+
 		if index == len(logs)-1 {
 			err = d.SetLastBlockNumber(vLog.BlockNumber)
 		}
@@ -121,15 +126,45 @@ func (d *VORRandomnessRequestMockListener) Request() error {
 			byteSeed, err := vor.BigToSeed(event.Seed)
 
 			var status string
-			tx, err := d.service.FulfillRandomness(byteSeed, vLog.BlockHash, int64(vLog.BlockNumber))
-			fmt.Println(tx)
+			fulfilTx, err := d.service.FulfillRandomness(byteSeed, vLog.BlockHash, int64(vLog.BlockNumber))
+			fmt.Println(fulfilTx)
 			if err != nil {
 				status = "failed"
 			} else {
 				status = "success"
 			}
 			seedHex, err := utils.Uint256ToHex(event.Seed)
-			err = d.service.Store.RandomnessRequest.InsertNewRequest(common.Bytes2Hex(event.KeyHash[:]), seedHex, event.Sender.Hex(), common.Bytes2Hex(event.RequestID[:]), vLog.BlockHash.Hex(), vLog.BlockNumber, vLog.TxHash.Hex(), status)
+			err = d.service.Store.RandomnessRequest.InsertNewRequest(
+				common.Bytes2Hex(event.KeyHash[:]),
+				seedHex,
+				event.Sender.Hex(),
+				common.Bytes2Hex(event.RequestID[:]),
+				vLog.BlockHash.Hex(),
+				vLog.BlockNumber,
+				vLog.TxHash.Hex(),
+				status,
+				eventTxRec.GasUsed,
+				eventTx.GasPrice().Uint64(),
+				)
+			continue
+		case logRandomnessRequestFulfilledHash.Hex():
+			fmt.Println("Log Name: RandomnessRequestFulfilled")
+			event := vor_coordinator.VorCoordinatorRandomnessRequestFulfilled{}
+			err := contractAbi.UnpackIntoInterface(&event, "RandomnessRequestFulfilled", vLog.Data)
+			fmt.Println(event)
+			if err != nil {
+				return err
+			}
+
+			err = d.service.Store.RandomnessRequest.UpdateFulfillment(
+				common.Bytes2Hex(event.RequestId[:]),
+				vLog.TxHash.Hex(),
+				"success",
+				eventTxRec.GasUsed,
+				vLog.BlockNumber,
+				eventTx.GasPrice().Uint64(),
+				event.Output.String(),
+			)
 			continue
 		default:
 			fmt.Println("vLog: ", vLog)

@@ -1,6 +1,7 @@
 {
-  "name": "xfund-vor",
-  "version": "0.1.0",
+  "name": "@unification-com/xfund-vor",
+  "version": "0.2.0",
+  "description": "xFUND VOR",
   "scripts": {
     "test": "truffle test",
     "build": "truffle compile",
@@ -13,7 +14,16 @@
     "docs:compile": "rimraf docs/.vuepress/dist && yarn run docs:api:build && vuepress build docs",
     "docs:dev": "vuepress dev docs"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unification-com/xfund-vor.git"
+  },
+  "author": "Codegnosis",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/unification-com/xfund-vor/issues"
+  },
+  "homepage": "https://github.com/unification-com/xfund-vor#readme",
   "devDependencies": {
     "@chainsafe/truffle-plugin-abigen": "^0.0.2",
     "@openzeppelin/test-helpers": "^0.5.10",

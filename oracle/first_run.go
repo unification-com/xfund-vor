@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-func noKeyFound(keystorage *keystorage.Keystorage) (fee int64, paysGas bool, err error) {
+func noKeyFound(keystorage *keystorage.Keystorage) (fee int64, err error) {
 	var token string
 
 	fmt.Println("")
@@ -16,7 +16,6 @@ func noKeyFound(keystorage *keystorage.Keystorage) (fee int64, paysGas bool, err
 	fmt.Scanf("%s\n", &addusername)
 
 	fee, err = GetFee()
-	paysGas, err = GetProviderPaysGas()
 
 	if keystorage.ExistsByUsername(addusername) {
 		fmt.Println("This account name is already used")
@@ -56,7 +55,7 @@ func noKeyFound(keystorage *keystorage.Keystorage) (fee int64, paysGas bool, err
 		var keyPrivate string
 		keyPrivate, err = keystorage.GeneratePrivate(addusername)
 		if err != nil {
-			return fee, paysGas, err
+			return fee, err
 		}
 		fmt.Println("\nSuccessfully generated a private key:")
 		fmt.Println(keyPrivate)
@@ -66,7 +65,7 @@ func noKeyFound(keystorage *keystorage.Keystorage) (fee int64, paysGas bool, err
 		fmt.Println("KEEP THIS KEYS SAFE!")
 	default:
 		fmt.Println("Sorry, I can't understand you =(")
-		fee, paysGas, err = noKeyFound(keystorage)
+		fee, err = noKeyFound(keystorage)
 	}
 	return
 }
@@ -88,23 +87,9 @@ func GetFee() (input int64, err error) {
 	return
 }
 
-func GetProviderPaysGas() (input bool, err error) {
-	var rawInput string
-	fmt.Println("")
-	fmt.Print("Does provider pay gas? [true|false]: ")
-	_, err = fmt.Scanf("%s\n", &rawInput)
-	input, err = strconv.ParseBool(rawInput)
-	if err != nil {
-		fmt.Println("Incorrect provider pays gas parameter")
-		input, err = GetProviderPaysGas()
-	}
-
-	return
-}
-
-func FirstRun(keystorage *keystorage.Keystorage) (fee int64, paysGas bool, err error) {
+func FirstRun(keystorage *keystorage.Keystorage) (fee int64, err error) {
 	//	notify that no orivate key found
 	fmt.Println("No private key found")
-	fee, paysGas, err = noKeyFound(keystorage)
+	fee, err = noKeyFound(keystorage)
 	return
 }

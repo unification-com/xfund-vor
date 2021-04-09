@@ -77,6 +77,28 @@ contract VORD20 is Ownable, VORConsumerBase {
     }
 
     /**
+     * @notice Example wrapper function for the VORConsumerBase increaseVorCoordinatorAllowance function.
+     * @dev Wrapped around an Ownable modifier to ensure only the contract owner can call it.
+     * @dev Allows contract owner to increase the xFUND allowance for the VORCoordinator contract
+     * @dev enabling it to pay request fees on behalf of this contract's owner.
+     * @dev NOTE: This contract must have an xFUND balance in order to request randomness
+     *
+     * @param _amount uint256 amount to increase allowance by
+     */
+    function increaseVorAllowance(uint256 _amount) external onlyOwner {
+        _increaseVorCoordinatorAllowance(_amount);
+    }
+
+    /**
+     * @notice Example wrapper function for the VORConsumerBase withdrawXFUND function.
+     * @dev Wrapped around an Ownable modifier to ensure only the contract owner can call it.
+     * @dev Allows contract owner to withdraw any xFUND currently held by this contract
+     */
+    function withdrawToken(address to, uint256 value) external onlyOwner {
+        _withdrawXFUND(to, value);
+    }
+
+    /**
      * @notice Get the house assigned to the player once the address has rolled
      * @param player address
      * @return house as a string

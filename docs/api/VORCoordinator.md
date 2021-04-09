@@ -2,21 +2,15 @@
 
 
 ## Functions:
-- [`constructor(address _xfund, address _blockHashStore, uint256 _expectedGasFirst, uint256 _expectedGas)`](#VORCoordinator-constructor-address-address-uint256-uint256-)
-- [`getTotalGasDeposits()`](#VORCoordinator-getTotalGasDeposits--)
-- [`getGasDepositsForConsumer(address _consumer)`](#VORCoordinator-getGasDepositsForConsumer-address-)
-- [`getGasDepositsForConsumerProvider(address _consumer, bytes32 _keyHash)`](#VORCoordinator-getGasDepositsForConsumerProvider-address-bytes32-)
-- [`getGasTopUpLimit()`](#VORCoordinator-getGasTopUpLimit--)
+- [`constructor(address _xfund, address _blockHashStore)`](#VORCoordinator-constructor-address-address-)
 - [`getProviderAddress(bytes32 _keyHash)`](#VORCoordinator-getProviderAddress-bytes32-)
-- [`setGasTopUpLimit(uint256 _gasTopUpLimit)`](#VORCoordinator-setGasTopUpLimit-uint256-)
-- [`setBaseGasRates(uint256 _newExpectedGasFirst, uint256 _newExpectedGas)`](#VORCoordinator-setBaseGasRates-uint256-uint256-)
-- [`registerProvingKey(uint256 _fee, address payable _oracle, uint256[2] _publicProvingKey, bool _providerPaysGas)`](#VORCoordinator-registerProvingKey-uint256-address-payable-uint256-2--bool-)
+- [`getProviderFee(bytes32 _keyHash)`](#VORCoordinator-getProviderFee-bytes32-)
+- [`getProviderGranularFee(bytes32 _keyHash, address _consumer)`](#VORCoordinator-getProviderGranularFee-bytes32-address-)
+- [`registerProvingKey(uint256 _fee, address payable _oracle, uint256[2] _publicProvingKey)`](#VORCoordinator-registerProvingKey-uint256-address-payable-uint256-2--)
 - [`changeFee(uint256[2] _publicProvingKey, uint256 _fee)`](#VORCoordinator-changeFee-uint256-2--uint256-)
-- [`setProviderPaysGas(uint256[2] _publicProvingKey, bool _providerPays)`](#VORCoordinator-setProviderPaysGas-uint256-2--bool-)
+- [`changeGranularFee(uint256[2] _publicProvingKey, uint256 _fee, address _consumer)`](#VORCoordinator-changeGranularFee-uint256-2--uint256-address-)
 - [`withdraw(address _recipient, uint256 _amount)`](#VORCoordinator-withdraw-address-uint256-)
 - [`randomnessRequest(bytes32 _keyHash, uint256 _consumerSeed, uint256 _feePaid)`](#VORCoordinator-randomnessRequest-bytes32-uint256-uint256-)
-- [`topUpGas(bytes32 _keyHash)`](#VORCoordinator-topUpGas-bytes32-)
-- [`withDrawGasTopUpForProvider(bytes32 _keyHash)`](#VORCoordinator-withDrawGasTopUpForProvider-bytes32-)
 - [`hashOfKey(uint256[2] _publicKey)`](#VORCoordinator-hashOfKey-uint256-2--)
 - [`fulfillRandomnessRequest(bytes _proof)`](#VORCoordinator-fulfillRandomnessRequest-bytes-)
 
@@ -24,66 +18,30 @@
 - [`RandomnessRequest(bytes32 keyHash, uint256 seed, address sender, uint256 fee, bytes32 requestID)`](#VORCoordinator-RandomnessRequest-bytes32-uint256-address-uint256-bytes32-)
 - [`NewServiceAgreement(bytes32 keyHash, uint256 fee)`](#VORCoordinator-NewServiceAgreement-bytes32-uint256-)
 - [`ChangeFee(bytes32 keyHash, uint256 fee)`](#VORCoordinator-ChangeFee-bytes32-uint256-)
+- [`ChangeGranularFee(bytes32 keyHash, address consumer, uint256 fee)`](#VORCoordinator-ChangeGranularFee-bytes32-address-uint256-)
 - [`RandomnessRequestFulfilled(bytes32 requestId, uint256 output)`](#VORCoordinator-RandomnessRequestFulfilled-bytes32-uint256-)
-- [`GasToppedUp(address consumer, address provider, uint256 amount)`](#VORCoordinator-GasToppedUp-address-address-uint256-)
-- [`GasWithdrawnByConsumer(address consumer, address provider, uint256 amount)`](#VORCoordinator-GasWithdrawnByConsumer-address-address-uint256-)
-- [`SetGasTopUpLimit(address sender, uint256 oldLimit, uint256 newLimit)`](#VORCoordinator-SetGasTopUpLimit-address-uint256-uint256-)
-- [`SetBaseGasRates(address sender, uint256 oldFirstExpected, uint256 newFirstExpected, uint256 oldExpected, uint256 newExpected)`](#VORCoordinator-SetBaseGasRates-address-uint256-uint256-uint256-uint256-)
-- [`GasRefundedToProvider(address consumer, address provider, uint256 amount)`](#VORCoordinator-GasRefundedToProvider-address-address-uint256-)
-- [`SetProviderPaysGas(address provider, bool providerPays)`](#VORCoordinator-SetProviderPaysGas-address-bool-)
 
 ## Modifiers:
 - [`sufficientXFUND(uint256 _feePaid, bytes32 _keyHash)`](#VORCoordinator-sufficientXFUND-uint256-bytes32-)
 - [`hasAvailableFunds(uint256 _amount)`](#VORCoordinator-hasAvailableFunds-uint256-)
 
-<a name="VORCoordinator-constructor-address-address-uint256-uint256-"></a>
-### Function `constructor(address _xfund, address _blockHashStore, uint256 _expectedGasFirst, uint256 _expectedGas)`
+<a name="VORCoordinator-constructor-address-address-"></a>
+### Function `constructor(address _xfund, address _blockHashStore)`
 No description
-<a name="VORCoordinator-getTotalGasDeposits--"></a>
-### Function `getTotalGasDeposits() -> uint256`
-getTotalGasDeposits - get total gas deposited in VORCoordinator
-
-<a name="VORCoordinator-getGasDepositsForConsumer-address-"></a>
-### Function `getGasDepositsForConsumer(address _consumer) -> uint256`
-getGasDepositsForConsumer - get gas deposited in VORCoordinator by a consumer
-
-<a name="VORCoordinator-getGasDepositsForConsumerProvider-address-bytes32-"></a>
-### Function `getGasDepositsForConsumerProvider(address _consumer, bytes32 _keyHash) -> uint256`
-getGasDepositsForConsumerProvider - get gas deposited in VORCoordinator by a consumer
-for a given provider
-
-<a name="VORCoordinator-getGasTopUpLimit--"></a>
-### Function `getGasTopUpLimit() -> uint256`
-getGasTopUpLimit - get gas top up limit
-
 <a name="VORCoordinator-getProviderAddress-bytes32-"></a>
 ### Function `getProviderAddress(bytes32 _keyHash) -> address`
 getProviderAddress - get provider address
 
-<a name="VORCoordinator-setGasTopUpLimit-uint256-"></a>
-### Function `setGasTopUpLimit(uint256 _gasTopUpLimit) -> bool success`
-setGasTopUpLimit set the max amount of ETH that can be sent
-in a topUpGas Tx. Router admin calls this to set the maximum amount
-a Consumer can send in a single Tx, to prevent large amounts of ETH
-being sent.
+<a name="VORCoordinator-getProviderFee-bytes32-"></a>
+### Function `getProviderFee(bytes32 _keyHash) -> uint96`
+getProviderFee - get provider's base fee
 
+<a name="VORCoordinator-getProviderGranularFee-bytes32-address-"></a>
+### Function `getProviderGranularFee(bytes32 _keyHash, address _consumer) -> uint96`
+getProviderGranularFee - get provider's base fee
 
-#### Parameters:
-- `_gasTopUpLimit`: amount in wei
-
-<a name="VORCoordinator-setBaseGasRates-uint256-uint256-"></a>
-### Function `setBaseGasRates(uint256 _newExpectedGasFirst, uint256 _newExpectedGas) -> bool success`
-setBaseGasRates set the base expected gas values used for calculating gas
-refunds
-
-
-#### Parameters:
-- `_newExpectedGasFirst`: expected gas units consumed for first fulfilment
-
-- `_newExpectedGas`: expected gas units consumed for subsequent fulfilments
-
-<a name="VORCoordinator-registerProvingKey-uint256-address-payable-uint256-2--bool-"></a>
-### Function `registerProvingKey(uint256 _fee, address payable _oracle, uint256[2] _publicProvingKey, bool _providerPaysGas)`
+<a name="VORCoordinator-registerProvingKey-uint256-address-payable-uint256-2--"></a>
+### Function `registerProvingKey(uint256 _fee, address payable _oracle, uint256[2] _publicProvingKey)`
 No description
 #### Parameters:
 - `_fee`: minimum xFUND payment required to serve randomness
@@ -91,8 +49,6 @@ No description
 - `_oracle`: the address of the node with the proving key
 
 - `_publicProvingKey`: public key used to prove randomness
-
-- `_providerPaysGas`: true if provider will pay gas
 <a name="VORCoordinator-changeFee-uint256-2--uint256-"></a>
 ### Function `changeFee(uint256[2] _publicProvingKey, uint256 _fee)`
 No description
@@ -100,14 +56,13 @@ No description
 - `_publicProvingKey`: public key used to prove randomness
 
 - `_fee`: minimum xFUND payment required to serve randomness
-<a name="VORCoordinator-setProviderPaysGas-uint256-2--bool-"></a>
-### Function `setProviderPaysGas(uint256[2] _publicProvingKey, bool _providerPays) -> bool success`
-setProviderPaysGas - provider calls for setting who pays gas
-for sending the fulfillRequest Tx
-
+<a name="VORCoordinator-changeGranularFee-uint256-2--uint256-address-"></a>
+### Function `changeGranularFee(uint256[2] _publicProvingKey, uint256 _fee, address _consumer)`
+No description
 #### Parameters:
-- `_providerPays`: bool - true if provider will pay gas
+- `_publicProvingKey`: public key used to prove randomness
 
+- `_fee`: minimum xFUND payment required to serve randomness
 <a name="VORCoordinator-withdraw-address-uint256-"></a>
 ### Function `withdraw(address _recipient, uint256 _amount)`
 Allows the oracle operator to withdraw their xFUND
@@ -132,36 +87,6 @@ preSeed and keyHash.
 - `_feePaid`: Amount of xFUND sent with request. Must exceed fee for key
 
 
-<a name="VORCoordinator-topUpGas-bytes32-"></a>
-### Function `topUpGas(bytes32 _keyHash) -> bool success`
-topUpGas consumer contract calls this function to top up gas
-Gas is the ETH held by this contract which is used to refund Tx costs
-to the VOR provider for fulfilling a request.
-
-To prevent silly amounts of ETH being sent, a sensible limit is imposed.
-
-Can only top up for authorised providers
-
-
-#### Parameters:
-- `_keyHash`: ID of the VOR public key against which to generate output
-
-<a name="VORCoordinator-withDrawGasTopUpForProvider-bytes32-"></a>
-### Function `withDrawGasTopUpForProvider(bytes32 _keyHash) -> uint256 amountWithdrawn`
-withDrawGasTopUpForProvider data consumer contract calls this function to
-withdraw any remaining ETH stored in the Router for gas refunds for a specified
-data provider.
-
-Consumer contract will then transfer through to the consumer contract's
-owner.
-
-NOTE - data provider authorisation is not checked, since a consumer needs to
-be able to withdraw for a data provide that has been revoked.
-
-
-#### Parameters:
-- `_keyHash`: ID of the VOR public key against which to generate output
-
 <a name="VORCoordinator-hashOfKey-uint256-2--"></a>
 ### Function `hashOfKey(uint256[2] _publicKey) -> bytes32`
 No description
@@ -182,26 +107,11 @@ No description
 <a name="VORCoordinator-ChangeFee-bytes32-uint256-"></a>
 ### Event `ChangeFee(bytes32 keyHash, uint256 fee)`
 No description
+<a name="VORCoordinator-ChangeGranularFee-bytes32-address-uint256-"></a>
+### Event `ChangeGranularFee(bytes32 keyHash, address consumer, uint256 fee)`
+No description
 <a name="VORCoordinator-RandomnessRequestFulfilled-bytes32-uint256-"></a>
 ### Event `RandomnessRequestFulfilled(bytes32 requestId, uint256 output)`
-No description
-<a name="VORCoordinator-GasToppedUp-address-address-uint256-"></a>
-### Event `GasToppedUp(address consumer, address provider, uint256 amount)`
-No description
-<a name="VORCoordinator-GasWithdrawnByConsumer-address-address-uint256-"></a>
-### Event `GasWithdrawnByConsumer(address consumer, address provider, uint256 amount)`
-No description
-<a name="VORCoordinator-SetGasTopUpLimit-address-uint256-uint256-"></a>
-### Event `SetGasTopUpLimit(address sender, uint256 oldLimit, uint256 newLimit)`
-No description
-<a name="VORCoordinator-SetBaseGasRates-address-uint256-uint256-uint256-uint256-"></a>
-### Event `SetBaseGasRates(address sender, uint256 oldFirstExpected, uint256 newFirstExpected, uint256 oldExpected, uint256 newExpected)`
-No description
-<a name="VORCoordinator-GasRefundedToProvider-address-address-uint256-"></a>
-### Event `GasRefundedToProvider(address consumer, address provider, uint256 amount)`
-No description
-<a name="VORCoordinator-SetProviderPaysGas-address-bool-"></a>
-### Event `SetProviderPaysGas(address provider, bool providerPays)`
 No description
 
 <a name="VORCoordinator-sufficientXFUND-uint256-bytes32-"></a>

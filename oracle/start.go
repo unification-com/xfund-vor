@@ -22,7 +22,6 @@ var e = echo.New()
 func start() (err error) {
 	var ctx = context.Background()
 	var fee int64
-	var paysGas bool
 
 	if config.Conf.LogFile != "" {
 		logFile, err := os.OpenFile(config.Conf.LogFile, os.O_WRONLY|os.O_CREATE, 0755)
@@ -57,7 +56,7 @@ func start() (err error) {
 
 	store, err := store2.NewStore(context.Background(), keystore)
 	if !keystore.Exists() {
-		fee, paysGas, err = FirstRun(keystore)
+		fee, err = FirstRun(keystore)
 	}
 	err = store.RandomnessRequest.Migrate()
 	if err != nil {
@@ -86,7 +85,7 @@ func start() (err error) {
 		return err
 	}
 	if !keystore.IsRegisteredByPrivate(keystore.KeyStore.PrivateKey) {
-		tx, err := oracleService.VORCoordinatorCaller.RegisterProvingKey(big.NewInt(fee), paysGas)
+		tx, err := oracleService.VORCoordinatorCaller.RegisterProvingKey(big.NewInt(fee))
 		if tx != nil || err == nil {
 			keystore.SetRegistered(keystore.KeyStore.PrivateKey)
 		}
@@ -104,7 +103,6 @@ func start() (err error) {
 	e.POST("/withdraw", oracleController.Withdraw)
 	e.POST("/register", oracleController.Register)
 	e.POST("/changefee", oracleController.ChangeFee)
-	e.POST("/setproviderpaysgas", oracleController.SetProviderPaysGas)
 	e.POST("/stop", func(c echo.Context) error {
 		err = Stop()
 		return err

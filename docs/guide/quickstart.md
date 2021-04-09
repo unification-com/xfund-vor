@@ -11,20 +11,19 @@ OpenZeppelin's `Ownable` functionality to secure some of the required functions:
 1. Add the packages to your project:
 
 ```
-yarn add @unification-com/xfund-vor @openzeppelin/contracts
+yarn add @unification-com/xfund-vor
 ```
 
-2. In your smart contract, import `VORCoordinator.sol` and `Ownable.sol`:
+2. In your smart contract, import `VORConsumerBase.sol`:
 
 ```solidity
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@unification-com/xfund-vor/contracts/VORCoordinator.sol";
+import "@unification-com/xfund-vor/contracts/VORConsumerBase.sol";
 ```
 
-3. Extend your contract, adding `is VORConsumerBase, Ownable`:
+3. Extend your contract, adding `is VORConsumerBase`:
 
 ```solidity
-contract MockConsumer is VORConsumerBase, Ownable {
+contract MockConsumer is VORConsumerBase {
 ```
 
 4. Ensure your `constructor` function has at least two parameters to accept the `VORCoordinator` 
@@ -37,23 +36,7 @@ constructor(address _vorCoordinator, address _xfund)
     }
 ```
 
-5. Implement a `topUpGas` function to enable gas refunds to providers who require refunds for data fulfilment:
-
-```solidity
-function topUpGas(bytes32 _sKeyHash, uint256 _amount) public onlyOwner {
-    topUpGas(_sKeyHash, _amount);
-}
-```
-
-6. Optionally implement a `withdrawXFUND` function, to allow you to remove any xFUND held by your contract:
-
-```solidity
-function withdrawXFUND(address to, uint256 value) public onlyOwner {
-    require(xFUND.transfer(to, value), "Not enough xFUND");
-}
-```
-
-7. Implement a `requestRandomness` function, for example:
+5. Implement a `requestRandomness` function, for example:
 
 ```solidity
 function requestRandomness(uint256 _userProvidedSeed, bytes32 _keyHash, unit256 _fee) 
@@ -66,7 +49,7 @@ returns (bytes32 requestId) {
 }
 ```
 
-8. Implement the `fulfillRandomness` function for data Providers to send data, for example:
+6. Implement the `fulfillRandomness` function for data Providers to send data, for example:
 
 ```solidity
 function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
@@ -93,10 +76,6 @@ This involves:
 
    **Note**: The `xFUNDMOCK` Token on Rinkeby testnet has a faucet function, `gimme()` which can be used
    to grab some test tokens.
-3) "Topping up" gas payments on the `VORCoordinator` - a small amount of ETH will be held by the `VORCoordinator`
-   on your behalf in order to reimburse VOR providers for the cost of sending a Tx to your contract
-   and submitting the data to you. This can be periodically topped up in small amounts, and can
-   also be withdrawn by you in its entirety at any time.
 
 Once these steps have been run through, you will be able to initialise data requests via your
 smart contract.
@@ -104,5 +83,3 @@ smart contract.
 ## Requesting Randomness
 
 Once the environment has been initialised, you will be able to request randomness
-
-

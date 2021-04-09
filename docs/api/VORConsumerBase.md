@@ -90,44 +90,12 @@ cost. This cost scales with the number of blocks the VOR oracle waits
 until it calls responds to a request.
 
 ## Functions:
-- [`increaseVorCoordinatorAllowance(uint256 _amount)`](#VORConsumerBase-increaseVorCoordinatorAllowance-uint256-)
-- [`topUpGas(bytes32 _keyHash)`](#VORConsumerBase-topUpGas-bytes32-)
-- [`withDrawGasTopUp(bytes32 _keyHash)`](#VORConsumerBase-withDrawGasTopUp-bytes32-)
-- [`withdrawXFUND(address to, uint256 value)`](#VORConsumerBase-withdrawXFUND-address-uint256-)
 - [`constructor(address _vorCoordinator, address _xfund)`](#VORConsumerBase-constructor-address-address-)
 - [`rawFulfillRandomness(bytes32 requestId, uint256 randomness)`](#VORConsumerBase-rawFulfillRandomness-bytes32-uint256-)
 - [`receive()`](#VORConsumerBase-receive--)
 
 
 
-<a name="VORConsumerBase-increaseVorCoordinatorAllowance-uint256-"></a>
-### Function `increaseVorCoordinatorAllowance(uint256 _amount)`
-No description
-<a name="VORConsumerBase-topUpGas-bytes32-"></a>
-### Function `topUpGas(bytes32 _keyHash)`
-topUpGas consumer calls this function to top up gas
-Gas is the ETH held by this contract which is used to refund Tx costs
-to the VOR provider for fulfilling a request.
-
-
-#### Parameters:
-- `_keyHash`: ID of public key against which randomness is generated
-<a name="VORConsumerBase-withDrawGasTopUp-bytes32-"></a>
-### Function `withDrawGasTopUp(bytes32 _keyHash)`
-withDrawGasTopUp allows the Consumer contract's owner to withdraw any ETH
-held by the VORCoordinator for the specified data provider. All ETH held will be withdrawn
-and forwarded to the Consumer contract owner's wallet.
-
-
-#### Parameters:
-- `_keyHash`: ID of public key against which randomness is generated
-<a name="VORConsumerBase-withdrawXFUND-address-uint256-"></a>
-### Function `withdrawXFUND(address to, uint256 value)`
-No description
-#### Parameters:
-- `to`: the address to withdraw xFUND to
-
-- `value`: the amount of xFUND to withdraw
 <a name="VORConsumerBase-constructor-address-address-"></a>
 ### Function `constructor(address _vorCoordinator, address _xfund)`
 No description

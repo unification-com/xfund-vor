@@ -10,7 +10,7 @@ import (
 func (d *Oracle) Register(c echo.Context) error {
 	var requestModel api.OracleRegisterRequestModel
 	json.NewDecoder(c.Request().Body).Decode(&requestModel)
-	transactionInfo, err := d.service.Register(requestModel.AccountName, requestModel.PrivateKey, requestModel.Fee, requestModel.ProviderPaysGas)
+	transactionInfo, err := d.service.Register(requestModel.AccountName, requestModel.PrivateKey, requestModel.Fee)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}

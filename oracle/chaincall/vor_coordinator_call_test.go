@@ -50,19 +50,6 @@ func VORD20CallerTestValues() (string, string, *big.Int, []byte) {
 	return Config.ContractCallerAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetByUsername(Config.Keystorage.Account).Private)
 }
 
-func TestVORCoordinatorCaller_GetTotalGasDeposits(t *testing.T) {
-	err := Init(os.Args[len(os.Args)-1])
-	if err != nil {
-		t.Error(err)
-	}
-
-	GasDeposits, err := VORCoordinator.GetTotalGasDeposits()
-	if err != nil {
-		t.Error(err)
-	}
-	t.Log(GasDeposits)
-}
-
 func TestVORCoordinatorCaller_HashOfKey(t *testing.T) {
 	err := Init(os.Args[len(os.Args)-1])
 	if err != nil {
@@ -76,19 +63,6 @@ func TestVORCoordinatorCaller_HashOfKey(t *testing.T) {
 	t.Log(common.BytesToHash(HashOfKey[:]))
 	t.Log(HashOfKey[:])
 	t.Log(hexutil.Encode(HashOfKey[:]))
-}
-
-func TestVORCoordinatorCaller_GetGasTopUpLimit(t *testing.T) {
-	err := Init(os.Args[len(os.Args)-1])
-	if err != nil {
-		t.Error(err)
-	}
-
-	GasDeposits, err := VORCoordinator.GetGasTopUpLimit()
-	if err != nil {
-		t.Error(err)
-	}
-	t.Log(GasDeposits)
 }
 
 func TestVORCoordinatorCaller_Withdraw(t *testing.T) {
@@ -124,7 +98,7 @@ func TestVORCoordinatorCaller_RegisterProvingKey(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	TransactOut, err := VORCoordinator.RegisterProvingKey(big.NewInt(100), false)
+	TransactOut, err := VORCoordinator.RegisterProvingKey(big.NewInt(100))
 	//debug.PrintStack()
 	t.Log(TransactOut)
 	if err != nil {
@@ -150,22 +124,6 @@ func TestVORCoordinatorCaller_RandomnessRequest(t *testing.T) {
 	fmt.Println(string(transactJson))
 }
 
-func TestVORCoordinatorCaller_SetProviderPaysGas(t *testing.T) {
-	err := Init(os.Args[len(os.Args)-1])
-	if err != nil {
-		t.Error(err)
-	}
-
-	TransactOut, err := VORCoordinator.SetProviderPaysGas(true)
-	//debug.PrintStack()
-	t.Log(TransactOut)
-	if err != nil {
-		t.Error(err)
-	}
-	fmt.Print(TransactOut.To().Hex())
-	transactJson, err := json.Marshal(TransactOut)
-	fmt.Print(string(transactJson))
-}
 func TestVORCoordinatorCaller_FulfillRandomnessRequest(t *testing.T) {
 	err := Init(os.Args[len(os.Args)-1])
 	if err != nil {

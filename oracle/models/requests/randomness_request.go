@@ -1,25 +1,23 @@
 package requests
 
 type RandomnessRequestStoreModel struct {
-	Id                int64  `gorm:"primary_key" json:"id"`
-	KeyHash           string `gorm:"key_hash" json:"key_hash"`
-	Seed              string `gorm:"seed" json:"seed"`
-	Sender            string `gorm:"sender" json:"sender"`
-	RequestId         string `gorm:"request_id" json:"request_id"`
-	ReqBlockHash      string `gorm:"req_block_hash" json:"req_block_hash"`
-	ReqBlockNumber    uint64 `gorm:"req_block_number" json:"req_block_number"`
-	RequestTxHash     string `gorm:"req_tx_hash" json:"req_tx_hash"`
-	Randomness        string `gorm:"randomness" json:"randomness"`
-	FulfillTxHash     string `gorm:"fulfill_tx_hash" json:"fulfill_tx_hash"`
-	FulfillBlockNum   uint64 `gorm:"fulfill_block_num" json:"fulfill_block_num"`
-	FulfillGasUsed    uint64 `gorm:"fulfill_gas_used" json:"fulfill_gas_used"`
-	FulfillGasPrice   uint64 `gorm:"fulfill_gas_price" json:"fulfill_gas_price"`
-	FulfillActualCost uint64 `gorm:"fulfill_actual_cost" json:"fulfill_actual_cost"`
-	FulfillRefundWei  uint64 `gorm:"fulfill_refund" json:"fulfill_refund"`
-	Refunded          bool   `gorm:"refunded" json:"refunded"`
-	RefundDiff        int64  `gorm:"refund_diff" json:"refund_diff"`
-	Status            string `gorm:"status" json:"status"`
-	StatusReason      string `gorm:"status_reason" json:"status_reason"`
+	Id                     int64  `gorm:"primary_key" json:"id"`
+	KeyHash                string `gorm:"key_hash" json:"key_hash"`
+	Seed                   string `gorm:"seed" json:"seed"`
+	Sender                 string `gorm:"sender" json:"sender"`
+	RequestId              string `gorm:"request_id" json:"request_id"`
+	ReqBlockHash           string `gorm:"req_block_hash" json:"req_block_hash"`
+	ReqBlockNumber         uint64 `gorm:"req_block_number" json:"req_block_number"`
+	RequestTxHash          string `gorm:"req_tx_hash" json:"req_tx_hash"`
+	RequestGasUsed         uint64 `gorm:"request_gas_used" json:"request_gas_used"`
+	RequestGasPrice        uint64 `gorm:"request_gas_price" json:"request_gas_price"`
+	Randomness             string `gorm:"randomness" json:"randomness"`
+	FulfillTxHash          string `gorm:"fulfill_tx_hash" json:"fulfill_tx_hash"`
+	FulfillBlockNum        uint64 `gorm:"fulfill_block_num" json:"fulfill_block_num"`
+	FulfillGasUsed         uint64 `gorm:"fulfill_gas_used" json:"fulfill_gas_used"`
+	FulfillGasPrice        uint64 `gorm:"fulfill_gas_price" json:"fulfill_gas_price"`
+	Status                 string `gorm:"status" json:"status"`
+	StatusReason           string `gorm:"status_reason" json:"status_reason"`
 }
 
 func (RandomnessRequestStoreModel) TableName() string {

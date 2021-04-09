@@ -2,6 +2,9 @@ module.exports = {
     title: 'VOR Documentation',
     description: 'Welcome to the documentation for VOR',
     base: '/',
+    head: [
+        ['link', { rel: 'icon', href: '/favicon.ico' }]
+    ],
     markdown: {
         // options for markdown-it-toc
         toc: {includeLevel: [2, 3]}
@@ -25,16 +28,27 @@ module.exports = {
                 path: "/guide",
                 children: [
                     "/guide/quickstart",
+                    "/guide/implementation",
+                    "/guide/interaction",
+                    "/guide/oracle",
                 ]
             },
             {
-                title: "Contract Docs",
+                title: "Demos",
+                path: "/demos",
                 children: [
-                    "/api/Router",
-                    "/api/lib/ConsumerLib",
-                    "/api/lib/ConsumerBase",
+                    "/demos/nft_demo",
                 ]
             },
+            // {
+            //     title: "Contract Docs",
+            //     children: [
+            //         "/api/VOR",
+            //         "/api/VORConsumerBase",
+            //         "/api/VORCoordinator",
+            //         "/api/VORRequestIDBase",
+            //     ]
+            // },
         ],
     }
 }

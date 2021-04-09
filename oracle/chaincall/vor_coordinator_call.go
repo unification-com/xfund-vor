@@ -105,16 +105,6 @@ func (d *VORCoordinatorCaller) RenewTransactOpts() (err error) {
 	return
 }
 
-func (d *VORCoordinatorCaller) GetTotalGasDeposits() (*big.Int, error) {
-	defer d.RenewTransactOpts()
-	return d.instance.GetTotalGasDeposits(d.callOpts)
-}
-
-func (d *VORCoordinatorCaller) GetGasTopUpLimit() (*big.Int, error) {
-	defer d.RenewTransactOpts()
-	return d.instance.GetGasTopUpLimit(d.callOpts)
-}
-
 func (d *VORCoordinatorCaller) HashOfKey() ([32]byte, error) {
 	defer d.RenewTransactOpts()
 	return d.instance.HashOfKey(d.callOpts, d.publicProvingKey)
@@ -134,9 +124,9 @@ func (d *VORCoordinatorCaller) Withdraw(recipientAddress string, amount *big.Int
 	return d.instance.Withdraw(d.transactOpts, recipientAddr, amount)
 }
 
-func (d *VORCoordinatorCaller) RegisterProvingKey(fee *big.Int, providerPaysGas bool) (*types.Transaction, error) {
+func (d *VORCoordinatorCaller) RegisterProvingKey(fee *big.Int) (*types.Transaction, error) {
 	defer d.RenewTransactOpts()
-	transaction, err := d.instance.RegisterProvingKey(d.transactOpts, fee, common.HexToAddress(d.oracleAddress), d.publicProvingKey, providerPaysGas)
+	transaction, err := d.instance.RegisterProvingKey(d.transactOpts, fee, common.HexToAddress(d.oracleAddress), d.publicProvingKey)
 	return transaction, err
 }
 
@@ -149,17 +139,6 @@ func (d *VORCoordinatorCaller) RandomnessRequest(keyHash [32]byte, consumerSeed 
 func (d *VORCoordinatorCaller) ChangeFee(fee *big.Int) (*types.Transaction, error) {
 	defer d.RenewTransactOpts()
 	return d.instance.ChangeFee(d.transactOpts, d.publicProvingKey, fee)
-}
-
-//func (d *VORCoordinatorCaller) TopUpGas(gas *big.Int) (*types.Transaction, error) {
-//	defer d.RenewTransactOpts()
-//	d.transactOpts.Value = gas
-//	return d.instance.TopUpGas(d.transactOpts, common.HexToAddress(d.oracleAddress))
-//}
-
-func (d *VORCoordinatorCaller) SetProviderPaysGas(providerPaysFee bool) (*types.Transaction, error) {
-	defer d.RenewTransactOpts()
-	return d.instance.SetProviderPaysGas(d.transactOpts, d.publicProvingKey, providerPaysFee)
 }
 
 func (d *VORCoordinatorCaller) FulfillRandomnessRequest(proof []byte) (*types.Transaction, error) {
