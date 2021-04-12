@@ -13,8 +13,8 @@ import "./VOR.sol";
 import "./VORRequestIDBase.sol";
 
 /**
- * @title VORCoordinator coordinates on-chain verifiable-randomness requests
- * @title with off-chain responses
+ * @title VORCoordinator
+ * @dev Coordinates on-chain verifiable-randomness requests
  */
 contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
     using SafeMath for uint256;

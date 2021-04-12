@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.6.12;
 
+/**
+ * @title VORRequestIDBase
+ */
 contract VORRequestIDBase {
     /**
      * @notice returns the seed which is actually input to the VOR coordinator

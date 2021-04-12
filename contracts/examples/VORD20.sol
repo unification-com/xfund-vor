@@ -5,9 +5,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../VORConsumerBase.sol";
 
 /**
+ * @title VORD20
  * @notice A VOR consumer which uses randomness to mimic the rolling
  * of a 20 sided die
- * @dev This is only an example implementation and not necessarily suitable for mainnet.
+ * This is only an example implementation and not necessarily suitable for mainnet.
  */
 contract VORD20 is Ownable, VORConsumerBase {
     using SafeMath for uint256;
@@ -41,9 +42,9 @@ contract VORD20 is Ownable, VORConsumerBase {
 
     /**
      * @notice Requests randomness from a user-provided seed
-     * @dev Warning: if the VOR response is delayed, avoid calling requestRandomness repeatedly
+     * Warning: if the VOR response is delayed, avoid calling requestRandomness repeatedly
      * as that would give miners/VOR operators latitude about which VOR response arrives first.
-     * @dev You must review your implementation details with extreme care.
+     * You must review your implementation details with extreme care.
      *
      * @param userProvidedSeed uint256 unpredictable seed
      * @param roller address of the roller
@@ -60,11 +61,11 @@ contract VORD20 is Ownable, VORConsumerBase {
     /**
      * @notice Callback function used by VOR Coordinator to return the random number
      * to this contract.
-     * @dev Some action on the contract state should be taken here, like storing the result.
-     * @dev WARNING: take care to avoid having multiple VOR requests in flight if their order of arrival would result
+     * Some action on the contract state should be taken here, like storing the result.
+     * WARNING: take care to avoid having multiple VOR requests in flight if their order of arrival would result
      * in contract states with different outcomes. Otherwise miners or the VOR operator would could take advantage
      * by controlling the order.
-     * @dev The VOR Coordinator will only send this function verified responses, and the parent VORConsumerBase
+     * The VOR Coordinator will only send this function verified responses, and the parent VORConsumerBase
      * contract ensures that this method only receives randomness from the designated VORCoordinator.
      *
      * @param requestId bytes32
@@ -78,10 +79,10 @@ contract VORD20 is Ownable, VORConsumerBase {
 
     /**
      * @notice Example wrapper function for the VORConsumerBase increaseVorCoordinatorAllowance function.
-     * @dev Wrapped around an Ownable modifier to ensure only the contract owner can call it.
-     * @dev Allows contract owner to increase the xFUND allowance for the VORCoordinator contract
-     * @dev enabling it to pay request fees on behalf of this contract's owner.
-     * @dev NOTE: This contract must have an xFUND balance in order to request randomness
+     * Wrapped around an Ownable modifier to ensure only the contract owner can call it.
+     * Allows contract owner to increase the xFUND allowance for the VORCoordinator contract
+     * enabling it to pay request fees on behalf of this contract's owner.
+     * NOTE: This contract must have an xFUND balance in order to request randomness
      *
      * @param _amount uint256 amount to increase allowance by
      */
@@ -91,8 +92,8 @@ contract VORD20 is Ownable, VORConsumerBase {
 
     /**
      * @notice Example wrapper function for the VORConsumerBase withdrawXFUND function.
-     * @dev Wrapped around an Ownable modifier to ensure only the contract owner can call it.
-     * @dev Allows contract owner to withdraw any xFUND currently held by this contract
+     * Wrapped around an Ownable modifier to ensure only the contract owner can call it.
+     * Allows contract owner to withdraw any xFUND currently held by this contract
      */
     function withdrawToken(address to, uint256 value) external onlyOwner {
         _withdrawXFUND(to, value);

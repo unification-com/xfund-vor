@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.6.12;
 
+/**
+ * @title VOR
+ */
 contract VOR {
     // See https://www.secg.org/sec2-v2.pdf, section 2.4.1, for these constants.
     uint256 private constant GROUP_ORDER = // Number of points in Secp256k1
