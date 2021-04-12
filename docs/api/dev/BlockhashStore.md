@@ -3,28 +3,28 @@
 
 
 ## Functions:
-- [`storeEarliest()`](#BlockhashStore-storeEarliest--)
-- [`getBlockhash(uint256 n)`](#BlockhashStore-getBlockhash-uint256-)
-- [`store(uint256 n)`](#BlockhashStore-store-uint256-)
-- [`storeVerifyHeader(uint256 n, bytes header)`](#BlockhashStore-storeVerifyHeader-uint256-bytes-)
+- [`storeEarliest() external`](#BlockhashStore-storeEarliest--)
+- [`getBlockhash(uint256 n) external`](#BlockhashStore-getBlockhash-uint256-)
+- [`store(uint256 n) public`](#BlockhashStore-store-uint256-)
+- [`storeVerifyHeader(uint256 n, bytes header) public`](#BlockhashStore-storeVerifyHeader-uint256-bytes-)
 
 
 
 <a name="BlockhashStore-storeEarliest--"></a>
-### Function `storeEarliest()`
+### Function `storeEarliest() external `
 No description
 <a name="BlockhashStore-getBlockhash-uint256-"></a>
-### Function `getBlockhash(uint256 n) -> bytes32`
+### Function `getBlockhash(uint256 n) external  -> bytes32`
 No description
 #### Parameters:
 - `n`: the number of the block whose blockhash should be returned
 <a name="BlockhashStore-store-uint256-"></a>
-### Function `store(uint256 n)`
+### Function `store(uint256 n) public `
 No description
 #### Parameters:
 - `n`: the number of the block whose blockhash should be stored
 <a name="BlockhashStore-storeVerifyHeader-uint256-bytes-"></a>
-### Function `storeVerifyHeader(uint256 n, bytes header)`
+### Function `storeVerifyHeader(uint256 n, bytes header) public `
 No description
 #### Parameters:
 - `n`: the number of the block whose blockhash should be stored

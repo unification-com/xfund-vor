@@ -5,7 +5,7 @@ an NFT competition. Competitions can be created, with an NFT as the prize. Entra
 fee in xFUND to enter, and the winner is selected via VOR. The NFT is then minted for the
 winner.
 
-**Contract**: [0x5252ED67e0B140cb6b619304955cdbA795fbC013](https://rinkeby.etherscan.io/address/0x5252ED67e0B140cb6b619304955cdbA795fbC013#code)  
+**Contract**: [0xE1426CE899537340E5551cF37Db813B75Ec6C579](https://rinkeby.etherscan.io/address/0xE1426CE899537340E5551cF37Db813B75Ec6C579#code)  
 **Github**: [https://github.com/unification-com/vor-demos](https://github.com/unification-com/vor-demos)
 
 ## Interaction
@@ -21,7 +21,7 @@ The competition has a maximum of 100 entries, and costs 0.1 xFUNDMOCK to enter.
 
 To see the competition details and current entrants:
 
-1. Go to [NFT Competition Contract](https://rinkeby.etherscan.io/address/0x5252ED67e0B140cb6b619304955cdbA795fbC013#readContract) on
+1. Go to [NFT Competition Contract](https://rinkeby.etherscan.io/address/0xE1426CE899537340E5551cF37Db813B75Ec6C579#readContract) on
 Etherscan and click the "Read Contract" button.
 2. Select the `getCompetition` function
 3. Enter `1` as the `_competitionId`
@@ -45,7 +45,7 @@ This should give you 10 `xFUNDMOCK` tokens.
 1. Go to the [xFUNDMOCK](https://rinkeby.etherscan.io/address/0x245330351344F9301690D5D8De2A07f5F32e1149#writeContract) contract
 2. Click the "Connect to Web3" button and connect your wallet.
 3. Click the "increaseAllowance" function.
-4. Enter `0x5252ED67e0B140cb6b619304955cdbA795fbC013` as the `spender` (the NFT Competition contract address)
+4. Enter `0xE1426CE899537340E5551cF37Db813B75Ec6C579` as the `spender` (the NFT Competition contract address)
 5. Enter `5000000000` (5 xFUNDMOCK) as the `addedValue`
 6. Click "Write"
 
@@ -55,7 +55,7 @@ You have now approved the NFT contract to transfer a small amount of xFUNDMOCK o
 
 Now we're ready to enter the competition.
 
-1. Go to [NFT Competition Contract](https://rinkeby.etherscan.io/address/0x5252ED67e0B140cb6b619304955cdbA795fbC013#writeContract) on
+1. Go to [NFT Competition Contract](https://rinkeby.etherscan.io/address/0xE1426CE899537340E5551cF37Db813B75Ec6C579#writeContract) on
    Etherscan and click the "Write Contract" button.
 2. Click the "Connect to Web3" button and connect your wallet.
 3. Click the `enterCompetition` function.

@@ -1,4 +1,5 @@
-# 
+# VORConsumerBase
+
 PURPOSE
 
 Reggie the Random Oracle (not his real job) wants to provide randomness
@@ -16,20 +17,21 @@ from the output space.
 The purpose of this contract is to make it easy for unrelated contracts
 to talk to Vera the verifier about the work Reggie is doing, to provide
 simple access to a verifiable source of randomness.
-*****************************************************************************
+
 USAGE
 
 Calling contracts must inherit from VORConsumerBase, and can
 initialize VORConsumerBase's attributes in their constructor as
 shown:
 
+```
   contract VORConsumer {
     constuctor(<other arguments>, address _vorCoordinator, address _xfund)
       VORConsumerBase(_vorCoordinator, _xfund) public {
         <initialization with other arguments goes here>
       }
   }
-
+```
 The oracle will have given you an ID for the VOR keypair they have
 committed to (let's call it keyHash), and have told you the minimum xFUND
 price for VOR service. Make sure your contract has sufficient xFUND, and
@@ -53,7 +55,6 @@ Colliding `requestId`s are cryptographically impossible as long as seeds
 differ. (Which is critical to making unpredictable randomness! See the
 next section.)
 
-*****************************************************************************
 SECURITY CONSIDERATIONS
 
 A method with the ability to call your fulfillRandomness method directly
@@ -90,24 +91,94 @@ cost. This cost scales with the number of blocks the VOR oracle waits
 until it calls responds to a request.
 
 ## Functions:
-- [`constructor(address _vorCoordinator, address _xfund)`](#VORConsumerBase-constructor-address-address-)
-- [`rawFulfillRandomness(bytes32 requestId, uint256 randomness)`](#VORConsumerBase-rawFulfillRandomness-bytes32-uint256-)
-- [`receive()`](#VORConsumerBase-receive--)
+- [`fulfillRandomness(bytes32 requestId, uint256 randomness) internal`](#VORConsumerBase-fulfillRandomness-bytes32-uint256-)
+- [`requestRandomness(bytes32 _keyHash, uint256 _fee, uint256 _seed) internal`](#VORConsumerBase-requestRandomness-bytes32-uint256-uint256-)
+- [`_increaseVorCoordinatorAllowance(uint256 _amount) internal`](#VORConsumerBase-_increaseVorCoordinatorAllowance-uint256-)
+- [`_withdrawEth(address _to, uint256 _amount) internal`](#VORConsumerBase-_withdrawEth-address-uint256-)
+- [`_withdrawXFUND(address _to, uint256 _amount) internal`](#VORConsumerBase-_withdrawXFUND-address-uint256-)
+- [`constructor(address _vorCoordinator, address _xfund) public`](#VORConsumerBase-constructor-address-address-)
+- [`rawFulfillRandomness(bytes32 requestId, uint256 randomness) external`](#VORConsumerBase-rawFulfillRandomness-bytes32-uint256-)
+- [`receive() external`](#VORConsumerBase-receive--)
 
 
 
+<a name="VORConsumerBase-fulfillRandomness-bytes32-uint256-"></a>
+### Function `fulfillRandomness(bytes32 requestId, uint256 randomness) internal `
+VORConsumerBase expects its subcontracts to have a method with this
+signature, and will call it once it has verified the proof
+associated with the randomness. (It is triggered via a call to
+rawFulfillRandomness, below.)
+
+
+#### Parameters:
+- `requestId`: The Id initially returned by requestRandomness
+
+- `randomness`: the VOR output
+<a name="VORConsumerBase-requestRandomness-bytes32-uint256-uint256-"></a>
+### Function `requestRandomness(bytes32 _keyHash, uint256 _fee, uint256 _seed) internal  -> bytes32 requestId`
+The fulfillRandomness method receives the output, once it's provided
+by the Oracle, and verified by the vorCoordinator.
+
+The _keyHash must already be registered with the VORCoordinator, and
+the _fee must exceed the fee specified during registration of the
+_keyHash.
+
+The _seed parameter is vestigial, and is kept only for API
+compatibility with older versions. It can't *hurt* to mix in some of
+your own randomness, here, but it's not necessary because the VOR
+oracle will mix the hash of the block containing your request into the
+VOR seed it ultimately uses.
+
+
+#### Parameters:
+- `_keyHash`: ID of public key against which randomness is generated
+
+- `_fee`: The amount of xFUND to send with the request
+
+- `_seed`: seed mixed into the input of the VOR.
+
+
+#### Return Values:
+- requestId unique ID for this request
+
+The returned requestId can be used to distinguish responses to
+concurrent requests. It is passed as the first argument to
+fulfillRandomness.
+<a name="VORConsumerBase-_increaseVorCoordinatorAllowance-uint256-"></a>
+### Function `_increaseVorCoordinatorAllowance(uint256 _amount) internal  -> bool`
+No description
+<a name="VORConsumerBase-_withdrawEth-address-uint256-"></a>
+### Function `_withdrawEth(address _to, uint256 _amount) internal  -> bool success`
+NOTE: this functions should be wrapped around a, for example,
+Ownable function such that only the contract's owner can call it.
+
+
+#### Parameters:
+- `_to`: address to send the eth to
+
+- `_amount`: uint256 amount to withdraw
+<a name="VORConsumerBase-_withdrawXFUND-address-uint256-"></a>
+### Function `_withdrawXFUND(address _to, uint256 _amount) internal `
+NOTE: this functions should be wrapped around a, for example,
+Ownable function such that only the contract's owner can call it.
+
+
+#### Parameters:
+- `_to`: the address to withdraw xFUND to
+
+- `_amount`: the amount of xFUND to withdraw
 <a name="VORConsumerBase-constructor-address-address-"></a>
-### Function `constructor(address _vorCoordinator, address _xfund)`
+### Function `constructor(address _vorCoordinator, address _xfund) public `
 No description
 #### Parameters:
 - `_vorCoordinator`: address of VORCoordinator contract
 
 - `_xfund`: address of xFUND token contract
 <a name="VORConsumerBase-rawFulfillRandomness-bytes32-uint256-"></a>
-### Function `rawFulfillRandomness(bytes32 requestId, uint256 randomness)`
+### Function `rawFulfillRandomness(bytes32 requestId, uint256 randomness) external `
 No description
 <a name="VORConsumerBase-receive--"></a>
-### Function `receive()`
+### Function `receive() external `
 No description
 
 

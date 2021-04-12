@@ -19,9 +19,14 @@ module.exports = {
             {
                 title: "Introduction",
                 path: "/"
-            },{
+            },
+            {
                 title: "Contract Addresses",
                 path: "/contracts"
+            },
+            {
+                title: "VOR Providers",
+                path: "/providers"
             },
             {
                 title: "Guides",
@@ -40,15 +45,15 @@ module.exports = {
                     "/demos/nft_demo",
                 ]
             },
-            // {
-            //     title: "Contract Docs",
-            //     children: [
-            //         "/api/VOR",
-            //         "/api/VORConsumerBase",
-            //         "/api/VORCoordinator",
-            //         "/api/VORRequestIDBase",
-            //     ]
-            // },
+            {
+                title: "Contract Docs",
+                children: [
+                    "/api/VOR",
+                    "/api/VORConsumerBase",
+                    "/api/VORCoordinator",
+                    "/api/VORRequestIDBase",
+                ]
+            },
         ],
     }
 }
