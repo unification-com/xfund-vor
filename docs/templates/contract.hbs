@@ -4,9 +4,7 @@
 {{#if ownFunctions}}
 ## Functions:
 {{#ownFunctions}}
-{{#if (or (eq visibility "public") (eq visibility "external"))}}
-- [`{{name}}({{args}})`](#{{anchor}})
-{{/if}}
+- [`{{name}}({{args}}) {{visibility}}`](#{{anchor}})
 {{/ownFunctions}}
 {{/if}}
 
@@ -25,9 +23,8 @@
 {{/if}}
 
 {{#ownFunctions}}
-{{#if (or (eq visibility "public") (eq visibility "external"))}}
 <a name="{{anchor~}}"></a>
-### Function `{{name}}({{args}}){{#if outputs}} -> {{outputs}}{{/if}}`
+### Function `{{name}}({{args}}) {{visibility}} {{#if outputs}} -> {{outputs}}{{/if}}`
 {{#if natspec.devdoc}}{{natspec.devdoc}}{{else}}No description{{/if}}
 {{#if natspec.params}}
 #### Parameters:
@@ -40,7 +37,6 @@
 {{#natspec.returns}}
 - {{param}} {{description}}
 {{/natspec.returns}}
-{{/if}}
 {{/if}}
 {{/ownFunctions}}
 

@@ -10,7 +10,7 @@
     "prepublishOnly": "truffle compile",
     "docs:api:clean": "rimraf docs/api",
     "docs:api:postclean": "rimraf docs/api/Migrations.md && rimraf docs/api/interfaces",
-    "docs:api:build": "yarn run docs:api:clean && solidity-docgen -t ./docs/templates -o ./docs/api -e contracts/mocks && yarn run docs:api:postclean",
+    "docs:api:build": "yarn run docs:api:clean && solidity-docgen -t ./docs/templates -o ./docs/api -e contracts/mocks,contracts/examples && yarn run docs:api:postclean",
     "docs:compile": "rimraf docs/.vuepress/dist && yarn run docs:api:build && vuepress build docs",
     "docs:dev": "vuepress dev docs"
   },

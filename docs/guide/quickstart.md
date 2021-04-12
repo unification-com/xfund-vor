@@ -1,12 +1,13 @@
 # Quickstart
 
-An example implementation can be found in https://github.com/unification-com/xfund-vor/blob/master/contracts/examples/VORD20.sol
+Example implementations can be found at 
+[https://github.com/unification-com/vor-demos](https://github.com/unification-com/vor-demos)
 
 ## Integration
 
-In order to request randomness,you will need to import the `VORCoordinator.sol` smart contract
+In order to request randomness,you will need to import the `VORConsumerBase.sol` smart contract
 and set up some simple functions within your smart contract. It is advisable to also implement
-OpenZeppelin's `Ownable` functionality to secure some of the required functions:
+OpenZeppelin's `Ownable` functionality to secure functions:
 
 1. Add the packages to your project:
 
@@ -23,7 +24,7 @@ import "@unification-com/xfund-vor/contracts/VORConsumerBase.sol";
 3. Extend your contract, adding `is VORConsumerBase`:
 
 ```solidity
-contract MockConsumer is VORConsumerBase {
+contract MyRandomNumberContract is VORConsumerBase {
 ```
 
 4. Ensure your `constructor` function has at least two parameters to accept the `VORCoordinator` 
@@ -53,8 +54,10 @@ returns (bytes32 requestId) {
 
 ```solidity
 function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
+    // do something with the received number
     uint256 randVal = randomness.mod(999).add(1);
-    emit RandomnessReceived(requestId, randVal);
+    // then for example, emit an event
+    emit RandomnessReceived(requestId, randomness);
 }
 ```
 
@@ -63,9 +66,9 @@ You should now be ready to compile and deploy your smart contract with your pref
 
 ## Initialisation
 
-Once integrated, compiled and deployed, you will need to send some transactions to the
-Ethereum blockchain in order to initialise the fee payment and data acquisition environment
-This involves:
+Assuming the most basic implementation outlined above, once integrated, compiled and deployed, 
+you will need to send some transactions to the Ethereum blockchain in order to initialise the fee 
+payment and data acquisition environment. This involves:
 
 1) Increasing the `xFUND` token allowance on the `VORCoordinator` smart contract, in order for the `VORCoordinator`
    to accept and pay xFUND fees to VOR providers. This need only be run once, if the initial
@@ -83,3 +86,14 @@ smart contract.
 ## Requesting Randomness
 
 Once the environment has been initialised, you will be able to request randomness
+
+Requesting a random number is a simple case of calling your `requestRandomness` function
+and passing the relevant data - i.e. a seed (can be any number), the key hash of the provider
+(supplied by them), for example see [Contracts](../contracts.md), and the required fee amount
+to pay for the request.
+
+The selected VOR Oracle (defied by the key hash you send) will see the request, generate a random
+number and submit it via the `VORCoordinator` to your defined `fulfillRandomness` function. Once
+received, you can do whatever you need with the number.
+
+For a full implementation run through, see our [implementation guide](./implementation.md).

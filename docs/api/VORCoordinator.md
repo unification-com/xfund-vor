@@ -1,18 +1,21 @@
-# with off-chain responses
+# VORCoordinator
 
+Coordinates on-chain verifiable-randomness requests
 
 ## Functions:
-- [`constructor(address _xfund, address _blockHashStore)`](#VORCoordinator-constructor-address-address-)
-- [`getProviderAddress(bytes32 _keyHash)`](#VORCoordinator-getProviderAddress-bytes32-)
-- [`getProviderFee(bytes32 _keyHash)`](#VORCoordinator-getProviderFee-bytes32-)
-- [`getProviderGranularFee(bytes32 _keyHash, address _consumer)`](#VORCoordinator-getProviderGranularFee-bytes32-address-)
-- [`registerProvingKey(uint256 _fee, address payable _oracle, uint256[2] _publicProvingKey)`](#VORCoordinator-registerProvingKey-uint256-address-payable-uint256-2--)
-- [`changeFee(uint256[2] _publicProvingKey, uint256 _fee)`](#VORCoordinator-changeFee-uint256-2--uint256-)
-- [`changeGranularFee(uint256[2] _publicProvingKey, uint256 _fee, address _consumer)`](#VORCoordinator-changeGranularFee-uint256-2--uint256-address-)
-- [`withdraw(address _recipient, uint256 _amount)`](#VORCoordinator-withdraw-address-uint256-)
-- [`randomnessRequest(bytes32 _keyHash, uint256 _consumerSeed, uint256 _feePaid)`](#VORCoordinator-randomnessRequest-bytes32-uint256-uint256-)
-- [`hashOfKey(uint256[2] _publicKey)`](#VORCoordinator-hashOfKey-uint256-2--)
-- [`fulfillRandomnessRequest(bytes _proof)`](#VORCoordinator-fulfillRandomnessRequest-bytes-)
+- [`constructor(address _xfund, address _blockHashStore) public`](#VORCoordinator-constructor-address-address-)
+- [`getProviderAddress(bytes32 _keyHash) external`](#VORCoordinator-getProviderAddress-bytes32-)
+- [`getProviderFee(bytes32 _keyHash) external`](#VORCoordinator-getProviderFee-bytes32-)
+- [`getProviderGranularFee(bytes32 _keyHash, address _consumer) external`](#VORCoordinator-getProviderGranularFee-bytes32-address-)
+- [`registerProvingKey(uint256 _fee, address payable _oracle, uint256[2] _publicProvingKey) external`](#VORCoordinator-registerProvingKey-uint256-address-payable-uint256-2--)
+- [`changeFee(uint256[2] _publicProvingKey, uint256 _fee) external`](#VORCoordinator-changeFee-uint256-2--uint256-)
+- [`changeGranularFee(uint256[2] _publicProvingKey, uint256 _fee, address _consumer) external`](#VORCoordinator-changeGranularFee-uint256-2--uint256-address-)
+- [`withdraw(address _recipient, uint256 _amount) external`](#VORCoordinator-withdraw-address-uint256-)
+- [`randomnessRequest(bytes32 _keyHash, uint256 _consumerSeed, uint256 _feePaid) external`](#VORCoordinator-randomnessRequest-bytes32-uint256-uint256-)
+- [`hashOfKey(uint256[2] _publicKey) public`](#VORCoordinator-hashOfKey-uint256-2--)
+- [`fulfillRandomnessRequest(bytes _proof) public`](#VORCoordinator-fulfillRandomnessRequest-bytes-)
+- [`callBackWithRandomness(bytes32 requestId, uint256 randomness, address consumerContract) internal`](#VORCoordinator-callBackWithRandomness-bytes32-uint256-address-)
+- [`getRandomnessFromProof(bytes _proof) internal`](#VORCoordinator-getRandomnessFromProof-bytes-)
 
 ## Events:
 - [`RandomnessRequest(bytes32 keyHash, uint256 seed, address sender, uint256 fee, bytes32 requestID)`](#VORCoordinator-RandomnessRequest-bytes32-uint256-address-uint256-bytes32-)
@@ -26,22 +29,22 @@
 - [`hasAvailableFunds(uint256 _amount)`](#VORCoordinator-hasAvailableFunds-uint256-)
 
 <a name="VORCoordinator-constructor-address-address-"></a>
-### Function `constructor(address _xfund, address _blockHashStore)`
+### Function `constructor(address _xfund, address _blockHashStore) public `
 No description
 <a name="VORCoordinator-getProviderAddress-bytes32-"></a>
-### Function `getProviderAddress(bytes32 _keyHash) -> address`
+### Function `getProviderAddress(bytes32 _keyHash) external  -> address`
 getProviderAddress - get provider address
 
 <a name="VORCoordinator-getProviderFee-bytes32-"></a>
-### Function `getProviderFee(bytes32 _keyHash) -> uint96`
+### Function `getProviderFee(bytes32 _keyHash) external  -> uint96`
 getProviderFee - get provider's base fee
 
 <a name="VORCoordinator-getProviderGranularFee-bytes32-address-"></a>
-### Function `getProviderGranularFee(bytes32 _keyHash, address _consumer) -> uint96`
+### Function `getProviderGranularFee(bytes32 _keyHash, address _consumer) external  -> uint96`
 getProviderGranularFee - get provider's base fee
 
 <a name="VORCoordinator-registerProvingKey-uint256-address-payable-uint256-2--"></a>
-### Function `registerProvingKey(uint256 _fee, address payable _oracle, uint256[2] _publicProvingKey)`
+### Function `registerProvingKey(uint256 _fee, address payable _oracle, uint256[2] _publicProvingKey) external `
 No description
 #### Parameters:
 - `_fee`: minimum xFUND payment required to serve randomness
@@ -50,21 +53,21 @@ No description
 
 - `_publicProvingKey`: public key used to prove randomness
 <a name="VORCoordinator-changeFee-uint256-2--uint256-"></a>
-### Function `changeFee(uint256[2] _publicProvingKey, uint256 _fee)`
+### Function `changeFee(uint256[2] _publicProvingKey, uint256 _fee) external `
 No description
 #### Parameters:
 - `_publicProvingKey`: public key used to prove randomness
 
 - `_fee`: minimum xFUND payment required to serve randomness
 <a name="VORCoordinator-changeGranularFee-uint256-2--uint256-address-"></a>
-### Function `changeGranularFee(uint256[2] _publicProvingKey, uint256 _fee, address _consumer)`
+### Function `changeGranularFee(uint256[2] _publicProvingKey, uint256 _fee, address _consumer) external `
 No description
 #### Parameters:
 - `_publicProvingKey`: public key used to prove randomness
 
 - `_fee`: minimum xFUND payment required to serve randomness
 <a name="VORCoordinator-withdraw-address-uint256-"></a>
-### Function `withdraw(address _recipient, uint256 _amount)`
+### Function `withdraw(address _recipient, uint256 _amount) external `
 Allows the oracle operator to withdraw their xFUND
 
 #### Parameters:
@@ -72,7 +75,7 @@ Allows the oracle operator to withdraw their xFUND
 
 - `_amount`: is the amount of xFUND transferred from the Coordinator contract
 <a name="VORCoordinator-randomnessRequest-bytes32-uint256-uint256-"></a>
-### Function `randomnessRequest(bytes32 _keyHash, uint256 _consumerSeed, uint256 _feePaid)`
+### Function `randomnessRequest(bytes32 _keyHash, uint256 _consumerSeed, uint256 _feePaid) external `
 _consumerSeed is mixed with key hash, sender address and nonce to
 obtain preSeed, which is passed to VOR oracle, which mixes it with the
 hash of the block containing this request, to compute the final seed.
@@ -88,15 +91,21 @@ preSeed and keyHash.
 
 
 <a name="VORCoordinator-hashOfKey-uint256-2--"></a>
-### Function `hashOfKey(uint256[2] _publicKey) -> bytes32`
+### Function `hashOfKey(uint256[2] _publicKey) public  -> bytes32`
 No description
 #### Parameters:
 - `_publicKey`: the key to return the address for
 <a name="VORCoordinator-fulfillRandomnessRequest-bytes-"></a>
-### Function `fulfillRandomnessRequest(bytes _proof)`
+### Function `fulfillRandomnessRequest(bytes _proof) public `
 No description
 #### Parameters:
 - `_proof`: the proof of randomness. Actual random output built from this
+<a name="VORCoordinator-callBackWithRandomness-bytes32-uint256-address-"></a>
+### Function `callBackWithRandomness(bytes32 requestId, uint256 randomness, address consumerContract) internal `
+No description
+<a name="VORCoordinator-getRandomnessFromProof-bytes-"></a>
+### Function `getRandomnessFromProof(bytes _proof) internal  -> bytes32 currentKeyHash, struct VORCoordinator.Callback callback, bytes32 requestId, uint256 randomness`
+No description
 
 <a name="VORCoordinator-RandomnessRequest-bytes32-uint256-address-uint256-bytes32-"></a>
 ### Event `RandomnessRequest(bytes32 keyHash, uint256 seed, address sender, uint256 fee, bytes32 requestID)`
