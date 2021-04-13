@@ -13,9 +13,17 @@ in your smart contract.
 
 See [Contract Addresses](./contracts.md).
 
+#### VOR Providers
+
+See [Providers](./providers.md).
+
 #### Guides
 
 1. [Quickstart](./guide/quickstart.md) - a quick introduction to getting set up
+2. [Full implementation example](./guide/implementation.md)
+3. [Interaction with the DnD example](./guide/interaction.md)
+4. [Running a VOR Provider Oracle](./guide/oracle.md)
+5. [Advanced topics](./guide/advanced.md)
 
 #### Demos
 
