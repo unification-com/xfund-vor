@@ -1,16 +1,19 @@
 ---
-name: Smart Contract Bug Report
-about: Report an issue with smart contracts.
-title: '[SC] <replace with report title>'
-labels: 'Smart Contracts'
+name: Provider Oracle Bug Report
+about: Report an issue with the provider oracle software.
+title: '[ORACLE] <replace with report title>'
+labels: 'Oracle'
 assignees: ''
 ---
 
 **Overview**  
 [describe the issue you are experiencing]
 
+**Version**  
+[output from `oracle -v`]
+
 **Information**  
-[include information such as the specific contact.sol files, function/method names, code line numbers, contract addresses, Tx hashes and respective links to etherscan etc.]
+[include information such as the specific go files, function/method names, code line numbers, contract addresses, Tx hashes and respective links to etherscan etc.]
 
 **Expected Result**  
 [what should happen]
