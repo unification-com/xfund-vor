@@ -115,8 +115,22 @@ func (d *VORCoordinatorListener) Request() error {
 		fmt.Println("Log Block Number: ", vLog.BlockNumber)
 		fmt.Println("Log Index: ", vLog.Index)
 
-		txRec, _ := d.client.TransactionReceipt(context.Background(), vLog.TxHash)
-		tx, _, _ := d.client.TransactionByHash(context.Background(), vLog.TxHash)
+		gasPrice := uint64(0)
+		gasUsed := uint64(0)
+
+		txRec, err := d.client.TransactionReceipt(context.Background(), vLog.TxHash)
+		if err == nil {
+			// todo - need a thread to clean up and gather any data when Tx query fails
+			fmt.Println("TransactionReceipt error: ", err)
+			gasUsed = txRec.GasUsed
+		}
+
+		tx, _, err := d.client.TransactionByHash(context.Background(), vLog.TxHash)
+		if err == nil {
+			// todo - need a thread to clean up and gather any data when Tx query fails
+			fmt.Println("TransactionByHash error: ", err)
+			gasPrice = tx.GasPrice().Uint64()
+		}
 
 		if index == len(logs)-1 {
 			err = d.SetLastBlockNumber(vLog.BlockNumber)
@@ -157,8 +171,8 @@ func (d *VORCoordinatorListener) Request() error {
 					vLog.BlockNumber,
 					vLog.TxHash.Hex(),
 					status,
-					txRec.GasUsed,
-					tx.GasPrice().Uint64(),
+					gasUsed,
+					gasPrice,
 					)
 			} else {
 				fmt.Println("Looks like it's addressed not to me =(")
@@ -177,9 +191,9 @@ func (d *VORCoordinatorListener) Request() error {
 				common.Bytes2Hex(event.RequestId[:]),
 				vLog.TxHash.Hex(),
 				"success",
-				txRec.GasUsed,
+				gasUsed,
 				vLog.BlockNumber,
-				tx.GasPrice().Uint64(),
+				gasPrice,
 				event.Output.String(),
 				)
 			if err != nil {
