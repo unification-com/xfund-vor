@@ -31,7 +31,7 @@ contract MyRandomNumberContract is VORConsumerBase {
    and `xFUND` smart contract addresses, and pass them to the `ConsumerBase`:
 
 ```solidity
-constructor(address _vorCoordinator, address _xfund)
+    constructor(address _vorCoordinator, address _xfund)
     public VORConsumerBase(_vorCoordinator, _xfund) {
         // other stuff...
     }
