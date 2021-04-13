@@ -1,4 +1,4 @@
-# Implementation
+# Full implementation example
 
 In this guide, we'll run through a more detailed example and show you how to
 implement a simplified DnD D20 for fighting monsters and calculating hits.
