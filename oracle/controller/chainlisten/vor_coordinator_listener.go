@@ -121,15 +121,17 @@ func (d *VORCoordinatorListener) Request() error {
 		txRec, err := d.client.TransactionReceipt(context.Background(), vLog.TxHash)
 		if err == nil {
 			// todo - need a thread to clean up and gather any data when Tx query fails
-			fmt.Println("TransactionReceipt error: ", err)
 			gasUsed = txRec.GasUsed
+		} else {
+			fmt.Println("TransactionReceipt error: ", err)
 		}
 
 		tx, _, err := d.client.TransactionByHash(context.Background(), vLog.TxHash)
 		if err == nil {
 			// todo - need a thread to clean up and gather any data when Tx query fails
-			fmt.Println("TransactionByHash error: ", err)
 			gasPrice = tx.GasPrice().Uint64()
+		} else {
+			fmt.Println("TransactionByHash error: ", err)
 		}
 
 		if index == len(logs)-1 {
