@@ -110,6 +110,9 @@ func (d *VORCoordinatorListener) Request() error {
 
 	fmt.Println("logs: ", logs)
 
+	// Todo - check DB for request status
+	// Todo - get fromBlock based on request status
+
 	for index, vLog := range logs {
 		fmt.Println("----------------------------------------")
 		fmt.Println("Log Block Number: ", vLog.BlockNumber)
