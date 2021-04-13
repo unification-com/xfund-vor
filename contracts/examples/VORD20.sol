@@ -96,7 +96,7 @@ contract VORD20 is Ownable, VORConsumerBase {
      * Allows contract owner to withdraw any xFUND currently held by this contract
      */
     function withdrawToken(address to, uint256 value) external onlyOwner {
-        _withdrawXFUND(to, value);
+        require(xFUND.transfer(to, value), "Not enough xFUND");
     }
 
     /**

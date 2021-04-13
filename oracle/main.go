@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"net"
 	"oracle/config"
+	"oracle/version"
 	"os"
 	"os/signal"
 	"syscall"
@@ -25,6 +26,7 @@ var options struct {
 	// Example of a required flag
 	Config   string `short:"c" long:"config" description:"Config path" required:"false" default:"./config.json"`
 	Password string `short:"k" long:"key" description:"Decrypt key" required:"false"`
+	Version bool `short:"v" long:"version" description:"Show version information and exit" required:"false"`
 }
 
 var parser = flags.NewParser(&options, flags.Default)
@@ -34,6 +36,13 @@ func main() {
 
 	if _, err := parser.Parse(); err != nil {
 		panic(err)
+	}
+
+	// show version info and exit
+	if options.Version {
+		vers := version.NewInfo()
+		fmt.Println(vers.String())
+		return
 	}
 
 	c := make(chan os.Signal)

@@ -35,6 +35,7 @@ module.exports = {
                     "/guide/quickstart",
                     "/guide/implementation",
                     "/guide/interaction",
+                    "/guide/advanced",
                     "/guide/oracle",
                 ]
             },

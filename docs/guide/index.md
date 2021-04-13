@@ -2,6 +2,7 @@
 
 For a quick overview, see [quickstart](./quickstart.md).
 
-1. [Implementation](./implementation.md)
-2. [Interaction](./interaction.md)
-3. [Running an Oracle](./oracle.md)
+1. [Full implementation example](./implementation.md)
+2. [Interaction with the DnD example](./interaction.md)
+3. [Running a VOR Provider Oracle](./oracle.md)
+4. [Advanced topics](./advanced.md)

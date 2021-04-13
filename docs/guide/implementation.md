@@ -37,6 +37,7 @@ Create `contracts/DnD.sol`. All future edits will be in this file
 ```solidity
 // SPDX-License-Identifier: MIT
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -110,10 +111,18 @@ We'll need a couple of simple contract variables to keep track of our monsters:
         string name;
         uint256 ac;
     }
+
+    struct Result {
+        uint256 roll;
+        uint256 modified;
+        string result;
+        bool isRolling;
+    }
 ```
 
 Nothing complex here - each monster added will be assgined an incremental
 ID `currentMonsterId`, and have some simple stats associated with it.
+`Result` will be used to store that last result for a player/monster.
 
 ### Mappings
 
@@ -126,6 +135,8 @@ ID `currentMonsterId`, and have some simple stats associated with it.
     mapping(bytes32 => uint256) public requestIdToMonsterId;
     // map request IDs to player addresses, to retrieve STR modifiers
     mapping(bytes32 => address) public requestIdToAddress;
+    // store last [player][monster] results
+    mapping(address => mapping(uint256 => Result)) lastResult;
 ```
 
 - `monsters` will be used to store our contracts monsters and their stats
@@ -134,6 +145,7 @@ ID `currentMonsterId`, and have some simple stats associated with it.
 - `requestIdToMonsterId` will temporarily store data on which request relates
   to which monster while the roll is in progress
 - `requestIdToAddress` will similarly track which user rolled.
+- `lastResult` will store the last roll and result for a player/monster
 
 ### Events
 
@@ -149,7 +161,7 @@ the functions we'll implement next.
 
 ## Monster & Player related functions
 
-We'll add a couple of non-VOR functions first, to support the contract 
+We'll add few non-VOR functions first, to support the contract 
 owner adding monsters, and players editing their stats. 
 
 ::: tip
@@ -192,6 +204,27 @@ call, and the result will be stored with the `msg.sender`.
     }
 ```
 
+### getLastResult
+
+This function allows queries to the contract to retrieve the last roll
+result for a player/monster combo
+
+```solidity
+    function getLastResult(address _player, uint256 _monsterId) external view returns (Result memory) {
+        return lastResult[_player][_monsterId];
+    }
+```
+
+### unstickRoll
+
+Because sometimes the dice rolls under the table...
+
+```solidity
+    function unstickRoll(address _player, uint256 _monsterId) external onlyOwner {
+        lastResult[_player][_monsterId].isRolling = false;
+    }
+```
+
 ## Implementing VOR for Randomness
 
 Now we have some support functions, we can implement the actual randomness
@@ -217,27 +250,32 @@ returned value.
 ```solidity
     function rollForHit(uint256 _monsterId, uint256 _seed, bytes32 _keyHash, uint256 _fee) external returns (bytes32 requestId) {
         require(monsters[_monsterId].ac > 0, "monster does not exist");
+        require(!lastResult[msg.sender][_monsterId].isRolling, "roll currently in progress");
         xFUND.transferFrom(msg.sender, address(this), _fee);
         requestId = requestRandomness(_keyHash, _fee, _seed);
         emit HittingMonster(_monsterId, requestId);
         requestIdToAddress[requestId] = msg.sender;
         requestIdToMonsterId[requestId] = _monsterId;
+        lastResult[msg.sender][_monsterId].isRolling = true;
     }
 ```
 
 Prior to calling `requestRandomness`, we're just ensuring the monster
-is in the contract's database. The next line transfers the required fee
-from the player calling the function to this DnD contract. The VORCoordinator
-then transfers that fee from the DnD contract to itself for later forwarding 
-to the VOR Provider Oracle.
+is in the contract's database, and that the player/monster combo does 
+not currently have a roll in progress. 
+
+The next line transfers the required fee from the player calling the 
+function to this DnD contract. The VORCoordinator then transfers
+that fee from the DnD contract to itself for later forwarding to the 
+VOR Provider Oracle.
 
 ::: tip
 This is just one method for transferring fees to the VORCoordinator. 
 Another is to omit `xFUND.transferFrom` from your request implementation,
 and simply keep the contract topped up with xFUND (for example, if the
 contract owner is the only address that will ever call the request function). 
-In this case, it would also be advisable to implement the 
-`VORConsumerBase._withdrawXFUND` helper function.
+In this case, it would also be advisable to implement a function to withdraw
+xFUND from your contract.
 
 However, since we want each player to pay their own fees, we are 
 transferring as a part of the request process.
@@ -252,6 +290,9 @@ forwards the request to the `VORCoordinator`. It returns the generated
 
 When the request is fulfilled, the `requestId` is included in the
 fulfilment so that we can retrieve any data associated with the request.
+
+Finally, we set `isRolling` for the current player/monster combo to
+prevent any further requests on this combo until it's fulfilled
 
 ### fulfillRandomness
 
@@ -295,6 +336,12 @@ The internals of the function contain anything, however.
             }
         }
         emit HitResult(monsterId, _requestId, player, res, roll, modified);
+  
+        // store the results
+        lastResult[player][monsterId].result = res;
+        lastResult[player][monsterId].roll = roll;
+        lastResult[player][monsterId].modified = modified;
+        lastResult[player][monsterId].isRolling = false;
 
         // clean up
         delete requestIdToMonsterId[_requestId];
@@ -319,15 +366,15 @@ A roll of 1 is a Natural 1, and always misses (boo!).
 Otherwise, we check to see if the `roll + STR` modifier is enough to 
 hit the monster.
 
-The result is emitted in the `HitResult` event.
+The result is emitted in the `HitResult` event, and stored in `lastResult`.
 
-## Optional helper function(s)
+## Helper function(s)
 
-The final function we'll write is a helper function included in
-`VORConsumerBase`. Its role is to permit the `VORCoordinator` smart
-contract to spend xFUNDMOCK on behalf of this smart contract, since 
-the `VORCoordinator` needs to be able to transfer fees when each request
-for randomness is made.
+The final function we'll write uses the `_increaseVorCoordinatorAllowance` 
+helper function included in `VORConsumerBase`. Its role is to permit 
+the `VORCoordinator` smart contract to spend xFUNDMOCK on behalf of 
+our smart contract, since the `VORCoordinator` needs to be able to 
+transfer fees when each request for randomness is made.
 
 For this function, we'll also use the OpenZeppelin `Ownable` contract's
 `onlyOwner` modifier to ensure that only the contract owner can run this
@@ -343,14 +390,6 @@ This just calls `VORConsumerBase._increaseVorCoordinatorAllowance` function,
 which in turn informs the `xFUNDMOCK` smart contract that we're allowing
 `VORCoordinator` to spend `DnD`'s `xFUNDMOCK` tokens to pay for fees.
 
-There are also a handful of other helper functions in `VORConsumerBase`
-which can be extended/implemented:
-
-- `_withdrawEth` - allows withdrawal of Eth stuck in your contract, for example
-should anyone send it Eth by mistake.
-- `_withdrawXFUND` - allows withdrawal of xFUND from the contract, for
-example if you are "topping up" the contract with xFUND, and need to remove it
-
 ## Final contract
 
 ::: tip
@@ -363,10 +402,12 @@ The final contract should look something like this:
 ```solidity
 // SPDX-License-Identifier: MIT
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@unification-com/xfund-vor/contracts/VORConsumerBase.sol";
+//import "@unification-com/xfund-vor/contracts/VORConsumerBase.sol";
+import "../../xfund-vor/contracts/VORConsumerBase.sol";
 
 /** ****************************************************************************
  * @notice Extremely simple DnD roll D20 to Hit using VOR
@@ -388,6 +429,13 @@ contract DnD is Ownable, VORConsumerBase {
         uint256 ac;
     }
 
+    struct Result {
+        uint256 roll;
+        uint256 modified;
+        string result;
+        bool isRolling;
+    }
+
     // monsters held in the contract
     mapping (uint256 => Monster) public monsters;
     // player STR modifiers
@@ -396,6 +444,8 @@ contract DnD is Ownable, VORConsumerBase {
     mapping(bytes32 => uint256) public requestIdToMonsterId;
     // map request IDs to player addresses, to retrieve STR modifiers
     mapping(bytes32 => address) public requestIdToAddress;
+    // store last [player][monster] results
+    mapping(address => mapping(uint256 => Result)) lastResult;
 
     // Some useful events to track
     event AddMonster(uint256 monsterId, string name, uint256 ac);
@@ -452,6 +502,7 @@ contract DnD is Ownable, VORConsumerBase {
     */
     function rollForHit(uint256 _monsterId, uint256 _seed, bytes32 _keyHash, uint256 _fee) external returns (bytes32 requestId) {
         require(monsters[_monsterId].ac > 0, "monster does not exist");
+        require(!lastResult[msg.sender][_monsterId].isRolling, "roll currently in progress");
         // Note - caller must have increased xFUND allowance for this contract first.
         // Fee is transferred from msg.sender to this contract. The VORCoordinator.requestRandomness
         // function will then transfer from this contract to itself.
@@ -461,6 +512,7 @@ contract DnD is Ownable, VORConsumerBase {
         emit HittingMonster(_monsterId, requestId);
         requestIdToAddress[requestId] = msg.sender;
         requestIdToMonsterId[requestId] = _monsterId;
+        lastResult[msg.sender][_monsterId].isRolling = true;
     }
 
     /**
@@ -498,9 +550,35 @@ contract DnD is Ownable, VORConsumerBase {
         }
         emit HitResult(monsterId, _requestId, player, res, roll, modified);
 
+        // store the results
+        lastResult[player][monsterId].result = res;
+        lastResult[player][monsterId].roll = roll;
+        lastResult[player][monsterId].modified = modified;
+        lastResult[player][monsterId].isRolling = false;
+
         // clean up
         delete requestIdToMonsterId[_requestId];
         delete requestIdToAddress[_requestId];
+    }
+
+    /**
+     * @notice getLastResult returns the last result for a specified player/monsterId.
+     *
+     * @param _player address address of player
+     * @param _monsterId uint256 id of monster
+     */
+    function getLastResult(address _player, uint256 _monsterId) external view returns (Result memory) {
+        return lastResult[_player][_monsterId];
+    }
+
+    /**
+    * @notice unstickRoll allows contract owner to unstick a roll when a request is not fulfilled
+    *
+    * @param _player address address of player
+    * @param _monsterId uint256 id of monster
+    */
+    function unstickRoll(address _player, uint256 _monsterId) external onlyOwner {
+        lastResult[_player][_monsterId].isRolling = false;
     }
 
     /**

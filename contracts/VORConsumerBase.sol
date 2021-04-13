@@ -162,37 +162,19 @@ abstract contract VORConsumerBase is VORRequestIDBase {
         return makeRequestId(_keyHash, vORSeed);
     }
 
-    function _increaseVorCoordinatorAllowance(uint256 _amount) internal returns (bool) {
-        xFUND.increaseAllowance(vorCoordinator, _amount);
-        return true;
-    }
-
     /**
-    * @notice withdrawEth allows the caller to withdraw any ETH
-    * held by this contract and send it to the specified address.
-    * @dev NOTE: this functions should be wrapped around a, for example,
-    * Ownable function such that only the contract's owner can call it.
-    *
-    * @param _to address to send the eth to
-    * @param _amount uint256 amount to withdraw
-    */
-    function _withdrawEth(address _to, uint256 _amount) internal returns (bool success) {
-        require(address(this).balance >= _amount, "not enough balance");
-        Address.sendValue(payable(_to), _amount);
-        return true;
-    }
-
-    /**
-     * @notice Withdraw xFUND from this contract.
+     * @notice _increaseVorCoordinatorAllowance is a helper function to increase token allowance for
+     * the VORCoordinator
+     * Allows this contract to increase the xFUND allowance for the VORCoordinator contract
+     * enabling it to pay request fees on behalf of this contract.
+     * NOTE: it is advisable to wrap this around a function that uses, for example, OpenZeppelin's
+     * onlyOwner modifier
      *
-     * @dev NOTE: this functions should be wrapped around a, for example,
-     * Ownable function such that only the contract's owner can call it.
-     *
-     * @param _to the address to withdraw xFUND to
-     * @param _amount the amount of xFUND to withdraw
+     * @param _amount uint256 amount to increase allowance by
      */
-    function _withdrawXFUND(address _to, uint256 _amount) internal {
-        require(xFUND.transfer(_to, _amount), "Not enough xFUND");
+    function _increaseVorCoordinatorAllowance(uint256 _amount) internal returns (bool) {
+        require(xFUND.increaseAllowance(vorCoordinator, _amount), "failed to increase allowance");
+        return true;
     }
 
     IERC20_Ex internal immutable xFUND;
@@ -223,7 +205,4 @@ abstract contract VORConsumerBase is VORRequestIDBase {
         require(msg.sender == vorCoordinator, "Only VORCoordinator can fulfill");
         fulfillRandomness(requestId, randomness);
     }
-
-    // If the contract will pay for the provider's gas
-    receive() external payable {}
 }

@@ -94,11 +94,8 @@ until it calls responds to a request.
 - [`fulfillRandomness(bytes32 requestId, uint256 randomness) internal`](#VORConsumerBase-fulfillRandomness-bytes32-uint256-)
 - [`requestRandomness(bytes32 _keyHash, uint256 _fee, uint256 _seed) internal`](#VORConsumerBase-requestRandomness-bytes32-uint256-uint256-)
 - [`_increaseVorCoordinatorAllowance(uint256 _amount) internal`](#VORConsumerBase-_increaseVorCoordinatorAllowance-uint256-)
-- [`_withdrawEth(address _to, uint256 _amount) internal`](#VORConsumerBase-_withdrawEth-address-uint256-)
-- [`_withdrawXFUND(address _to, uint256 _amount) internal`](#VORConsumerBase-_withdrawXFUND-address-uint256-)
 - [`constructor(address _vorCoordinator, address _xfund) public`](#VORConsumerBase-constructor-address-address-)
 - [`rawFulfillRandomness(bytes32 requestId, uint256 randomness) external`](#VORConsumerBase-rawFulfillRandomness-bytes32-uint256-)
-- [`receive() external`](#VORConsumerBase-receive--)
 
 
 
@@ -147,26 +144,8 @@ fulfillRandomness.
 <a name="VORConsumerBase-_increaseVorCoordinatorAllowance-uint256-"></a>
 ### Function `_increaseVorCoordinatorAllowance(uint256 _amount) internal  -> bool`
 No description
-<a name="VORConsumerBase-_withdrawEth-address-uint256-"></a>
-### Function `_withdrawEth(address _to, uint256 _amount) internal  -> bool success`
-NOTE: this functions should be wrapped around a, for example,
-Ownable function such that only the contract's owner can call it.
-
-
 #### Parameters:
-- `_to`: address to send the eth to
-
-- `_amount`: uint256 amount to withdraw
-<a name="VORConsumerBase-_withdrawXFUND-address-uint256-"></a>
-### Function `_withdrawXFUND(address _to, uint256 _amount) internal `
-NOTE: this functions should be wrapped around a, for example,
-Ownable function such that only the contract's owner can call it.
-
-
-#### Parameters:
-- `_to`: the address to withdraw xFUND to
-
-- `_amount`: the amount of xFUND to withdraw
+- `_amount`: uint256 amount to increase allowance by
 <a name="VORConsumerBase-constructor-address-address-"></a>
 ### Function `constructor(address _vorCoordinator, address _xfund) public `
 No description
@@ -176,9 +155,6 @@ No description
 - `_xfund`: address of xFUND token contract
 <a name="VORConsumerBase-rawFulfillRandomness-bytes32-uint256-"></a>
 ### Function `rawFulfillRandomness(bytes32 requestId, uint256 randomness) external `
-No description
-<a name="VORConsumerBase-receive--"></a>
-### Function `receive() external `
 No description
 
 
