@@ -58,7 +58,7 @@ func start() (err error) {
 	if !keystore.Exists() {
 		fee, err = FirstRun(keystore)
 	}
-	err = store.RandomnessRequest.Migrate()
+	err = store.Db.Migrate()
 	if err != nil {
 		return err
 	}

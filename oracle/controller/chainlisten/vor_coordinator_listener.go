@@ -12,6 +12,7 @@ import (
 	"math/rand"
 	"oracle/config"
 	"oracle/contracts/vor_coordinator"
+	"oracle/models/database"
 	"oracle/service"
 	"oracle/tools/vor"
 	"oracle/utils"
@@ -43,16 +44,18 @@ func NewVORCoordinatorListener(contractHexAddress string, ethHostAddress string,
 	}
 
 	var lastBlock *big.Int
-	lastRequest, err := service.Store.RandomnessRequest.Last()
+	lastRequest, err := service.Store.Db.GetLast()
 	if blockNumber, _ := service.Store.Keystorage.GetBlockNumber(); blockNumber != 0 {
 		lastBlock = big.NewInt(blockNumber + 1)
-	} else if lastRequest != nil {
-		lastBlock = big.NewInt(int64(lastRequest.GetReqBlockNumber()))
+	} else if lastRequest.GetRequestBlockNumber() != 0 {
+		lastBlock = big.NewInt(int64(lastRequest.GetRequestBlockNumber()))
 	} else if config.Conf.FirstBlockNumber != 0 {
 		lastBlock = big.NewInt(int64(config.Conf.FirstBlockNumber + 1))
 	} else {
 		lastBlock = big.NewInt(1)
 	}
+
+	fmt.Println("start polling from block", lastBlock.Uint64())
 
 	keyHash, err := service.VORCoordinatorCaller.HashOfKey()
 	return &VORCoordinatorListener{
@@ -100,6 +103,11 @@ func (d *VORCoordinatorListener) Request() error {
 		return err
 	}
 
+	if len(logs) == 0 {
+		fmt.Println("no applicable logs from block", d.query.FromBlock, "to latest")
+		return nil
+	}
+
 	contractAbi, err := abi.JSON(strings.NewReader(string(vor_coordinator.VorCoordinatorABI)))
 	if err != nil {
 		return err
@@ -107,11 +115,6 @@ func (d *VORCoordinatorListener) Request() error {
 
 	logRandomnessRequestHash := crypto.Keccak256Hash([]byte("RandomnessRequest(bytes32,uint256,address,uint256,bytes32)"))
 	logRandomnessRequestFulfilledHash := crypto.Keccak256Hash([]byte("RandomnessRequestFulfilled(bytes32,uint256)"))
-
-	fmt.Println("logs: ", logs)
-
-	// Todo - check DB for request status
-	// Todo - get fromBlock based on request status
 
 	for index, vLog := range logs {
 		fmt.Println("----------------------------------------")
@@ -144,70 +147,88 @@ func (d *VORCoordinatorListener) Request() error {
 		case logRandomnessRequestHash.Hex():
 			fmt.Println("Log Name: RandomnessRequest")
 
-			//var randomnessRequestEvent contractModel.LogRandomnessRequest
 			event := vor_coordinator.VorCoordinatorRandomnessRequest{}
 			err := contractAbi.UnpackIntoInterface(&event, "RandomnessRequest", vLog.Data)
 			if err != nil {
+				fmt.Println(err)
 				return err
 			}
-			fmt.Println("event.KeyHash: ", event.KeyHash)
-			fmt.Println("d.keyHash: ", d.keyHash)
+
 			if event.KeyHash == d.keyHash {
 
-				fmt.Println("It's request to me =)")
+				fmt.Println("It's a request for me =)")
 
 				byteSeed, err := vor.BigToSeed(event.Seed)
 
-				var status string
-				tx, err := d.service.FulfillRandomness(byteSeed, vLog.BlockHash, int64(vLog.BlockNumber))
-				fmt.Println(tx)
 				if err != nil {
 					fmt.Println(err)
-					status = "failed"
-				} else {
-					status = "pending"
+					return err
 				}
-				seedHex, err := utils.Uint256ToHex(event.Seed)
-				err = d.service.Store.RandomnessRequest.InsertNewRequest(
-					common.Bytes2Hex(event.KeyHash[:]),
-					seedHex, event.Sender.Hex(),
-					common.Bytes2Hex(event.RequestID[:]),
-					vLog.BlockHash.Hex(),
-					vLog.BlockNumber,
-					vLog.TxHash.Hex(),
-					status,
-					gasUsed,
-					gasPrice,
+
+				// check status and if requests already exists
+				requestId := common.Bytes2Hex(event.RequestID[:])
+				reqDbRes, _ := d.service.Store.Db.FindByRequestId(requestId)
+
+				if reqDbRes.ID == 0 {
+					fmt.Println("new request")
+					seedHex, err := utils.Uint256ToHex(event.Seed)
+
+					err = d.service.Store.Db.InsertNewRequest(
+						common.Bytes2Hex(event.KeyHash[:]),
+						seedHex, event.Sender.Hex(),
+						requestId,
+						database.REQUEST_STATUS_INITIALISED,
+						vLog.BlockHash.Hex(),
+						vLog.BlockNumber,
+						vLog.TxHash.Hex(),
+						gasUsed,
+						gasPrice,
+						event.Fee.Uint64(),
 					)
+
+					tx, err := d.service.FulfillRandomness(byteSeed, vLog.BlockHash, int64(vLog.BlockNumber))
+
+					if err != nil {
+						fmt.Println("error sending fulfil Tx", err)
+						_ = d.service.Store.Db.UpdateRequestStatus(requestId, database.REQUEST_STATUS_FAILED, err.Error())
+					} else {
+						fmt.Println("fulfill tx sent for request", requestId, "in tx", tx.Hash().Hex())
+						_ = d.service.Store.Db.UpdateRequestStatus(requestId, database.REQUEST_STATUS_SENT, "")
+					}
+				} else {
+					fmt.Println("request already in db", "request id", reqDbRes.RequestId, "status", reqDbRes.GetStatusString())
+				}
 			} else {
-				fmt.Println("Looks like it's addressed not to me =(")
+				fmt.Println("Looks like it's not addressed to me =(")
 			}
 			continue
 		case logRandomnessRequestFulfilledHash.Hex():
 			fmt.Println("Log Name: RandomnessRequestFulfilled")
 			event := vor_coordinator.VorCoordinatorRandomnessRequestFulfilled{}
 			err := contractAbi.UnpackIntoInterface(&event, "RandomnessRequestFulfilled", vLog.Data)
-			fmt.Println(event)
+			requestId := common.Bytes2Hex(event.RequestId[:])
+			fmt.Println("confirmed request fulfilment for request", requestId)
 			if err != nil {
 				return err
 			}
 
-			err = d.service.Store.RandomnessRequest.UpdateFulfillment(
-				common.Bytes2Hex(event.RequestId[:]),
-				vLog.TxHash.Hex(),
-				"success",
-				gasUsed,
-				vLog.BlockNumber,
-				gasPrice,
+			err = d.service.Store.Db.UpdateFulfillment(
+				requestId,
+				database.REQUEST_STATUS_SUCCESS,
 				event.Output.String(),
+				vLog.BlockHash.Hex(),
+				vLog.BlockNumber,
+				vLog.TxHash.Hex(),
+				gasUsed,
+				gasPrice,
 				)
 			if err != nil {
+				fmt.Println(err)
 				return err
 			}
-
 			continue
 		default:
-			fmt.Println("vLog: ", vLog)
+			fmt.Println("event not applicable")
 			continue
 		}
 	}

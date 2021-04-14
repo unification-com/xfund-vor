@@ -31,7 +31,7 @@ func InitKeystore(configAddres string) (err error) {
 
 func InitStore() (err error) {
 	Store, err := store2.NewStore(context.Background(), Keystore)
-	err = Store.RandomnessRequest.Migrate()
+	err = Store.Db.Migrate()
 	return
 }
 

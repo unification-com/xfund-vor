@@ -41,7 +41,7 @@ func noKeyFound(keystorage *keystorage.Keystorage) (fee int64, err error) {
 		if err != nil {
 			return
 		}
-		fmt.Println("\nSuccessfully added a private key!\n")
+		fmt.Println("\nSuccessfully added a private key!")
 		fmt.Print("Your daemon api key:   ")
 		fmt.Println(token)
 		fmt.Println("\nUse this key to login via cli/HTTP (command: oracle-cli settings)")

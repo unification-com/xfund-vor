@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -25,13 +24,13 @@ func (d *Service) FulfillRandomness(seed vor.Seed, blockHash common.Hash, blockN
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(secretKey)
+
 	marshalledResponse, err := vor.GenerateProofResponse(secretKey, preSeed)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(marshalledResponse)
+
 	tx, err = d.VORCoordinatorCaller.FulfillRandomnessRequest(marshalledResponse[:])
-	fmt.Println(tx)
+
 	return
 }

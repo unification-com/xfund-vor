@@ -24,11 +24,20 @@ func TestRandomnessRequestStore_Insert(t *testing.T) {
 	if err != nil || thestore == nil {
 		t.Error(err)
 	}
-	err = thestore.RandomnessRequest.Migrate()
+	err = thestore.Db.Migrate()
 	if err != nil {
 		t.Error(err)
 	}
-	err = thestore.RandomnessRequest.InsertNewRequest("keyHashStore", "Seed", "Sender", "RequestId", "ReqBlockHash", 1, "RequestTxHash", "Status")
+	err = thestore.Db.InsertNewRequest(
+		"keyHashStore",
+		"Seed",
+		"Sender",
+		"RequestId",
+		1,
+		"blockHash",
+		1,
+		"txHash",
+		1, 1, 1)
 	debug.PrintStack()
 	if err != nil {
 		t.Error(err)
