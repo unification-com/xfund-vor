@@ -7,7 +7,6 @@ import (
 
 type Store struct {
 	Db                *db.DB
-	RandomnessRequest IRandomnessRequestStore
 	Keystorage        IKeystorageStore
 }
 
@@ -19,7 +18,6 @@ func NewStore(ctx context.Context, keystorage IKeystorageStore) (*Store, error) 
 	var store Store
 	if dbConn != nil {
 		store.Db = dbConn
-		store.RandomnessRequest = db.NewRandomnessRequestStore(dbConn)
 		store.Keystorage = keystorage
 	}
 	return &store, err

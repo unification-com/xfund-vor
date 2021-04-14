@@ -29,7 +29,6 @@ type Database struct {
 
 var Conf = &Config{
 	FirstBlockNumber: 1,
-	LogFile:          "oracle.log",
 	LimitGasPrice:    1000000,
 	Serve: &Serve{
 		Host: "0.0.0.0",
@@ -55,7 +54,6 @@ type Config struct {
 	FirstBlockNumber              uint64      `json:"first_block"`
 	CheckDuration                 int32       `json:"check_duration"`
 	Serve                         *Serve      `json:"serve"`
-	LogFile                       string      `json:"log_file"`
 	LogLevel                      string      `json:"log_level"`
 	LimitGasPrice                 int64       `json:"gas_price_limit"`
 	Keystorage                    *Keystorage `json:"keystorage"`

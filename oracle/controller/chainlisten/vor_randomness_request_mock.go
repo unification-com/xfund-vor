@@ -12,6 +12,7 @@ import (
 	"oracle/config"
 	"oracle/contracts/vor_coordinator"
 	"oracle/contracts/vor_randomness_request_mock"
+	"oracle/models/database"
 	"oracle/service"
 	"oracle/tools/vor"
 	"oracle/utils"
@@ -41,11 +42,11 @@ func NewVORRandomnessRequestMockListener(contractHexAddress string, ethHostAddre
 	}
 
 	var lastBlock *big.Int
-	lastRequest, err := service.Store.RandomnessRequest.Last()
+	lastRequest, err := service.Store.Db.GetLast()
 	if blockNumber, _ := service.Store.Keystorage.GetBlockNumber(); blockNumber != 0 {
 		lastBlock = big.NewInt(blockNumber)
-	} else if lastRequest != nil {
-		lastBlock = big.NewInt(int64(lastRequest.GetReqBlockNumber()))
+	} else if lastRequest.GetRequestBlockNumber() != 0 {
+		lastBlock = big.NewInt(int64(lastRequest.GetRequestBlockNumber()))
 	} else if config.Conf.FirstBlockNumber != 0 {
 		lastBlock = big.NewInt(int64(config.Conf.FirstBlockNumber))
 	} else {
@@ -98,8 +99,16 @@ func (d *VORRandomnessRequestMockListener) Request() error {
 		fmt.Println("Log Block Number: ", vLog.BlockNumber)
 		fmt.Println("Log Index: ", vLog.Index)
 
-		eventTxRec, _ := d.client.TransactionReceipt(context.Background(), vLog.TxHash)
-		eventTx, _, _ := d.client.TransactionByHash(context.Background(), vLog.TxHash)
+		gasPrice := uint64(0)
+		gasUsed := uint64(0)
+
+		txRec, err := d.client.TransactionReceipt(context.Background(), vLog.TxHash)
+		if err == nil {
+			// todo - need a thread to clean up and gather any data when Tx query fails
+			gasUsed = txRec.GasUsed
+		} else {
+			fmt.Println("TransactionReceipt error: ", err)
+		}
 
 		if index == len(logs)-1 {
 			err = d.SetLastBlockNumber(vLog.BlockNumber)
@@ -125,27 +134,28 @@ func (d *VORRandomnessRequestMockListener) Request() error {
 
 			byteSeed, err := vor.BigToSeed(event.Seed)
 
-			var status string
+			var status int
 			fulfilTx, err := d.service.FulfillRandomness(byteSeed, vLog.BlockHash, int64(vLog.BlockNumber))
 			fmt.Println(fulfilTx)
 			if err != nil {
-				status = "failed"
+				fmt.Println(err)
+				status = database.REQUEST_STATUS_FAILED
 			} else {
-				status = "success"
+				status = database.REQUEST_STATUS_SENT
 			}
 			seedHex, err := utils.Uint256ToHex(event.Seed)
-			err = d.service.Store.RandomnessRequest.InsertNewRequest(
+			err = d.service.Store.Db.InsertNewRequest(
 				common.Bytes2Hex(event.KeyHash[:]),
-				seedHex,
-				event.Sender.Hex(),
+				seedHex, event.Sender.Hex(),
 				common.Bytes2Hex(event.RequestID[:]),
+				status,
 				vLog.BlockHash.Hex(),
 				vLog.BlockNumber,
 				vLog.TxHash.Hex(),
-				status,
-				eventTxRec.GasUsed,
-				eventTx.GasPrice().Uint64(),
-				)
+				gasUsed,
+				gasPrice,
+				event.Fee.Uint64(),
+			)
 			continue
 		case logRandomnessRequestFulfilledHash.Hex():
 			fmt.Println("Log Name: RandomnessRequestFulfilled")
@@ -156,14 +166,15 @@ func (d *VORRandomnessRequestMockListener) Request() error {
 				return err
 			}
 
-			err = d.service.Store.RandomnessRequest.UpdateFulfillment(
+			err = d.service.Store.Db.UpdateFulfillment(
 				common.Bytes2Hex(event.RequestId[:]),
-				vLog.TxHash.Hex(),
-				"success",
-				eventTxRec.GasUsed,
-				vLog.BlockNumber,
-				eventTx.GasPrice().Uint64(),
+				database.REQUEST_STATUS_SUCCESS,
 				event.Output.String(),
+				vLog.BlockHash.Hex(),
+				vLog.BlockNumber,
+				vLog.TxHash.Hex(),
+				gasUsed,
+				gasPrice,
 			)
 			continue
 		default:

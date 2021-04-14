@@ -3,11 +3,11 @@ package db
 import (
 	"errors"
 	"fmt"
-
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"oracle/config"
+	"oracle/models/database"
 )
 
 type DB struct {
@@ -47,4 +47,9 @@ func NewPostgresDb() (*DB, error) {
 	}
 
 	return &DB{db}, nil
+}
+
+func (d DB) Migrate() (err error) {
+	err = d.AutoMigrate(&database.RandomnessRequest{})
+	return
 }

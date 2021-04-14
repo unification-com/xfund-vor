@@ -2,6 +2,7 @@ package chainlisten_test
 
 import (
 	"context"
+	"github.com/sirupsen/logrus"
 	"math/big"
 	"oracle/controller/chainlisten"
 	"oracle/service"
@@ -39,8 +40,8 @@ func Init(configAddres string) (err error) {
 	return err
 }
 
-func VORCoordinatorListenerTestValues() (string, string, *service.Service, context.Context) {
-	return Config.VORCoordinatorContractAddress, Config.EthHTTPHost, Service, context.Background()
+func VORCoordinatorListenerTestValues() (string, string, *service.Service, *logrus.Logger, context.Context) {
+	return Config.VORCoordinatorContractAddress, Config.EthHTTPHost, Service, logrus.New(), context.Background()
 }
 
 func TestVORCoordinatorListener_Request(t *testing.T) {
