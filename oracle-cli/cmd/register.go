@@ -45,7 +45,6 @@ func Register(cmd *cobra.Command, args []string) (err error) {
 	accountName, err := GetUsername()
 	privateKey, err := GetPrivateKey()
 	fee, err := GetFee()
-	paysGas, err := GetProviderPaysGas()
 	if err != nil {
 		fmt.Println("Sorry, there is a problem with data you entered =(")
 		err = Register(cmd, args)
@@ -55,7 +54,6 @@ func Register(cmd *cobra.Command, args []string) (err error) {
 		AccountName:     accountName,
 		PrivateKey:      privateKey,
 		Fee:             fee,
-		ProviderPaysGas: paysGas,
 	}
 	requestJSON, err := json.Marshal(requestStruct)
 	if err != nil {
@@ -116,20 +114,6 @@ func GetFee() (input int64, err error) {
 		fmt.Println("Please enter Fee.")
 		input, err = GetFee()
 	}
-	return
-}
-
-func GetProviderPaysGas() (input bool, err error) {
-	var rawInput string
-	fmt.Println("")
-	fmt.Print("Does provider pay gas? [true|false]: ")
-	_, err = fmt.Scanf("%s\n", &rawInput)
-	input, err = strconv.ParseBool(rawInput)
-	if err != nil {
-		fmt.Println("Incorrect provider pays gas parameter")
-		input, err = GetProviderPaysGas()
-	}
-
 	return
 }
 

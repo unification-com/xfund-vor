@@ -13,9 +13,4 @@ type OracleRegisterRequestModel struct {
 	AccountName     string `json:"account_name"`
 	PrivateKey      string `json:"private_key"`
 	Fee             int64  `json:"fee"`
-	ProviderPaysGas bool   `json:"provider_pays_gas"`
-}
-
-type OracleSetProviderPaysGasRequestModel struct {
-	ProviderPays bool `json:"provider_pays"`
 }
