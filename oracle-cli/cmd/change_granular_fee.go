@@ -16,33 +16,46 @@ limitations under the License.
 package cmd
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"github.com/spf13/cobra"
 	"io/ioutil"
 	"net/http"
+	"oraclecli/models"
 	"oraclecli/utils"
-
-	"github.com/spf13/cobra"
 )
 
-// aboutCmd represents the about command
-var aboutCmd = &cobra.Command{
-	Use:   "about",
-	Short: "List info about your oracle",
-	Long:  ``,
+// changefeeCmd represents the changefee command
+var changeGranularFeeCmd = &cobra.Command{
+	Use:   "changegranularfee",
+	Short: "Change Oracle granular fee",
+	Long: `Use this command to change a fee at a granular level for a selected consumer contract address
+`,
 	Run: func(cmd *cobra.Command, args []string) {
+		amount, err := GetFee()
+		consumer, err := GetConsumerContractAddress()
+		requestStruct := models.OracleChangeGranularFeeRequestModel{
+			Amount: amount,
+			Consumer: consumer,
+		}
+		requestJSON, err := json.Marshal(requestStruct)
+		if err != nil {
+			fmt.Println("Can't marshal request")
+			return
+		}
+		request := bytes.NewBuffer(requestJSON)
 
 		// Create a Bearer string by appending string access token
 		var bearer = "Bearer " + utils.Settings.Settings.GetOracleKey()
-		req, err := http.NewRequest("GET", utils.OracleAddress()+"/about", nil)
+		req, err := http.NewRequest("POST", fmt.Sprint(utils.OracleAddress(), "/changegranularfee"), request)
 		// add authorization header to the req
 		req.Header.Add("Authorization", bearer)
 		client := &http.Client{}
 		resp, err := client.Do(req)
 
 		if err != nil {
-			fmt.Println(`Sorry, something went wrong =(`)
-			fmt.Println(err)
-			return
+			fmt.Println("Something went wrong.")
 		}
 		defer resp.Body.Close()
 		body, err := ioutil.ReadAll(resp.Body)
@@ -51,15 +64,15 @@ var aboutCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(aboutCmd)
+	rootCmd.AddCommand(changeGranularFeeCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// aboutCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// changefeeCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// aboutCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// changefeeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

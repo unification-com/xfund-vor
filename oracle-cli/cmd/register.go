@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"oraclecli/models"
 	"oraclecli/utils"
+	"regexp"
 	"strconv"
 )
 
@@ -113,6 +114,26 @@ func GetFee() (input int64, err error) {
 	if input == 0 {
 		fmt.Println("Please enter Fee.")
 		input, err = GetFee()
+	}
+	return
+}
+
+
+func GetConsumerContractAddress() (input string, err error) {
+	fmt.Println("")
+	fmt.Print("Consumer Contract Address: ")
+	_, err = fmt.Scanf("%s\n", &input)
+
+	re := regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
+
+	if input == "" {
+		fmt.Println("Please enter Consumer Contract Address.")
+		input, err = GetConsumerContractAddress()
+	}
+
+	if !re.MatchString(input) {
+		fmt.Println("not an address")
+		input, err = GetConsumerContractAddress()
 	}
 	return
 }
