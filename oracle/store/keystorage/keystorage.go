@@ -43,8 +43,7 @@ func NewKeyStorage(log *logrus.Logger, filePath string) (*Keystorage, error) {
 				"package":  "keystorage",
 				"function": "NewKeyStorage",
 				"action":   "reading file",
-				"result":   err.Error(),
-			}).Error()
+			}).Error(err.Error())
 			return nil, err
 		}
 
@@ -54,8 +53,7 @@ func NewKeyStorage(log *logrus.Logger, filePath string) (*Keystorage, error) {
 				"package":  "keystorage",
 				"function": "NewKeyStorage",
 				"action":   "init KeyStore object",
-				"result":   err.Error(),
-			}).Error()
+			}).Error(err.Error())
 			return nil, err
 		}
 
@@ -65,8 +63,7 @@ func NewKeyStorage(log *logrus.Logger, filePath string) (*Keystorage, error) {
 				"package":  "keystorage",
 				"function": "NewKeyStorage",
 				"action":   "unmarshal json from file",
-				"result":   err.Error(),
-			}).Error()
+			}).Error(err.Error())
 		}
 	} else if os.IsNotExist(err) {
 		keystoreFile, err = os.Create(filePath)
@@ -77,8 +74,7 @@ func NewKeyStorage(log *logrus.Logger, filePath string) (*Keystorage, error) {
 				"package":  "keystorage",
 				"function": "NewKeyStorage",
 				"action":   "creating file",
-				"result":   err.Error(),
-			}).Error()
+			}).Error(err.Error())
 			return nil, err
 		}
 
