@@ -109,6 +109,7 @@ func start() (err error) {
 	e.POST("/withdraw", oracleController.Withdraw)
 	e.POST("/register", oracleController.Register)
 	e.POST("/changefee", oracleController.ChangeFee)
+	e.POST("/changegranularfee", oracleController.ChangeGranularFee)
 	e.POST("/stop", func(c echo.Context) error {
 		err = Stop()
 		return err

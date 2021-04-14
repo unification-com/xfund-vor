@@ -141,6 +141,11 @@ func (d *VORCoordinatorCaller) ChangeFee(fee *big.Int) (*types.Transaction, erro
 	return d.instance.ChangeFee(d.transactOpts, d.publicProvingKey, fee)
 }
 
+func (d *VORCoordinatorCaller) ChangeGranularFee(_consumer common.Address, fee *big.Int) (*types.Transaction, error) {
+	defer d.RenewTransactOpts()
+	return d.instance.ChangeGranularFee(d.transactOpts, d.publicProvingKey, fee, _consumer)
+}
+
 func (d *VORCoordinatorCaller) FulfillRandomnessRequest(proof []byte) (*types.Transaction, error) {
 	defer d.RenewTransactOpts()
 	return d.instance.FulfillRandomnessRequest(d.transactOpts, proof)

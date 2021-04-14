@@ -25,10 +25,9 @@ Port: %d
 Network: %d
 
 Account: %s
-Private Key: %s
 Public Key: %s
 KeyHash: %s
 Address: %s
 
-`, config.Conf.VORCoordinatorContractAddress, config.Conf.Serve.Host, config.Conf.Serve.Port, config.Conf.NetworkID, config.Conf.Keystorage.Account, d.Store.Keystorage.GetSelectedPrivateKey(), publicKey, common.BytesToHash([]byte(keyhash[:])), oracleAddress), nil
+`, config.Conf.VORCoordinatorContractAddress, config.Conf.Serve.Host, config.Conf.Serve.Port, config.Conf.NetworkID, config.Conf.Keystorage.Account, publicKey, common.BytesToHash([]byte(keyhash[:])), oracleAddress), nil
 }
