@@ -49,6 +49,7 @@ func main() {
 		DisableColors: true,
 		FullTimestamp: true,
 	})
+	log.SetOutput(os.Stdout)
 
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
