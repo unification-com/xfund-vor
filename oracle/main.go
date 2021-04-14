@@ -45,6 +45,11 @@ func main() {
 		return
 	}
 
+	log.SetFormatter(&logrus.TextFormatter{
+		DisableColors: true,
+		FullTimestamp: true,
+	})
+
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
@@ -52,9 +57,7 @@ func main() {
 		log.WithFields(logrus.Fields{
 			"package":  "main",
 			"function": "main",
-			"action":   "exit",
-			"result":   "exiting oracle daemon...",
-		}).Info()
+		}).Info("exiting oracle daemon...")
 		err = Stop()
 	}()
 
@@ -64,9 +67,7 @@ func main() {
 		log.WithFields(logrus.Fields{
 			"package":  "main",
 			"function": "main",
-			"action":   "open config file",
-			"result":   "can't read config file",
-		}).Error()
+		}).Error("can't read config file")
 
 		panic(err)
 	}
@@ -80,9 +81,7 @@ func main() {
 		log.WithFields(logrus.Fields{
 			"package":  "main",
 			"function": "main",
-			"action":   "open log file",
-			"result":   "no command specified",
-		}).Error()
+		}).Error("no command specified")
 		return
 	}
 

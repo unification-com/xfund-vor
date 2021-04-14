@@ -14,7 +14,6 @@ import (
 	"oracle/service"
 	store2 "oracle/store"
 	"oracle/store/keystorage"
-	"os"
 )
 
 var e = echo.New()
@@ -23,48 +22,56 @@ func start() (err error) {
 	var ctx = context.Background()
 	var fee int64
 
-	if config.Conf.LogFile != "" {
-		logFile, err := os.OpenFile(config.Conf.LogFile, os.O_WRONLY|os.O_CREATE, 0755)
-		if err != nil {
-			log.WithFields(logrus.Fields{
-				"package":  "main",
-				"function": "start",
-				"action":   "open log file",
-				"result":   "can't open log file",
-			}).Warning()
-		} else {
-			log.SetOutput(logFile)
-		}
-	} else {
-		log.WithFields(logrus.Fields{
-			"package":  "main",
-			"function": "start",
-			"action":   "open log file",
-			"result":   "log file is not specified",
-		}).Warning()
-	}
-
 	keystore, err := keystorage.NewKeyStorage(log, config.Conf.Keystorage.File)
 	if err != nil {
 		log.WithFields(logrus.Fields{
 			"package":  "main",
 			"function": "start",
 			"action":   "open keystorage",
-			"result":   "can't read keystorage, creating a new one...",
-		}).Warning()
+		}).Warning( "can't read keystorage, creating a new one...")
 	}
 
 	store, err := store2.NewStore(context.Background(), keystore)
+
+	if err != nil {
+		log.WithFields(logrus.Fields{
+			"package":  "main",
+			"function": "start",
+			"action":   "new store",
+		}).Error(err.Error())
+		return err
+	}
+
 	if !keystore.Exists() {
 		fee, err = FirstRun(keystore)
+		if err != nil {
+			log.WithFields(logrus.Fields{
+				"package":  "main",
+				"function": "start",
+				"action":   "first run",
+			}).Error(err.Error())
+			return err
+		}
 	}
+
 	err = store.Db.Migrate()
+
 	if err != nil {
+		log.WithFields(logrus.Fields{
+			"package":  "main",
+			"function": "start",
+			"action":   "migrate db",
+		}).Error(err.Error())
 		return err
 	}
 	if options.Password == "" || (keystore.CheckToken(options.Password) != nil) {
 		err = auth(keystore)
 		if err != nil {
+			log.WithFields(logrus.Fields{
+				"package":  "main",
+				"function": "start",
+				"action":   "check keystore token",
+			}).Error(err.Error())
 			return err
 		}
 	}
@@ -80,8 +87,7 @@ func start() (err error) {
 			"package":  "main",
 			"function": "start",
 			"action":   "init service",
-			"result":   err,
-		}).Error()
+		}).Error(err.Error())
 		return err
 	}
 	if !keystore.IsRegisteredByPrivate(keystore.KeyStore.PrivateKey) {
@@ -92,7 +98,7 @@ func start() (err error) {
 	}
 
 	oracleController, err := controller.NewOracle(ctx, log, oracleService)
-	oracleListener, err = chainlisten.NewVORCoordinatorListener(config.Conf.VORCoordinatorContractAddress, config.Conf.EthHTTPHost, oracleService, ctx)
+	oracleListener, err = chainlisten.NewVORCoordinatorListener(config.Conf.VORCoordinatorContractAddress, config.Conf.EthHTTPHost, oracleService, log, ctx)
 	go oracleListener.StartPoll()
 
 	// Middleware
