@@ -41,6 +41,7 @@ var aboutCmd = &cobra.Command{
 
 		if err != nil {
 			fmt.Println(`Sorry, something went wrong =(`)
+			fmt.Println(err)
 			return
 		}
 		defer resp.Body.Close()

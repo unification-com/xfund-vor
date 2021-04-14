@@ -26,16 +26,18 @@ import (
 	"oraclecli/utils"
 )
 
-// setproviderpaysgasCmd represents the setproviderpaysgas command
-var setproviderpaysgasCmd = &cobra.Command{
-	Use:   "setproviderpaysgas",
-	Short: "Set who pays gas",
-	Long: `A command to set who pays gas - true if provider pays gas
+// changefeeCmd represents the changefee command
+var changeGranularFeeCmd = &cobra.Command{
+	Use:   "changegranularfee",
+	Short: "Change Oracle granular fee",
+	Long: `Use this command to change a fee at a granular level for a selected consumer contract address
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		paysgas, err := GetProviderPaysGas()
-		requestStruct := models.OracleSetProviderPaysGasRequestModel{
-			ProviderPays: paysgas,
+		amount, err := GetFee()
+		consumer, err := GetConsumerContractAddress()
+		requestStruct := models.OracleChangeGranularFeeRequestModel{
+			Amount: amount,
+			Consumer: consumer,
 		}
 		requestJSON, err := json.Marshal(requestStruct)
 		if err != nil {
@@ -46,7 +48,7 @@ var setproviderpaysgasCmd = &cobra.Command{
 
 		// Create a Bearer string by appending string access token
 		var bearer = "Bearer " + utils.Settings.Settings.GetOracleKey()
-		req, err := http.NewRequest("POST", fmt.Sprint(utils.OracleAddress(), "/setproviderpaysgas"), request)
+		req, err := http.NewRequest("POST", fmt.Sprint(utils.OracleAddress(), "/changegranularfee"), request)
 		// add authorization header to the req
 		req.Header.Add("Authorization", bearer)
 		client := &http.Client{}
@@ -62,15 +64,15 @@ var setproviderpaysgasCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(setproviderpaysgasCmd)
+	rootCmd.AddCommand(changeGranularFeeCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// setproviderpaysgasCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// changefeeCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// setproviderpaysgasCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// changefeeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

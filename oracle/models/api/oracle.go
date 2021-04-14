@@ -14,3 +14,8 @@ type OracleRegisterRequestModel struct {
 type OracleChangeFeeRequestModel struct {
 	Amount int64 `json:"amount"`
 }
+
+type OracleChangeGranularFeeRequestModel struct {
+	Consumer string `json:"consumer"`
+	Amount   int64  `json:"amount"`
+}
