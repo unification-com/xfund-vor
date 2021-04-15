@@ -69,7 +69,7 @@ func start() (err error) {
 	if options.PasswordFile != "" {
 		decryptPassword = getPasswordFromFileOrFlag(options.PasswordFile)
 	}
- 
+
 	if decryptPassword == "" || (keystore.CheckToken(decryptPassword) != nil) {
 		err = auth(keystore)
 		if err != nil {
@@ -112,6 +112,7 @@ func start() (err error) {
 	e.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
 		return key == keystore.KeyStore.Token, nil
 	}))
+
 	e.POST("/withdraw", oracleController.Withdraw)
 	e.POST("/register", oracleController.Register)
 	e.POST("/changefee", oracleController.ChangeFee)
@@ -120,10 +121,12 @@ func start() (err error) {
 		err = Stop()
 		return err
 	})
+	e.POST("/queryfees", oracleController.QueryFees)
 	e.GET("/about", oracleController.About)
 	e.GET("/status", func(c echo.Context) error {
 		return c.String(http.StatusOK, "alive")
 	})
+	e.GET("/querywithdrawable", oracleController.QueryWithdrawableTokens)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", config.Conf.Serve.Host, config.Conf.Serve.Port)))
 

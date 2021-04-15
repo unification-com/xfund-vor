@@ -150,3 +150,18 @@ func (d *VORCoordinatorCaller) FulfillRandomnessRequest(proof []byte) (*types.Tr
 	defer d.RenewTransactOpts()
 	return d.instance.FulfillRandomnessRequest(d.transactOpts, proof)
 }
+
+func (d *VORCoordinatorCaller) QueryWithdrawableTokens() (*big.Int, error) {
+	defer d.RenewTransactOpts()
+	return d.instance.WithdrawableTokens(d.callOpts, common.HexToAddress(d.oracleAddress))
+}
+
+func (d *VORCoordinatorCaller) QueryFees(consumer string) (*big.Int, error) {
+	defer d.RenewTransactOpts()
+	keyHash, _ := d.HashOfKey()
+	if consumer == "" {
+		return d.instance.GetProviderFee(d.callOpts, keyHash)
+	} else {
+		return d.instance.GetProviderGranularFee(d.callOpts, keyHash, common.HexToAddress(consumer))
+	}
+}

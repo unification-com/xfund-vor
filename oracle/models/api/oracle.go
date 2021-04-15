@@ -19,3 +19,7 @@ type OracleChangeGranularFeeRequestModel struct {
 	Consumer string `json:"consumer"`
 	Amount   int64  `json:"amount"`
 }
+
+type OracleQueryFeesModel struct {
+	Consumer string `json:"consumer"`
+}
