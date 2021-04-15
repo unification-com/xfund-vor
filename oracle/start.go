@@ -64,7 +64,13 @@ func start() (err error) {
 		}).Error(err.Error())
 		return err
 	}
-	if options.Password == "" || (keystore.CheckToken(options.Password) != nil) {
+
+	decryptPassword := ""
+	if options.PasswordFile != "" {
+		decryptPassword = getPasswordFromFileOrFlag(options.PasswordFile)
+	}
+ 
+	if decryptPassword == "" || (keystore.CheckToken(decryptPassword) != nil) {
 		err = auth(keystore)
 		if err != nil {
 			log.WithFields(logrus.Fields{

@@ -23,10 +23,9 @@ var exit1 chan int = make(chan int)
 var stop1 = false
 
 var options struct {
-	// Example of a required flag
-	Config   string `short:"c" long:"config" description:"Config path" required:"false" default:"./config.json"`
-	Password string `short:"k" long:"key" description:"Decrypt key" required:"false"`
-	Version bool `short:"v" long:"version" description:"Show version information and exit" required:"false"`
+	Config       string `short:"c" long:"config" description:"Config path" required:"false" default:"./config.json"`
+	PasswordFile string `short:"k" long:"key" description:"Path to file containing decryption key, or the key itself" required:"false"`
+	Version      bool   `short:"v" long:"version" description:"Show version information and exit" required:"false"`
 }
 
 var parser = flags.NewParser(&options, flags.Default)
