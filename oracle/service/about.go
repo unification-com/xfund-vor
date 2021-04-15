@@ -19,15 +19,23 @@ func (d *Service) About() (response string, err error) {
 	keyhash, err := d.VORCoordinatorCaller.HashOfKey()
 
 	return fmt.Sprintf(`
-Contract address (VORCoordinator): %s
-Host: %s 
-Port: %d
-Network: %d
+VORCoordinator address: %s
+Host:                   %s 
+Port:                   %d
+Network:                %d
 
-Account: %s
-Public Key: %s
-KeyHash: %s
-Address: %s
+Account:                %s
+Public Key:             %s
+KeyHash:                %s
+Address:                %s
 
-`, config.Conf.VORCoordinatorContractAddress, config.Conf.Serve.Host, config.Conf.Serve.Port, config.Conf.NetworkID, config.Conf.Keystorage.Account, publicKey, common.BytesToHash([]byte(keyhash[:])), oracleAddress), nil
+`,
+config.Conf.VORCoordinatorContractAddress,
+config.Conf.Serve.Host,
+config.Conf.Serve.Port,
+config.Conf.NetworkID,
+config.Conf.Keystorage.Account,
+publicKey,
+common.BytesToHash([]byte(keyhash[:])),
+oracleAddress), nil
 }

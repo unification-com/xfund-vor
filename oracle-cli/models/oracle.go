@@ -19,3 +19,7 @@ type OracleRegisterRequestModel struct {
 	PrivateKey      string `json:"private_key"`
 	Fee             int64  `json:"fee"`
 }
+
+type OracleQueryFeesModel struct {
+	Consumer string `json:"consumer"`
+}
