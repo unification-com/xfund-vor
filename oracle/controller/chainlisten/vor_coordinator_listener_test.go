@@ -7,11 +7,13 @@ import (
 	"oracle/controller/chainlisten"
 	"oracle/service"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
-func InitCaller(configAddress string) (err error) {
-	Service, err = service.NewService(context.Background(), Store)
+func InitCaller() (err error) {
+	ctx := context.Background()
+	Service, err = service.NewServiceFromPassedConfig(ctx, TestStore, Config)
 	return err
 }
 
@@ -19,12 +21,12 @@ func VORCoordinatorCallerTestValues() (string, string, *big.Int, []byte) {
 	return Config.VORCoordinatorContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetByUsername(Config.Keystorage.Account).Private)
 }
 
-func Init(configAddres string) (err error) {
+func Init(configAddres string, pass string) (err error) {
 	err = InitConfig(configAddres)
 	if err != nil {
 		return err
 	}
-	err = InitKeystore(configAddres)
+	err = InitKeystore(pass)
 	if err != nil {
 		return err
 	}
@@ -32,7 +34,7 @@ func Init(configAddres string) (err error) {
 	if err != nil {
 		return err
 	}
-	err = InitCaller(configAddres)
+	err = InitCaller()
 	if err != nil {
 		return err
 	}
@@ -45,7 +47,9 @@ func VORCoordinatorListenerTestValues() (string, string, *service.Service, *logr
 }
 
 func TestVORCoordinatorListener_Request(t *testing.T) {
-	err := Init(os.Args[len(os.Args)-1])
+	dir, _ := os.Getwd()
+	configPath := filepath.Join(dir, "..", "..", "test_data", "generic_test_config.json")
+	err := Init(configPath, "dwkxnzn3kl1dlndvtdtvqko9gpaay5vj")
 	if err != nil {
 		t.Error(err)
 	}

@@ -1,6 +1,7 @@
 package walletworker_test
 
 import (
+	"crypto/ecdsa"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"oracle/utils/walletworker"
@@ -43,10 +44,12 @@ func TestGeneratePublic2(t *testing.T) {
 }
 
 func TestGenerateAddress(t *testing.T) {
-	ECDSApublicKey, err := crypto.UnmarshalPubkey([]byte(publicKeyPreinit)[2:])
-	if err != nil {
-		t.Error("error: ", err)
-	}
-	_, address := walletworker.GenerateAddress(ECDSApublicKey)
+	privateKey, _ := crypto.HexToECDSA(string([]byte(privateKeyPreinit)[2:]))
+	publicKey := privateKey.Public()
+	publicKeyECDSA, _ := publicKey.(*ecdsa.PublicKey)
+	_, address := walletworker.GenerateAddress(publicKeyECDSA)
 	t.Log("Address: ", address)
+	if len(address) != 42 {
+		t.Error("incorrect address length")
+	}
 }

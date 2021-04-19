@@ -2,6 +2,7 @@ const MockERC20 = artifacts.require("MockERC20");
 const BlockhashStore = artifacts.require("BlockhashStore");
 const VORCoordinator = artifacts.require("VORCoordinator");
 const VORD20 = artifacts.require("VORD20");
+const VORRandomnessRequestMock = artifacts.require("VORRandomnessRequestMock")
 
 module.exports = function (deployer, network) {
     switch (network) {
@@ -17,6 +18,7 @@ module.exports = function (deployer, network) {
 
                 // For tests, you must substitute the correct values
                 await deployer.deploy(VORD20, vor.address, xfund, web3.utils.fromAscii('keyHash'), web3.utils.toWei('1', 'ether'));
+                await deployer.deploy(VORRandomnessRequestMock);
             });
             break
         case "rinkeby":

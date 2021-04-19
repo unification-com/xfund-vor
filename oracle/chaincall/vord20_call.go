@@ -103,9 +103,14 @@ func (d *VORD20Caller) RenewTransactOpts() (err error) {
 	return
 }
 
-func (d *VORD20Caller) RollDice(seed *big.Int) (*types.Transaction, error) {
+func (d *VORD20Caller) IncreaseVORCoordinatorAllowance(amount *big.Int) (*types.Transaction, error) {
 	defer d.RenewTransactOpts()
-	return d.instance.RollDice(d.transactOpts, seed, common.HexToAddress(d.oracleAddress))
+	return d.instance.IncreaseVorAllowance(d.transactOpts, amount)
+}
+
+func (d *VORD20Caller) RollDice(seed *big.Int, roller string) (*types.Transaction, error) {
+	defer d.RenewTransactOpts()
+	return d.instance.RollDice(d.transactOpts, seed, common.HexToAddress(roller))
 }
 
 func (d *VORD20Caller) SetFee(fee *big.Int) (*types.Transaction, error) {
@@ -133,9 +138,9 @@ func (d *VORD20Caller) Fee() (*big.Int, error) {
 	return d.instance.Fee(d.callOpts)
 }
 
-func (d *VORD20Caller) House() (string, error) {
+func (d *VORD20Caller) House(roller string) (string, error) {
 	defer d.RenewTransactOpts()
-	return d.instance.House(d.callOpts, common.HexToAddress(d.oracleAddress))
+	return d.instance.House(d.callOpts, common.HexToAddress(roller))
 }
 
 func (d *VORD20Caller) Transfer() {

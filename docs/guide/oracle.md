@@ -26,7 +26,7 @@ Depending on your database backend of choice, you will also need either
 
 **Note:** SQLite recommended mainly for dev/testing
 
-### Compile from source
+## Compile from source
 
 Clone the repo:
 
@@ -53,7 +53,7 @@ make build
 which will compile the binaries to `xfund-vor/oracle/build` and
 `xfund-vor/oracle-cli/build`
 
-### Configuration
+## Configuration
 
 The `oracle` requires a `config.json` file, which will contain all the
 information it needs to run. By default it will look for `config.json` in 
@@ -120,7 +120,7 @@ The config options are as follows:
 - `database.password` - (`postgres` only) - DB password
 - `database.database` - (`postgres` only) - DB name
 
-### First run
+## First run
 
 The first time `oracle` is run, it will prompt for some input to further 
 configure the environment.
@@ -184,7 +184,7 @@ which will signal the `oracle` to stop via its API.
 in this guide.
 :::
 
-### Running the Oracle
+## Running the Oracle
 
 Once configured, the `oracle` can be run using:
 
@@ -204,7 +204,7 @@ as a filepath to a file containing the password.
 
 which is useful if running the `oracle` as a service using `systemd`.
 
-#### Flags
+### Flags
 
 `-v`: Output `oracle` version info and exit:
 ```bash
