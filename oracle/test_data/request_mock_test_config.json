@@ -1,0 +1,27 @@
+{
+  "contract_address": "0xCfEB869F69431e42cdB54A4F4f105C19C080A601",
+  "contract_caller_address": "0x254dffcd3277C0b1660F6d42EFbB754edaBAbC2B",
+  "mock_contract_address": "0xC89Ce4735882C9F0f0FE26686c53074E09B0D550",
+  "eth_http_host": "http://127.0.0.1:8545",
+  "eth_ws_host": "http://127.0.0.1:8545",
+  "network_id": 696969,
+  "serve": {
+    "host": "0.0.0.0",
+    "port": 8445
+  },
+  "first_block": 1,
+  "keystorage": {
+    "file": "/root/xfund-vor/oracle/test_data/request_mock_test_keystore.json",
+    "account": "test"
+  },
+  "gas_price_limit": 1000000,
+  "database": {
+    "dialect": "sqlite",
+    "storage": "/root/xfund-vor/oracle/test_data/request_mock_test_oracle.db",
+    "host": "localhost",
+    "port": 5432,
+    "user": "vor",
+    "password": "vor",
+    "database": "vor"
+  }
+}

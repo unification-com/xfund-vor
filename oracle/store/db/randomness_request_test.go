@@ -16,7 +16,7 @@ var Log = logrus.New()
 
 func TestRandomnessRequestStore_Insert(t *testing.T) {
 	var err error
-	keystore, err = keystorage.NewKeyStorage(Log, "../../keystore.json")
+	keystore, err = keystorage.NewKeyStorage(Log, "../../test_data/generic_keystore.json")
 	if err != nil || keystore == nil {
 		t.Error(err)
 	}

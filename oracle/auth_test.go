@@ -8,6 +8,7 @@ import (
 	store2 "oracle/store"
 	"oracle/store/keystorage"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -22,10 +23,10 @@ func InitConfig(configAddres string) (err error) {
 	return err
 }
 
-func InitKeystore(configAddres string) (err error) {
+func InitKeystore() (err error) {
 	Keystore, err = keystorage.NewKeyStorage(Log, Config.Keystorage.File)
-	Keystore.CheckToken("rod0gbc3mhyxdiah2vwialx1q3osk5cw")
-	Keystore.SelectPrivateKey(Config.Keystorage.Account)
+	err = Keystore.CheckToken("dwkxnzn3kl1dlndvtdtvqko9gpaay5vj")
+	err = Keystore.SelectPrivateKey(Config.Keystorage.Account)
 	return err
 }
 
@@ -40,7 +41,7 @@ func Init(configAddres string) (err error) {
 	if err != nil {
 		return err
 	}
-	err = InitKeystore(configAddres)
+	err = InitKeystore()
 	if err != nil {
 		return err
 	}
@@ -52,10 +53,10 @@ func Init(configAddres string) (err error) {
 }
 
 func TestMain_Auth(t *testing.T) {
-	err := Init(os.Args[len(os.Args)-1])
+	dir, _ := os.Getwd()
+	configPath := filepath.Join(dir, "test_data", "generic_test_config.json")
+	err := Init(configPath)
 	if err != nil {
 		t.Error(err)
 	}
-
-	err = auth(Keystore)
 }

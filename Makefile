@@ -40,3 +40,11 @@ install-oracle-cli:
 install: install-oracle install-oracle-cli
 
 .PHONY: abigen build-oracle build-oracle-cli build install-oracle install-oracle-cli install
+
+# Tests
+
+test-oracle:
+	docker build -t oracle_test -f docker/test.Dockerfile .
+	docker run -it oracle_test
+
+.PHONY: test-oracle

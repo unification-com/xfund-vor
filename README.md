@@ -62,5 +62,19 @@ Clone of fork
 ```bash
 git clone https://github.com/unification-com/xfund-vor
 npx truffle compile
+```
+
+Run smart contract tests:
+
+```bash
 yarn test
 ```
+
+Run `oracle` tests:
+
+```bash
+make test-oracle
+```
+
+This will run the `go` tests in a self-contained, dockerised environment. A Ganache
+network will be run within the container for the tests to run against.

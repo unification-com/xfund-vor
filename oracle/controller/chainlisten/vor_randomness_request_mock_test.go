@@ -5,6 +5,7 @@ import (
 	"oracle/controller/chainlisten"
 	"oracle/service"
 	"os"
+	"path/filepath"
 	"runtime/debug"
 	"testing"
 )
@@ -13,8 +14,9 @@ var VORRandomnessRequestMockListener *chainlisten.VORRandomnessRequestMockListen
 
 func InitVORRandomnessRequestMockListener(configAddres string) (err error) {
 	InitConfig(configAddres)
-	InitKeystore(configAddres)
-	InitCaller(configAddres)
+	InitKeystore("dwkxnzn3kl1dlndvtdtvqko9gpaay5vj")
+	InitStore()
+	InitCaller()
 	VORRandomnessRequestMockListener, err = chainlisten.NewVORRandomnessRequestMockListener(VORRandomnessRequestMockListenerCallerTestValues())
 	return err
 }
@@ -24,9 +26,13 @@ func VORRandomnessRequestMockListenerCallerTestValues() (string, string, *servic
 }
 
 func TestVORRandomnessRequestMockListener_Request(t *testing.T) {
-	err := InitVORRandomnessRequestMockListener(os.Args[len(os.Args)-1])
+	dir, _ := os.Getwd()
+	configPath := filepath.Join(dir, "..", "..", "test_data", "generic_test_config.json")
+	err := InitVORRandomnessRequestMockListener(configPath)
 	if err != nil {
-		t.Error(err)
+		if err.Error() != "record not found" {
+			t.Error(err)
+		}
 	}
 	err = VORRandomnessRequestMockListener.Request()
 	debug.PrintStack()
