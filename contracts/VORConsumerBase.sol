@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "./vendor/VORSafeMath.sol";
 import "./interfaces/IERC20_Ex.sol";
 import "./interfaces/IVORCoordinator.sol";
 import "./VORRequestIDBase.sol";
@@ -101,8 +100,7 @@ import "./VORRequestIDBase.sol";
  * until it calls responds to a request.
  */
 abstract contract VORConsumerBase is VORRequestIDBase {
-    using SafeMath for uint256;
-    using Address for address;
+    using VORSafeMath for uint256;
 
     /**
      * @notice fulfillRandomness handles the VOR response. Your contract must

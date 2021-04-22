@@ -11,7 +11,7 @@ import "../VORConsumerBase.sol";
  * This is only an example implementation and not necessarily suitable for mainnet.
  */
 contract VORD20 is Ownable, VORConsumerBase {
-    using SafeMath for uint256;
+    using VORSafeMath for uint256;
 
     uint256 private constant _ROLL_IN_PROGRESS = 42;
 
