@@ -1,6 +1,6 @@
 {
   "name": "@unification-com/xfund-vor",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "xFUND VOR",
   "scripts": {
     "test": "truffle test",

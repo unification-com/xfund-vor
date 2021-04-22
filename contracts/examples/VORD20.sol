@@ -2,6 +2,7 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 import "../VORConsumerBase.sol";
 
 /**
@@ -11,7 +12,7 @@ import "../VORConsumerBase.sol";
  * This is only an example implementation and not necessarily suitable for mainnet.
  */
 contract VORD20 is Ownable, VORConsumerBase {
-    using VORSafeMath for uint256;
+    using SafeMath for uint256;
 
     uint256 private constant _ROLL_IN_PROGRESS = 42;
 
