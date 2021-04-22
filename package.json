@@ -1,6 +1,6 @@
 {
   "name": "@unification-com/xfund-vor",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "xFUND VOR",
   "scripts": {
     "test": "truffle test",
@@ -9,7 +9,7 @@
     "coverage": "node --max-old-space-size=4096 ./node_modules/.bin/truffle run coverage",
     "prepublishOnly": "truffle compile",
     "docs:api:clean": "rimraf docs/api",
-    "docs:api:postclean": "rimraf docs/api/Migrations.md && rimraf docs/api/interfaces",
+    "docs:api:postclean": "rimraf docs/api/Migrations.md && rimraf docs/api/interfaces && rimraf docs/api/vendor",
     "docs:api:build": "yarn run docs:api:clean && solidity-docgen -t ./docs/templates -o ./docs/api -e contracts/mocks,contracts/examples && yarn run docs:api:postclean",
     "docs:compile": "rimraf docs/.vuepress/dist && yarn run docs:api:build && vuepress build docs",
     "docs:dev": "vuepress dev docs"
@@ -48,7 +48,9 @@
   "files": [
     "/contracts/**/*.sol",
     "/docs/**/*.md",
+    "!/contracts/examples/*",
     "!/contracts/mocks/*",
+    "!/contracts/VORCoordinator.sol",
     "!/contracts/Migrations.sol",
     "!/contracts/*Mock.json",
     "!/contracts/Mock*.json"

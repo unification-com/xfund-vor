@@ -124,7 +124,7 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
         require(oldVOROracle == address(0), "please register a new key");
         require(_oracle != address(0), "_oracle must not be 0x0");
         serviceAgreements[keyHash].vOROracle = _oracle;
-        // Yes, this revert message doesn't fit in a word
+
         require(_fee <= 1e9 ether, "fee too high");
         serviceAgreements[keyHash].fee = uint96(_fee);
         emit NewServiceAgreement(keyHash, _fee);
