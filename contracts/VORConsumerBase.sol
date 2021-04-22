@@ -156,7 +156,7 @@ abstract contract VORConsumerBase is VORRequestIDBase {
         // This provides protection against the user repeating their input seed,
         // which would result in a predictable/duplicate output, if multiple such
         // requests appeared in the same block.
-        nonces[_keyHash] = nonces[_keyHash].add(1);
+        nonces[_keyHash] = nonces[_keyHash].safeAdd(1);
         return makeRequestId(_keyHash, vORSeed);
     }
 
