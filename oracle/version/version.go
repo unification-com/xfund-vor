@@ -45,3 +45,7 @@ git commit: %s
 		vi.Name, vi.Version, vi.Binary, vi.GitCommit, vi.GoVersion,
 	)
 }
+
+func (vi Info) StringLine() string {
+	return fmt.Sprintf("%s v%s. git commit: %s. %s", vi.Name, vi.Version, vi.GitCommit, vi.GoVersion)
+}

@@ -36,10 +36,10 @@ func main() {
 	if _, err := parser.Parse(); err != nil {
 		panic(err)
 	}
+	vers := version.NewInfo()
 
 	// show version info and exit
 	if options.Version {
-		vers := version.NewInfo()
 		fmt.Println(vers.String())
 		return
 	}
@@ -76,6 +76,10 @@ func main() {
 
 	switch os.Args[1] {
 	case "start":
+		log.WithFields(logrus.Fields{
+			"package":  "main",
+			"function": "main",
+		}).Info(vers.StringLine())
 		err = start()
 	default:
 		log.WithFields(logrus.Fields{
