@@ -127,6 +127,7 @@ func start() (err error) {
 		return c.String(http.StatusOK, "alive")
 	})
 	e.GET("/querywithdrawable", oracleController.QueryWithdrawableTokens)
+	e.GET("/requests", oracleController.QueryRequests)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", config.Conf.Serve.Host, config.Conf.Serve.Port)))
 
