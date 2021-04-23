@@ -328,6 +328,29 @@ oraclecli queryfees
 oraclecli queryfees 0xD833215cBcc3f914bD1C9ece3EE7BF8B14f841bb
 ```
 
+### queryrequests
+
+Query all randomness requests in the database, that match optional filters. Returns
+a JSON object.
+
+Status filters:
+The `--status` | `-s` flag accepts the following:
+
+```
+-1 = no filter, return all results (default)
+0  = unknown status
+1  = request initialised
+2  = fulfill tx sent
+3  = failed to fulfil
+4  = fulfillment succeeded
+```
+Examples:
+```bash
+oraclecli queryrequests --page=2 --limit=20
+oraclecli queryrequests --status=3
+oraclecli queryrequests --order=asc
+```
+
 ### querywithdrawable
 
 Query the amount of fees you have accumulated, and are currently held by the 
