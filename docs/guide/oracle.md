@@ -31,8 +31,19 @@ Depending on your database backend of choice, you will also need either
 Clone the repo:
 
 ```bash
-git clone https://github.com/unification-com/xfund-vor
+git clone -b [latest-release-tag] https://github.com/unification-com/xfund-vor
 ```
+
+E.g.
+
+```bash
+git clone -b v0.1.0 https://github.com/unification-com/xfund-vor
+```
+
+::: tip
+The `[latest-release-tag]` can be found at 
+[https://github.com/unification-com/xfund-vor/releases](https://github.com/unification-com/xfund-vor/releases)
+:::
 
 Then compile the binaries using the `make install` target:
 
