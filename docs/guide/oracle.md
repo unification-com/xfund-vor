@@ -18,15 +18,30 @@ This guide uses Linux as the platform for running a VOR Oracle. The software
 has been tested on Ubuntu and CentOS distros. It assumes your system has some
 basic applications installed such as `git`, `curl`, `nano` and `make` etc.
 
-You will also require **Golang** - the latest version can be installed by following
-the [official instructions](https://golang.org/doc/install).
-
 Depending on your database backend of choice, you will also need either
 **SQLite** or **PostgreSQL** installing on your host.
 
 **Note:** SQLite recommended mainly for dev/testing
 
+## Download pre-build binaries
+
+The latest pre-built (linux) release can be downloaded from
+[https://github.com/unification-com/xfund-vor/releases](https://github.com/unification-com/xfund-vor/releases)
+
+A SHA256 `checksum.txt` is supplied with the archive. Download it to
+the same location as the archive, and check:
+
+```bash
+$ sha256sum --check checksum.txt 
+vor-oracle_linux_v0.1.1.tar.gz: OK
+```
+
 ## Compile from source
+
+::: warning
+You will require **Golang** to compile from source - the latest version can be 
+installed by following the [official instructions](https://golang.org/doc/install).
+:::
 
 Clone the repo:
 
@@ -104,7 +119,7 @@ nano $HOME/vor/config.json
 The config options are as follows:
 
 - `contract_address` - the address of the `VORCoordinator` smart contract. See
-[contracts](../contracts.md).
+[contracts](https://vor.unification.io/contracts.html).
 - `eth_http_host` - HTTP(S) host for your Eth provider. E.g. Infura
 - `eth_ws_host` - WS(S) host for your Eth provider. E.g. Infura
 - `network_id` - Eth network ID, e.g. 1 = mainnet, 4 = Rinkeby etc.
