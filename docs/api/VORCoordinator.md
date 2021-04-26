@@ -41,7 +41,7 @@ getProviderFee - get provider's base fee
 
 <a name="VORCoordinator-getProviderGranularFee-bytes32-address-"></a>
 ### Function `getProviderGranularFee(bytes32 _keyHash, address _consumer) external  -> uint96`
-getProviderGranularFee - get provider's base fee
+getProviderGranularFee - get provider's granular fee for selected consumer
 
 <a name="VORCoordinator-registerProvingKey-uint256-address-payable-uint256-2--"></a>
 ### Function `registerProvingKey(uint256 _fee, address payable _oracle, uint256[2] _publicProvingKey) external `
