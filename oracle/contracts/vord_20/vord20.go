@@ -27,7 +27,7 @@ var (
 )
 
 // Vord20ABI is the input ABI used to generate the binding from.
-const Vord20ABI = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"vorCoordinator\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"xfund\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"keyHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"requestId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"result\",\"type\":\"uint256\"}],\"name\":\"DiceLanded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"requestId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"roller\",\"type\":\"address\"}],\"name\":\"DiceRolled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"requestId\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"randomness\",\"type\":\"uint256\"}],\"name\":\"rawFulfillRandomness\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"userProvidedSeed\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"roller\",\"type\":\"address\"}],\"name\":\"rollDice\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"requestId\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"increaseVorAllowance\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"withdrawToken\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"player\",\"type\":\"address\"}],\"name\":\"house\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"keyHash\",\"type\":\"bytes32\"}],\"name\":\"setKeyHash\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"keyHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"name\":\"setFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"fee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]"
+const Vord20ABI = "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"vorCoordinator\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"xfund\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"keyHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"requestId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"result\",\"type\":\"uint256\"}],\"name\":\"DiceLanded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"requestId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"roller\",\"type\":\"address\"}],\"name\":\"DiceRolled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"requestId\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"randomness\",\"type\":\"uint256\"}],\"name\":\"rawFulfillRandomness\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"userProvidedSeed\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"roller\",\"type\":\"address\"}],\"name\":\"rollDice\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"requestId\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"increaseVorAllowance\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"withdrawToken\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_vorCoordinator\",\"type\":\"address\"}],\"name\":\"setVORCoordinator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getVORCoordinator\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"player\",\"type\":\"address\"}],\"name\":\"house\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"keyHash\",\"type\":\"bytes32\"}],\"name\":\"setKeyHash\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"keyHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"}],\"name\":\"setFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"fee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]"
 
 // Vord20 is an auto generated Go binding around an Ethereum contract.
 type Vord20 struct {
@@ -200,6 +200,37 @@ func (_Vord20 *Vord20Session) Fee() (*big.Int, error) {
 // Solidity: function fee() view returns(uint256)
 func (_Vord20 *Vord20CallerSession) Fee() (*big.Int, error) {
 	return _Vord20.Contract.Fee(&_Vord20.CallOpts)
+}
+
+// GetVORCoordinator is a free data retrieval call binding the contract method 0xa324c486.
+//
+// Solidity: function getVORCoordinator() view returns(address)
+func (_Vord20 *Vord20Caller) GetVORCoordinator(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _Vord20.contract.Call(opts, &out, "getVORCoordinator")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// GetVORCoordinator is a free data retrieval call binding the contract method 0xa324c486.
+//
+// Solidity: function getVORCoordinator() view returns(address)
+func (_Vord20 *Vord20Session) GetVORCoordinator() (common.Address, error) {
+	return _Vord20.Contract.GetVORCoordinator(&_Vord20.CallOpts)
+}
+
+// GetVORCoordinator is a free data retrieval call binding the contract method 0xa324c486.
+//
+// Solidity: function getVORCoordinator() view returns(address)
+func (_Vord20 *Vord20CallerSession) GetVORCoordinator() (common.Address, error) {
+	return _Vord20.Contract.GetVORCoordinator(&_Vord20.CallOpts)
 }
 
 // House is a free data retrieval call binding the contract method 0xb1cad5e3.
@@ -419,6 +450,27 @@ func (_Vord20 *Vord20Session) SetKeyHash(keyHash [32]byte) (*types.Transaction, 
 // Solidity: function setKeyHash(bytes32 keyHash) returns()
 func (_Vord20 *Vord20TransactorSession) SetKeyHash(keyHash [32]byte) (*types.Transaction, error) {
 	return _Vord20.Contract.SetKeyHash(&_Vord20.TransactOpts, keyHash)
+}
+
+// SetVORCoordinator is a paid mutator transaction binding the contract method 0xfa991e74.
+//
+// Solidity: function setVORCoordinator(address _vorCoordinator) returns()
+func (_Vord20 *Vord20Transactor) SetVORCoordinator(opts *bind.TransactOpts, _vorCoordinator common.Address) (*types.Transaction, error) {
+	return _Vord20.contract.Transact(opts, "setVORCoordinator", _vorCoordinator)
+}
+
+// SetVORCoordinator is a paid mutator transaction binding the contract method 0xfa991e74.
+//
+// Solidity: function setVORCoordinator(address _vorCoordinator) returns()
+func (_Vord20 *Vord20Session) SetVORCoordinator(_vorCoordinator common.Address) (*types.Transaction, error) {
+	return _Vord20.Contract.SetVORCoordinator(&_Vord20.TransactOpts, _vorCoordinator)
+}
+
+// SetVORCoordinator is a paid mutator transaction binding the contract method 0xfa991e74.
+//
+// Solidity: function setVORCoordinator(address _vorCoordinator) returns()
+func (_Vord20 *Vord20TransactorSession) SetVORCoordinator(_vorCoordinator common.Address) (*types.Transaction, error) {
+	return _Vord20.Contract.SetVORCoordinator(&_Vord20.TransactOpts, _vorCoordinator)
 }
 
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
