@@ -27,7 +27,7 @@ build-oracle:
 	cd oracle && rm -f build/oracle && go build -mod=readonly $(BUILD_FLAGS) -o ./build/oracle
 
 build-oracle-cli:
-	cd oracle-cli && rm -f build/oraclecli && go build -mod=readonly $(BUILD_FLAGS) -o ./build/oraclecli
+	cd oracle-cli && rm -f build/oraclecli && go build -mod=readonly -o ./build/oraclecli
 
 build: build-oracle build-oracle-cli
 
@@ -35,11 +35,20 @@ install-oracle:
 	cd oracle && go install -mod=readonly $(BUILD_FLAGS)
 
 install-oracle-cli:
-	cd oracle-cli && go install -mod=readonly $(BUILD_FLAGS)
+	cd oracle-cli && go install -mod=readonly
 
 install: install-oracle install-oracle-cli
 
-.PHONY: abigen build-oracle build-oracle-cli build install-oracle install-oracle-cli install
+build-release: build
+	rm -rf dist/vor-oracle
+	mkdir -p dist/vor-oracle
+	cp oracle/build/oracle dist/vor-oracle/oracle && cp oracle-cli/build/oraclecli dist/vor-oracle/oraclecli
+	cp docs/guide/oracle.md dist/vor-oracle/README.md
+	cd dist && tar -cpzf "vor-oracle_linux_v${VERSION}.tar.gz" vor-oracle
+	cd dist && sha256sum "vor-oracle_linux_v${VERSION}.tar.gz" > checksum.txt
+	cd dist && sha256sum --check checksum.txt
+
+.PHONY: abigen build-oracle build-oracle-cli build install-oracle install-oracle-cli install build-release
 
 # Tests
 
