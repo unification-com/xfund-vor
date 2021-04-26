@@ -97,7 +97,7 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
     }
 
     /**
-     * @dev getProviderGranularFee - get provider's base fee
+     * @dev getProviderGranularFee - get provider's granular fee for selected consumer
      * @return address
      */
     function getProviderGranularFee(bytes32 _keyHash, address _consumer) external view returns (uint96) {
@@ -125,6 +125,7 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
         require(_oracle != address(0), "_oracle must not be 0x0");
         serviceAgreements[keyHash].vOROracle = _oracle;
 
+        require(_fee > 0, "fee cannot be zero");
         require(_fee <= 1e9 ether, "fee too high");
         serviceAgreements[keyHash].fee = uint96(_fee);
         emit NewServiceAgreement(keyHash, _fee);
@@ -138,6 +139,7 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
     function changeFee(uint256[2] calldata _publicProvingKey, uint256 _fee) external {
         bytes32 keyHash = hashOfKey(_publicProvingKey);
         require(serviceAgreements[keyHash].vOROracle == _msgSender(), "only oracle can change the fee");
+        require(_fee > 0, "fee cannot be zero");
         require(_fee <= 1e9 ether, "fee too high");
         serviceAgreements[keyHash].fee = uint96(_fee);
         emit ChangeFee(keyHash, _fee);
@@ -151,6 +153,7 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
     function changeGranularFee(uint256[2] calldata _publicProvingKey, uint256 _fee, address _consumer) external {
         bytes32 keyHash = hashOfKey(_publicProvingKey);
         require(serviceAgreements[keyHash].vOROracle == _msgSender(), "only oracle can change the fee");
+        require(_fee > 0, "fee cannot be zero");
         require(_fee <= 1e9 ether, "fee too high");
         serviceAgreements[keyHash].granularFees[_consumer] = uint96(_fee);
         emit ChangeGranularFee(keyHash, _consumer, _fee);

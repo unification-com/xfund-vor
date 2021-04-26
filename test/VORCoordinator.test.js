@@ -53,6 +53,11 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
             `fee too high`
         );
 
+        await expectRevert(
+            this.vorCoordinator.registerProvingKey(0, oracle, publicProvingKey),
+            `fee cannot be zero`
+        );
+
         await this.vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey);
 
         await expectRevert(
@@ -81,6 +86,11 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
         await expectRevert(
             this.vorCoordinator.changeFee(publicProvingKey, web3.utils.toWei('10000000000', 'ether'), { from: oracle }),
             `fee too high`
+        );
+
+        await expectRevert(
+            this.vorCoordinator.changeFee(publicProvingKey, 0, { from: oracle }),
+            `fee cannot be zero`
         );
     });
 
@@ -113,6 +123,11 @@ contract('VORCoordinator', ([owner, oracle, alice]) => {
         await expectRevert(
             this.vorCoordinator.changeGranularFee(publicProvingKey, web3.utils.toWei('10000000000', 'ether'), alice, { from: oracle }),
             `fee too high`
+        );
+
+        await expectRevert(
+            this.vorCoordinator.changeGranularFee(publicProvingKey, 0, alice, { from: oracle }),
+            `fee cannot be zero`
         );
     });
 

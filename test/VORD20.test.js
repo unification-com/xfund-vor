@@ -9,7 +9,7 @@ const VORD20 = artifacts.require('VORD20');
 const VORCoordinator = artifacts.require('VORCoordinatorMock');
 const BlockhashStore = artifacts.require('BlockhashStore');
 
-contract('VORD20', ([owner, alice]) => {
+contract('VORD20', ([owner, alice, dummy]) => {
     beforeEach(async () => {
         this.fee = web3.utils.toWei('0.1', 'ether');
         this.keyHash = web3.utils.fromAscii('keyHash');
@@ -79,6 +79,24 @@ contract('VORD20', ([owner, alice]) => {
                 await this.vorD20.setFee(newFee, { from: owner });
                 const actualFee = await this.vorD20.fee();
                 expect(actualFee).to.be.bignumber.equal(new BN(newFee));
+            });
+        });
+    });
+
+    describe('#setVORCoordinator', () => {
+        const newFee = 1234;
+
+        describe('failure', () => {
+            it('reverts when called by a non-owner', async () => {
+                await expectRevert(this.vorD20.setVORCoordinator(dummy, { from: alice }), 'Ownable: caller is not the owner');
+            });
+        });
+
+        describe('success', () => {
+            it('sets the VORCoordinator', async () => {
+                await this.vorD20.setVORCoordinator(dummy, { from: owner });
+                const actualVORCoordinator = await this.vorD20.getVORCoordinator();
+                expect(actualVORCoordinator).to.be.equal(dummy);
             });
         });
     });
