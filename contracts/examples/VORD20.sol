@@ -101,6 +101,24 @@ contract VORD20 is Ownable, VORConsumerBase {
     }
 
     /**
+     * @notice Example wrapper function for the VORConsumerBase _setVORCoordinator function.
+     * Wrapped around an Ownable modifier to ensure only the contract owner can call it.
+     * Allows contract owner to change the VORCoordinator address in the event of a network
+     * upgrade.
+     */
+    function setVORCoordinator(address _vorCoordinator) external onlyOwner {
+        _setVORCoordinator(_vorCoordinator);
+    }
+
+    /**
+     * @notice returns the current VORCoordinator contract address
+     * @return vorCoordinator address
+     */
+    function getVORCoordinator() external view returns (address) {
+        return vorCoordinator;
+    }
+
+    /**
      * @notice Get the house assigned to the player once the address has rolled
      * @param player address
      * @return house as a string

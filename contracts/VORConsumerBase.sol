@@ -165,8 +165,8 @@ abstract contract VORConsumerBase is VORRequestIDBase {
      * the VORCoordinator
      * Allows this contract to increase the xFUND allowance for the VORCoordinator contract
      * enabling it to pay request fees on behalf of this contract.
-     * NOTE: it is advisable to wrap this around a function that uses, for example, OpenZeppelin's
-     * onlyOwner modifier
+     * NOTE: it is hightly recommended to wrap this around a function that uses,
+     * for example, OpenZeppelin's onlyOwner modifier
      *
      * @param _amount uint256 amount to increase allowance by
      */
@@ -175,8 +175,19 @@ abstract contract VORConsumerBase is VORRequestIDBase {
         return true;
     }
 
+    /**
+     * @notice _setVORCoordinator is a helper function to enable setting the VORCoordinator address
+     * NOTE: it is hightly recommended to wrap this around a function that uses,
+     * for example, OpenZeppelin's onlyOwner modifier
+     *
+     * @param _vorCoordinator address new VORCoordinator address
+     */
+    function _setVORCoordinator(address _vorCoordinator) internal {
+        vorCoordinator = _vorCoordinator;
+    }
+
     IERC20_Ex internal immutable xFUND;
-    address internal immutable vorCoordinator;
+    address internal vorCoordinator;
 
     // Nonces for each VOR key from which randomness has been requested.
     //
