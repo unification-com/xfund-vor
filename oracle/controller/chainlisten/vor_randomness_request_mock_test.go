@@ -6,7 +6,6 @@ import (
 	"oracle/service"
 	"os"
 	"path/filepath"
-	"runtime/debug"
 	"testing"
 )
 
@@ -35,7 +34,7 @@ func TestVORRandomnessRequestMockListener_Request(t *testing.T) {
 		}
 	}
 	err = VORRandomnessRequestMockListener.Request()
-	debug.PrintStack()
+
 	if err != nil {
 		t.Error(err)
 	}

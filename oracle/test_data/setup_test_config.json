@@ -14,15 +14,10 @@
     "file": "/root/xfund-vor/oracle/test_data/setup_test_keystore.json",
     "account": "oracle"
   },
-  "gas_price_limit": 1000000,
+  "gas_limit": 1000000,
   "database": {
     "dialect": "sqlite",
-    "storage": "/root/xfund-vor/oracle/test_data/setup_test_oracle.db",
-    "host": "localhost",
-    "port": 5432,
-    "user": "vor",
-    "password": "vor",
-    "database": "vor"
+    "storage": "/root/xfund-vor/oracle/test_data/setup_test_oracle.db"
   }
 }
 
