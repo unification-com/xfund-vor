@@ -17,6 +17,7 @@ import (
 	"oracle/utils"
 	"oracle/utils/walletworker"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -24,6 +25,7 @@ type Keystorage struct {
 	log      *logrus.Logger
 	File     *os.File
 	KeyStore *keystorage.KeyStorageModel
+	mu       sync.Mutex
 }
 
 func NewKeyStorage(log *logrus.Logger, filePath string) (*Keystorage, error) {
@@ -210,7 +212,6 @@ func (d *Keystorage) GetBlockNumber() (blockNumber int64, err error) {
 	for index, key := range keys {
 		if decryptedPrivate, _ := Decrypt(key.CipherPrivate, d.KeyStore.Token); decryptedPrivate == d.KeyStore.PrivateKey {
 			blockNumber = d.KeyStore.Key[index].BlockNumber
-			err = d.save()
 			return
 		}
 	}
@@ -237,6 +238,8 @@ func (d Keystorage) Exists() bool {
 }
 
 func (d *Keystorage) save() error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	jsonByte, err := json.Marshal(d.KeyStore)
 	if err != nil {
 		return err
