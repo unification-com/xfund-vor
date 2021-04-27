@@ -10,9 +10,10 @@ ifeq ($(strip $(VERSION)),)
 VERSION=$(DEFAULT_VERSION)
 endif
 
-ldflags = -X oracle/version.Name=VOROracle \
-		  -X oracle/version.Version=$(VERSION) \
-		  -X oracle/version.Commit=$(COMMIT)
+ldflags = -X oracle/version.Version=$(VERSION) \
+		  -X oracle/version.Commit=$(COMMIT) \
+          -X oraclecli/version.Version=$(VERSION) \
+          -X oraclecli/version.Commit=$(COMMIT)
 
 BUILD_FLAGS := -ldflags '$(ldflags)'
 
@@ -27,7 +28,7 @@ build-oracle:
 	cd oracle && rm -f build/oracle && go build -mod=readonly $(BUILD_FLAGS) -o ./build/oracle
 
 build-oracle-cli:
-	cd oracle-cli && rm -f build/oraclecli && go build -mod=readonly -o ./build/oraclecli
+	cd oracle-cli && rm -f build/oraclecli && go build -mod=readonly $(BUILD_FLAGS) -o ./build/oraclecli
 
 build: build-oracle build-oracle-cli
 
@@ -35,18 +36,20 @@ install-oracle:
 	cd oracle && go install -mod=readonly $(BUILD_FLAGS)
 
 install-oracle-cli:
-	cd oracle-cli && go install -mod=readonly
+	cd oracle-cli && go install -mod=readonly $(BUILD_FLAGS)
 
 install: install-oracle install-oracle-cli
 
+# Create a new release on Github, then run this target to generate archive & checksum for upload
 build-release: build
-	rm -rf dist/vor-oracle
-	mkdir -p dist/vor-oracle
-	cp oracle/build/oracle dist/vor-oracle/oracle && cp oracle-cli/build/oraclecli dist/vor-oracle/oraclecli
-	cp docs/guide/oracle.md dist/vor-oracle/README.md
-	cd dist && tar -cpzf "vor-oracle_linux_v${VERSION}.tar.gz" vor-oracle
-	cd dist && sha256sum "vor-oracle_linux_v${VERSION}.tar.gz" > checksum.txt
-	cd dist && sha256sum --check checksum.txt
+	rm -rf "dist/vor-oracle_v${VERSION}"
+	mkdir -p "dist/vor-oracle_v${VERSION}"
+	cp oracle/build/oracle "dist/vor-oracle_v${VERSION}/oracle"
+	cp oracle-cli/build/oraclecli "dist/vor-oracle_v${VERSION}/oraclecli"
+	cp docs/guide/oracle.md "dist/vor-oracle_v${VERSION}/README.md"
+	cd dist && tar -cpzf "vor-oracle_linux_v${VERSION}.tar.gz" "vor-oracle_v${VERSION}"
+	cd dist && sha256sum "vor-oracle_linux_v${VERSION}.tar.gz" > "checksum_v${VERSION}.txt"
+	cd dist && sha256sum --check "checksum_v${VERSION}.txt"
 
 .PHONY: abigen build-oracle build-oracle-cli build install-oracle install-oracle-cli install build-release
 
