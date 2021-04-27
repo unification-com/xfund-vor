@@ -390,6 +390,13 @@ This just calls `VORConsumerBase._increaseVorCoordinatorAllowance` function,
 which in turn informs the `xFUNDMOCK` smart contract that we're allowing
 `VORCoordinator` to spend `DnD`'s `xFUNDMOCK` tokens to pay for fees.
 
+::: tip Note
+The `VORConsumerBase` contract contains other helper functions, which can
+also be wrapped in a protected function in your own contract. See
+[https://github.com/unification-com/xfund-vor/blob/main/contracts/examples](https://github.com/unification-com/xfund-vor/blob/main/contracts/examples)
+for implementation examples.
+:::
+
 ## Final contract
 
 ::: tip
