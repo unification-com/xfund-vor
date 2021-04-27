@@ -75,7 +75,7 @@ func NewVORRandomnessRequestMockCaller(contractStringAddress string, ethHostAddr
 	transactOpts.Nonce = big.NewInt(int64(nonce))
 	transactOpts.Value = big.NewInt(0)
 	transactOpts.GasPrice = gasPrice
-	transactOpts.GasLimit = uint64(config.Conf.LimitGasPrice) // in units
+	transactOpts.GasLimit = uint64(config.Conf.GasLimit) // in units
 	transactOpts.Context = context.Background()
 
 	return &VORRandomnessRequestMockCaller{

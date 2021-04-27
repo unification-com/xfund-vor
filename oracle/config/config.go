@@ -29,7 +29,8 @@ type Database struct {
 
 var Conf = &Config{
 	FirstBlockNumber: 1,
-	LimitGasPrice:    1000000,
+	GasLimit:         500000,
+	MaxGasPrice:      150,
 	Serve: &Serve{
 		Host: "0.0.0.0",
 		Port: 8445,
@@ -55,7 +56,8 @@ type Config struct {
 	CheckDuration                 int32       `json:"check_duration"`
 	Serve                         *Serve      `json:"serve"`
 	LogLevel                      string      `json:"log_level"`
-	LimitGasPrice                 int64       `json:"gas_price_limit"`
+	GasLimit                      int64       `json:"gas_limit"`
+	MaxGasPrice                   int64       `json:"max_gas_price"`
 	Keystorage                    *Keystorage `json:"keystorage"`
 	Database                      *Database   `json:"database"`
 }
