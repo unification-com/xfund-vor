@@ -17,23 +17,38 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
+
+	"github.com/spf13/cobra"
 	"oraclecli/utils"
 )
 
 var cfgFile string
 
+func initSettings() {
+	fmt.Println("cfgFile", cfgFile)
+	settings, err := utils.NewSettingsStore(cfgFile)
+	if err != nil {
+		fmt.Println(err)
+	}
+	utils.Settings = settings
+}
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "oracle-cli",
+	Use:   "oraclecli",
 	Short: "A CLI to manage your Oracle",
 	Long: `CLI to manage your Oracle.
 
 Note:
  You need to run "oracle start -c [config_path | optional] -k [key | optional]" to start your daemon before using CLI.
 `,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		initSettings()
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// Create a Bearer string by appending string access token
 		var bearer = "Bearer " + utils.Settings.Settings.GetOracleKey()
@@ -56,5 +71,14 @@ Note:
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+
+	homepath, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
+
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "conf", "c",
+		filepath.Join(homepath, ".oracle-cli_settings.json"), "oraclecli settings file")
+
 	cobra.CheckErr(rootCmd.Execute())
 }
