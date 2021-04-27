@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	Name = ""
+	Name = "VOR Oracle Server"
 	Binary = "oracle"
 	Version = "0.0.1"
 	Commit = ""
