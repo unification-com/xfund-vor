@@ -27,9 +27,10 @@ import (
 )
 
 var cfgFile string
+var showVersion bool
 
 func initSettings() {
-	fmt.Println("cfgFile", cfgFile)
+	fmt.Println("loading config file from", cfgFile)
 	settings, err := utils.NewSettingsStore(cfgFile)
 	if err != nil {
 		fmt.Println(err)
