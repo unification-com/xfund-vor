@@ -3,7 +3,6 @@ package chaincall
 import (
 	"context"
 	"crypto/ecdsa"
-	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -106,25 +105,16 @@ func (d *VORCoordinatorCaller) RenewTransactOpts() (err error) {
 	if err != nil {
 		return
 	}
-	fmt.Println("suggested gasPrice", gasPrice)
 	d.transactOpts.GasPrice = gasPrice
 
 	if config.Conf.MaxGasPrice > 0 {
 
 		maxGasPrice := big.NewInt(0).Mul(big.NewInt(config.Conf.MaxGasPrice), big.NewInt(params.GWei))
-
-		fmt.Println("config.Conf.MaxGasPrice", config.Conf.MaxGasPrice)
-		fmt.Println("maxGasPrice", maxGasPrice)
-
 		if gasPrice.Cmp(maxGasPrice) > 0 {
 			d.transactOpts.GasPrice = maxGasPrice
 		}
 	}
-
-	fmt.Println("d.transactOpts.GasPrice", d.transactOpts.GasPrice)
-
-
-
+	
 	return
 }
 
