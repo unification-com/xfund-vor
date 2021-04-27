@@ -108,7 +108,8 @@ nano $HOME/vor/config.json
     "file": "/home/username/vor/keystore.json",
     "account": "oracle"
   },
-  "gas_price_limit": 1000000,
+  "gas_limit": 1000000,
+  "max_gas_price": 100,
   "database": {
     "dialect": "sqlite",
     "storage": "/home/username/vor/oracle.db"
@@ -124,22 +125,22 @@ The config options are as follows:
 - `eth_ws_host` - WS(S) host for your Eth provider. E.g. Infura
 - `network_id` - Eth network ID, e.g. 1 = mainnet, 4 = Rinkeby etc.
 - `serve.host` - host to serve the `oracle` on. This is used by the `oracle-cli`
-  tool, and should not be publicly exposed.
+  tool, and should not be publicly exposed. Default `0.0.0.0`
 - `serve.port` - port to serve the `oracle` on. This is used by the `oracle-cli`
-  tool, and should not be publicly exposed.
+  tool, and should not be publicly exposed. Default `8445`
 - `first_block` - default first block to scan the contract from. Should be 
   a value near to the block your oracle will do it's first run from. Only used
-  when the oracle first connects.
+  when the oracle first connects. Default `1`
 - `keystorage.file` - path to the `keystore` which will contain your encrypted
   private key and other runtime info. It will be created on the oracle's first
-  run if one does not exist.
+  run if one does not exist. Default `./keystore.json`
 - `keystore.account` - account name used to identify the private key. Set on 
   first run.
-- `gas_price_limit` - max gas you are willing to pay (in Wei) for fulfilling
-  a request.
-- `database.dialect` - `postgres` or `sqlite`
+- `gas_limit` - gas units limit for fulfilling a request. Default `500000`
+- `max_gas_price` - max gas price in gwei you are willing to pay to fulfil a request. Default `150`
+- `database.dialect` - `postgres` or `sqlite`. Default `sqlite`
 - `database.storage` - (`sqlite` only) - path to the DB file. It will be created on the oracle's first
-  run if one does not exist.
+  run if one does not exist. Default `./oracle.db`
 - `database.host` - (`postgres` only) - DB host IP/name
 - `database.port` - (`postgres` only) - DB Port
 - `database.user` - (`postgres` only) - DB username
@@ -415,4 +416,12 @@ Withdrawal amount should be `amount * 10^9`, for example, if you wish to withdra
 
 ```bash
 oraclecli withdraw
+```
+
+### version
+
+Output `oraclecli`'s version information
+
+```bash
+oraclecli version
 ```

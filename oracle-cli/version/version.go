@@ -3,18 +3,18 @@ package version
 // At build time, the variables Name, Version, Commit, and Binary
 // can be passed as build flags as shown in the following example:
 //
-//  go build -X oracle/version.Name=VOROracle \
-//		  -X oracle/version.Binary=oracle \
-//		  -X oracle/version.Version=1.0.0 \
-//		  -X oracle/version.Commit=99bc26d7d155a8e4ddc5837f79648e27157750ac
+//  go build -X oracle-cli/version.Name=VOROracleCLI \
+//		  -X oracle-cli/version.Binary=oraclecli \
+//		  -X oracle-cli/version.Version=1.0.0 \
+//		  -X oracle-cli/version.Commit=99bc26d7d155a8e4ddc5837f79648e27157750ac
 import (
 	"fmt"
 	"runtime"
 )
 
 var (
-	Name = "VOR Oracle Server"
-	Binary = "oracle"
+	Name = "VOR Oracle CLI"
+	Binary = "oraclecli"
 	Version = "0.0.1"
 	Commit = ""
 )

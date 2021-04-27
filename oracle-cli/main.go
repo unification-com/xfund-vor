@@ -16,22 +16,11 @@ limitations under the License.
 package main
 
 import (
-	"fmt"
-	"github.com/mitchellh/go-homedir"
 	"oraclecli/cmd"
-	"oraclecli/utils"
-	"path/filepath"
 )
 
+var configPath string
+
 func main() {
-	homepath, err := homedir.Dir()
-	if err != nil {
-		fmt.Println(err)
-	}
-	settings, err := utils.NewSettingsStore(filepath.Join(homepath, ".oracle-cli_settings.json"))
-	if err != nil {
-		fmt.Println(err)
-	}
-	utils.Settings = settings
 	cmd.Execute()
 }

@@ -70,7 +70,7 @@ func NewMockERC20Caller(contractStringAddress string, ethHostAddress string, cha
 	}
 	transactOpts.Nonce = big.NewInt(int64(nonce))
 	transactOpts.GasPrice = gasPrice
-	transactOpts.GasLimit = uint64(config.Conf.LimitGasPrice) // in units
+	transactOpts.GasLimit = uint64(config.Conf.GasLimit) // in units
 	//transactOpts.Value = big.NewInt(1000000000000000000)
 	//transactOpts.Value.Mul(transactOpts.Value, big.NewInt(10))
 	transactOpts.Context = context.Background()
@@ -100,7 +100,7 @@ func (d *MockERC20Caller) RenewTransactOpts() (err error) {
 	}
 	d.transactOpts.Nonce = big.NewInt(int64(nonce))
 	d.transactOpts.GasPrice = gasPrice
-	d.transactOpts.GasLimit = uint64(config.Conf.LimitGasPrice) // in units
+	d.transactOpts.GasLimit = uint64(config.Conf.GasLimit) // in units
 
 	return
 }

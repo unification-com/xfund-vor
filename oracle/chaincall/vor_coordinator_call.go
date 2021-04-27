@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/params"
 	"log"
 	"math/big"
 	"oracle/config"
@@ -65,18 +66,15 @@ func NewVORCoordinatorCaller(contractStringAddress string, ethHostAddress string
 		return nil, err
 	}
 
-	gasPrice, err := client.SuggestGasPrice(ctx)
-	if err != nil {
-		return nil, err
-	}
 	nonce, err := client.PendingNonceAt(ctx, common.HexToAddress(oracleAddress))
 	if err != nil {
 		return nil, err
 	}
 	transactOpts.Nonce = big.NewInt(int64(nonce))
 	transactOpts.Value = big.NewInt(0)
-	transactOpts.GasPrice = gasPrice
-	transactOpts.GasLimit = uint64(config.Conf.LimitGasPrice) // in units
+
+	transactOpts.GasPrice = nil
+	transactOpts.GasLimit = uint64(config.Conf.GasLimit) // in units
 	transactOpts.Context = ctx
 
 	callOpts := &bind.CallOpts{From: common.HexToAddress(oracleAddress), Context: ctx}
@@ -100,8 +98,23 @@ func (d *VORCoordinatorCaller) RenewTransactOpts() (err error) {
 	if err != nil {
 		return
 	}
+
 	d.transactOpts.Nonce = big.NewInt(int64(nonce))
 
+	gasPrice, err := d.client.SuggestGasPrice(d.context)
+	if err != nil {
+		return
+	}
+	d.transactOpts.GasPrice = gasPrice
+
+	if config.Conf.MaxGasPrice > 0 {
+
+		maxGasPrice := big.NewInt(0).Mul(big.NewInt(config.Conf.MaxGasPrice), big.NewInt(params.GWei))
+		if gasPrice.Cmp(maxGasPrice) > 0 {
+			d.transactOpts.GasPrice = maxGasPrice
+		}
+	}
+	
 	return
 }
 

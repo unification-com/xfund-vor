@@ -76,7 +76,7 @@ func NewVORD20Caller(contractStringAddress string, ethHostAddress string, chainI
 	transactOpts.Nonce = big.NewInt(int64(nonce))
 	//transactOpts.Value = big.NewInt(1000000000000000000)
 	transactOpts.GasPrice = gasPrice
-	transactOpts.GasLimit = uint64(config.Conf.LimitGasPrice) // in units
+	transactOpts.GasLimit = uint64(config.Conf.GasLimit) // in units
 	transactOpts.Context = ctx
 	transactOpts.From = oracleAddressObj
 
