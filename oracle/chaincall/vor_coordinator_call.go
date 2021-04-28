@@ -178,3 +178,8 @@ func (d *VORCoordinatorCaller) QueryFees(consumer string) (*big.Int, error) {
 		return d.instance.GetProviderGranularFee(d.callOpts, keyHash, common.HexToAddress(consumer))
 	}
 }
+
+func (d *VORCoordinatorCaller) GetOracleEthBalance() (*big.Int, error) {
+	defer d.RenewTransactOpts()
+	return d.client.BalanceAt(d.context, common.HexToAddress(d.oracleAddress), nil)
+}
