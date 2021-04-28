@@ -57,3 +57,20 @@ type RequestResponse struct {
 	Requests []RandomnessRequestModel `json:"requests"`
 	Pages    Pages `json:"pagination"`
 }
+
+type AnalyticsResponse struct {
+	GasUsedMax           uint64
+	GasUsedMin           uint64
+	GasUsedMean          uint64
+	GasPriceMax          uint64
+	GasPriceMin          uint64
+	GasPriceMean         uint64
+	CostMaxEth           float64
+	CostMinEth           float64
+	CostMeanEth          float64
+	TotalCostEth         float64
+	TotalFeesEarnedXfund float64
+	TotalFeesEarnedEth   float64
+	ProfitLossEth        float64
+	NumberAnalysed       uint64
+}

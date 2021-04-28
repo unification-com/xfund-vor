@@ -111,3 +111,21 @@ func (d DB) GetLast() (database.RandomnessRequest, error) {
 	}
 	return request, err
 }
+
+func (d DB) GetLastXRequests(limit int) ([]database.RandomnessRequest, error) {
+	var requests = []database.RandomnessRequest{}
+	var err error
+
+	if limit > 0 {
+		err = d.Where("status = ?", database.REQUEST_STATUS_SUCCESS).Order(fmt.Sprintf("id %s", "desc")).Limit(limit).Find(&requests).Error
+	} else {
+		err = d.Where("status = ?", database.REQUEST_STATUS_SUCCESS).Order(fmt.Sprintf("id %s", "desc")).Find(&requests).Error
+	}
+    return requests, err
+}
+
+func (d DB) GetByStatus(status int) ([]database.RandomnessRequest, error) {
+	var requests = []database.RandomnessRequest{}
+	err := d.Where("status = ?", status).Order(fmt.Sprintf("id %s", "asc")).Find(&requests).Error
+	return requests, err
+}
