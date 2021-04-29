@@ -112,20 +112,49 @@ func (d DB) GetLast() (database.RandomnessRequest, error) {
 	return request, err
 }
 
-func (d DB) GetLastXRequests(limit int) ([]database.RandomnessRequest, error) {
+func (d DB) GetLastXRequests(limit int, consumer string) ([]database.RandomnessRequest, error) {
 	var requests = []database.RandomnessRequest{}
 	var err error
 
+	where := map[string]interface{}{"status": database.REQUEST_STATUS_SUCCESS}
+	if len(consumer) > 0 {
+		where = map[string]interface{}{"status": database.REQUEST_STATUS_SUCCESS, "sender": consumer}
+	}
+
 	if limit > 0 {
-		err = d.Where("status = ?", database.REQUEST_STATUS_SUCCESS).Order(fmt.Sprintf("id %s", "desc")).Limit(limit).Find(&requests).Error
+		err = d.Where(where).Order(fmt.Sprintf("id %s", "desc")).Limit(limit).Find(&requests).Error
 	} else {
-		err = d.Where("status = ?", database.REQUEST_STATUS_SUCCESS).Order(fmt.Sprintf("id %s", "desc")).Find(&requests).Error
+		err = d.Where(where).Order(fmt.Sprintf("id %s", "desc")).Find(&requests).Error
 	}
     return requests, err
+}
+
+func (d DB) GetMostGasUsed() (database.RandomnessRequest, error) {
+	request := database.RandomnessRequest{}
+	err := d.Order(fmt.Sprintf("fulfill_gas_used %s", "desc")).Limit(1).First(&request).Error
+	return request, err
+}
+
+func (d DB) GetLeastGasUsed() (database.RandomnessRequest, error) {
+	request := database.RandomnessRequest{}
+	err := d.Order(fmt.Sprintf("fulfill_gas_used %s", "asc")).Limit(1).First(&request).Error
+	return request, err
 }
 
 func (d DB) GetByStatus(status int) ([]database.RandomnessRequest, error) {
 	var requests = []database.RandomnessRequest{}
 	err := d.Where("status = ?", status).Order(fmt.Sprintf("id %s", "asc")).Find(&requests).Error
+	return requests, err
+}
+
+func (d DB) GetDistinctConsumers(consumer string) ([]database.RandomnessRequest, error) {
+	var requests = []database.RandomnessRequest{}
+	var err error
+
+	if len(consumer) > 0 {
+		err = d.Distinct("sender").Where("sender = ?", consumer).Order("sender desc").Find(&requests).Error
+	} else {
+		err = d.Distinct("sender").Order("sender desc").Find(&requests).Error
+	}
 	return requests, err
 }

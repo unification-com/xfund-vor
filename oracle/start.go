@@ -129,6 +129,7 @@ func start() (err error) {
 	e.GET("/querywithdrawable", oracleController.QueryWithdrawableTokens)
 	e.GET("/requests", oracleController.QueryRequests)
 	e.GET("/analytics", oracleController.Analytics)
+	e.GET("/consumers", oracleController.Consumers)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", config.Conf.Serve.Host, config.Conf.Serve.Port)))
 
