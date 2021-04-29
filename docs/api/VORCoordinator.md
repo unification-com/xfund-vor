@@ -35,13 +35,24 @@ No description
 ### Function `getProviderAddress(bytes32 _keyHash) external  -> address`
 getProviderAddress - get provider address
 
+#### Parameters:
+- `_keyHash`: ID of the VOR public key
+
 <a name="VORCoordinator-getProviderFee-bytes32-"></a>
 ### Function `getProviderFee(bytes32 _keyHash) external  -> uint96`
 getProviderFee - get provider's base fee
 
+#### Parameters:
+- `_keyHash`: ID of the VOR public key
+
 <a name="VORCoordinator-getProviderGranularFee-bytes32-address-"></a>
 ### Function `getProviderGranularFee(bytes32 _keyHash, address _consumer) external  -> uint96`
 getProviderGranularFee - get provider's granular fee for selected consumer
+
+#### Parameters:
+- `_keyHash`: ID of the VOR public key
+
+- `_consumer`: address of the consumer smart contract
 
 <a name="VORCoordinator-registerProvingKey-uint256-address-payable-uint256-2--"></a>
 ### Function `registerProvingKey(uint256 _fee, address payable _oracle, uint256[2] _publicProvingKey) external `

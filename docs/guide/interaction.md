@@ -59,6 +59,18 @@ for the Rinkeby address), using Metamask etc. Similarly, the amount
 should be sufficiently high, and the `spender` value should be the address 
 of the deployed DnD smart contract.
 
+### VORCoordinator.getProviderGranularFee
+
+It's good practice to check the current fees for your contract before requesting
+randomness. This can be done by calling the
+[getProviderGranularFee](../api/VORCoordinator.md#VORCoordinator-getProviderGranularFee-bytes32-address-) function in the
+`VORCoordinator` contract and passing it the `keyHash` of the provider Oracle you're
+requesting from, along with the address of your smart contract.
+
+The `getProviderGranularFee` function can be called on
+Etherscan (see [contracts](../contracts.md), or via a helper function in your own contract
+using the `IVORCoordinator` interface in the `ConsumerBase` library.
+
 ## Interact
 
 Now we have the boring stuff out of the way, we can actually run the game.
