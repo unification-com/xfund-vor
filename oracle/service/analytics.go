@@ -4,21 +4,65 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"math/big"
 	"oracle/models/api"
+	"oracle/models/database"
 )
 
-func (d *Service) Analytics(xFundEth, xFundUsd float64, limit int) (*api.AnalyticsResponse, error) {
+func (d *Service) Analytics(xFundEth, xFundUsd, fees float64, limit int, gasPrice int64, simulation int, consumer string) (interface{}, error) {
 
-	requests, err := d.Store.Db.GetLastXRequests(limit)
+	requests, err := d.Store.Db.GetLastXRequests(limit, consumer)
 
 	if err != nil {
-		return &api.AnalyticsResponse{}, err
+		return nil, err
 	}
 
 	if len(requests) == 0 {
-		return &api.AnalyticsResponse{}, nil
+		return nil, nil
 	}
 
-	numRows := uint64(len(requests))
+	mostGasUsedContract := ""
+	leastGasUSedContract := ""
+
+	mgu, err := d.Store.Db.GetMostGasUsed()
+	if err == nil {
+		mostGasUsedContract = mgu.Sender
+	}
+	lgu, err := d.Store.Db.GetLeastGasUsed()
+	if err == nil {
+		leastGasUSedContract = lgu.Sender
+	}
+
+	analyticsData := process(requests, xFundEth, xFundUsd, fees, gasPrice, simulation)
+
+	if len(consumer) == 0 {
+		analyticsData.MostGasUsedConsumer = mostGasUsedContract
+		analyticsData.LeastGasUsedConsumer = leastGasUSedContract
+	}
+
+	filters := api.AnalyticsFilter{
+		ConsumerContract: consumer,
+		Limit: limit,
+	}
+
+	if simulation == 1 {
+		return &api.AnalyticsSimResponse{
+			AnalyticsData: analyticsData,
+			Filters: filters,
+			SimValues: api.SimValues{
+				IfFees: fees,
+				IfGas: uint64(gasPrice),
+			},
+		}, nil
+	} else {
+		return &api.AnalyticsResponse{
+			AnalyticsData: analyticsData,
+			Filters: filters,
+		}, nil
+	}
+}
+
+func process(rows []database.RandomnessRequest, xFundEth, xFundUsd, fees float64, gasPrice int64, simulation int) api.AnalyticsData {
+
+	numRows := uint64(len(rows))
 
 	gasMin := big.NewInt(0)
 	gasMax := big.NewInt(0)
@@ -37,7 +81,7 @@ func (d *Service) Analytics(xFundEth, xFundUsd float64, limit int) (*api.Analyti
 
 	totalFees := big.NewFloat(0)
 
-	for _, reqRow := range requests {
+	for _, reqRow := range rows {
 
 		gasVal := int64(reqRow.FulfillGasUsed)
 		// gas
@@ -53,6 +97,11 @@ func (d *Service) Analytics(xFundEth, xFundUsd float64, limit int) (*api.Analyti
 
 		// gas prices
 		gasPriceVal := int64(reqRow.FulfillGasPrice)
+
+		// check for simulating gas prices
+		if simulation == 1 {
+			gasPriceVal = gasPrice * 1e9
+		}
 		if gasPriceMin.Cmp(big.NewInt(0)) == 0 || gasPriceMin.Cmp(big.NewInt(gasPriceVal)) > 0 {
 			gasPriceMin = big.NewInt(gasPriceVal)
 		}
@@ -77,7 +126,11 @@ func (d *Service) Analytics(xFundEth, xFundUsd float64, limit int) (*api.Analyti
 		costSum = big.NewFloat(0).Add(costSum, cost)
 
 		// fees
-		totalFees = big.NewFloat(0).Add(totalFees, new(big.Float).SetUint64(reqRow.Fee))
+		reqFee := reqRow.Fee
+		if simulation == 1 {
+			reqFee = uint64(fees * 1e9)
+		}
+		totalFees = big.NewFloat(0).Add(totalFees, new(big.Float).SetUint64(reqFee))
 	}
 
 	// gas
@@ -117,23 +170,29 @@ func (d *Service) Analytics(xFundEth, xFundUsd float64, limit int) (*api.Analyti
 	profitLoss := new(big.Float).Sub(totalFeesEth, totalCostEth)
 	profitLossFloat64, _ := profitLoss.Float64()
 
-	analytics := &api.AnalyticsResponse{
-		GasUsedMin:           gasMin.Uint64(),
-		GasUsedMax:           gasMax.Uint64(),
-		GasUsedMean:          gasMeanUint64,
-		GasPriceMin:          gasPriceMinGweiUint64,
-		GasPriceMax:          gasPriceMaxGweiUint64,
-		GasPriceMean:         gasPriceMeanGweiUint64,
-		CostMinEth:           cMin,
-		CostMaxEth:           cMax,
-		CostMeanEth:          cMean,
-		TotalCostEth:         tCost,
-		TotalFeesEarnedXfund: totalFeesXfund,
-		TotalFeesEarnedEth:   totalFeesEthFloat64,
-		ProfitLossEth:        profitLossFloat64,
+	return api.AnalyticsData{
+		GasUsed: api.IntStats{
+			Min: gasMin.Uint64(),
+			Max: gasMax.Uint64(),
+			Mean: gasMeanUint64,
+		},
+		GasPrice: api.IntStats{
+			Min: gasPriceMinGweiUint64,
+			Max: gasPriceMaxGweiUint64,
+			Mean: gasPriceMeanGweiUint64,
+		},
+		EthCosts: api.FloatStats{
+			Min: cMin,
+			Max: cMax,
+			Mean: cMean,
+		},
+		Earnings: api.EarningsStats{
+			CurrentXfundPriceEth: xFundEth,
+			TotalFeesEarnedXfund: totalFeesXfund,
+			TotalFeesEarnedEth:   totalFeesEthFloat64,
+			TotalCostsEth:        tCost,
+			ProfitLossEth:        profitLossFloat64,
+		},
 		NumberAnalysed:       numRows,
 	}
-
-	return analytics, nil
-
 }
