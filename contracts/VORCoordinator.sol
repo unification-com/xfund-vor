@@ -82,6 +82,7 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
 
     /**
      * @dev getProviderAddress - get provider address
+     * @param _keyHash ID of the VOR public key
      * @return address
      */
     function getProviderAddress(bytes32 _keyHash) external view returns (address) {
@@ -90,7 +91,8 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
 
     /**
      * @dev getProviderFee - get provider's base fee
-     * @return address
+     * @param _keyHash ID of the VOR public key
+     * @return uint96
      */
     function getProviderFee(bytes32 _keyHash) external view returns (uint96) {
         return serviceAgreements[_keyHash].fee;
@@ -98,7 +100,9 @@ contract VORCoordinator is Ownable, ReentrancyGuard, VOR, VORRequestIDBase {
 
     /**
      * @dev getProviderGranularFee - get provider's granular fee for selected consumer
-     * @return address
+     * @param _keyHash ID of the VOR public key
+     * @param _consumer address of the consumer smart contract
+     * @return uint96
      */
     function getProviderGranularFee(bytes32 _keyHash, address _consumer) external view returns (uint96) {
         if(serviceAgreements[_keyHash].granularFees[_consumer] > 0) {
