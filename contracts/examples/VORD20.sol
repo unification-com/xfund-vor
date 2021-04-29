@@ -3,6 +3,7 @@ pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "../interfaces/IVORCoordinator.sol";
 import "../VORConsumerBase.sol";
 
 /**
@@ -116,6 +117,15 @@ contract VORD20 is Ownable, VORConsumerBase {
      */
     function getVORCoordinator() external view returns (address) {
         return vorCoordinator;
+    }
+
+    /**
+     * @notice returns the current fee from the VORCoordinator for this contract address
+     * and provider combo.
+     * @return fee uint96
+     */
+    function getMyFeeFromVORCoordinator() external view returns (uint96) {
+        return IVORCoordinator(vorCoordinator).getProviderGranularFee(_sKeyHash, address(this));
     }
 
     /**
