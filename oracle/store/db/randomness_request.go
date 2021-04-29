@@ -131,13 +131,13 @@ func (d DB) GetLastXRequests(limit int, consumer string) ([]database.RandomnessR
 
 func (d DB) GetMostGasUsed() (database.RandomnessRequest, error) {
 	request := database.RandomnessRequest{}
-	err := d.Order(fmt.Sprintf("fulfill_gas_used %s", "desc")).Limit(1).First(&request).Error
+	err := d.Where("status = ?", database.REQUEST_STATUS_SUCCESS).Order(fmt.Sprintf("fulfill_gas_used %s", "desc")).Limit(1).First(&request).Error
 	return request, err
 }
 
 func (d DB) GetLeastGasUsed() (database.RandomnessRequest, error) {
 	request := database.RandomnessRequest{}
-	err := d.Order(fmt.Sprintf("fulfill_gas_used %s", "asc")).Limit(1).First(&request).Error
+	err := d.Where("status = ?", database.REQUEST_STATUS_SUCCESS).Order(fmt.Sprintf("fulfill_gas_used %s", "asc")).Limit(1).First(&request).Error
 	return request, err
 }
 
