@@ -20,10 +20,17 @@ type CoinGeckoResponse struct {
 	Xfund Prices `json:"xfund"`
 }
 
+var (
+	ifGas    uint
+	ifFees   float64
+	consumer string
+)
+
+
 // aboutCmd represents the about command
 var analyticsCmd = &cobra.Command{
 	Use:   "analytics [num_to_analyse]",
-	Short: "Basic analytics",
+	Short: "Basic analytics summary",
 	Long:  `
 Run some basic analytics to return gas, gas price, costs and fee statistics.
 Pass the number of successful requests you want to analyse, for example 100
@@ -32,6 +39,7 @@ to analyse the last 100 successful fulfillments.
 Example:
 
 oraclecli analytics 100
+oraclecli analytics 1000
 `,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
@@ -53,9 +61,10 @@ oraclecli analytics 100
 
 		numToAnalyse, _ := strconv.Atoi(args[0])
 
-		cgPrices := getXfundPrice()
+		cgPrices := GetXfundPrice()
 
-		url := fmt.Sprintf("%s/analytics?eth=%f&usd=%f&limit=%d", utils.OracleAddress(), cgPrices.Xfund.Eth, cgPrices.Xfund.Usd, numToAnalyse)
+		url := fmt.Sprintf("%s/analytics?eth=%f&usd=%f&limit=%d&gasprice=0&fees=0&consumer=&sim=0",
+			utils.OracleAddress(), cgPrices.Xfund.Eth, cgPrices.Xfund.Usd, numToAnalyse)
 
 		client := &http.Client{}
 		// Create a Bearer string by appending string access token
@@ -77,7 +86,7 @@ oraclecli analytics 100
 	},
 }
 
-func getXfundPrice() *CoinGeckoResponse {
+func GetXfundPrice() *CoinGeckoResponse {
 	client := &http.Client{}
 	cgUrl := "https://api.coingecko.com/api/v3/simple/price?ids=xfund&vs_currencies=eth%2Cusd"
 	req, err := http.NewRequest("GET", cgUrl, nil)

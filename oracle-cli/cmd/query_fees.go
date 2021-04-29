@@ -19,14 +19,14 @@ var queryfeesCmd = &cobra.Command{
 	Long:  `Returns your current fee. Optionally pass a consumer contract address for granular fees`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		consumer := ""
+		c := ""
 		if len(args) > 0 {
-			consumer = args[0]
-			fmt.Println("Consumer contract:", consumer)
+			c = args[0]
+			fmt.Println("Consumer contract:", c)
 		}
 
 		requestStruct := models.OracleQueryFeesModel{
-			Consumer: consumer,
+			Consumer: c,
 		}
 		requestJSON, err := json.Marshal(requestStruct)
 		if err != nil {

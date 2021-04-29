@@ -34,10 +34,10 @@ var changeGranularFeeCmd = &cobra.Command{
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		amount, err := GetFee()
-		consumer, err := GetConsumerContractAddress()
+		c, err := GetConsumerContractAddress()
 		requestStruct := models.OracleChangeGranularFeeRequestModel{
 			Amount: amount,
-			Consumer: consumer,
+			Consumer: c,
 		}
 		requestJSON, err := json.Marshal(requestStruct)
 		if err != nil {
