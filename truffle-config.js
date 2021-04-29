@@ -44,7 +44,7 @@ module.exports = {
                     providerOrUrl: `https://mainnet.infura.io/v3/${INFURA_PROJECT_ID_MAINNET}`,
                 }),
             network_id: "1",
-            gasPrice: 120000000000, // 120e9 = 120 gwei
+            gasPrice: 40000000000,
         },
     },
     plugins: ["truffle-plugin-verify", "solidity-coverage", "@chainsafe/truffle-plugin-abigen"],
