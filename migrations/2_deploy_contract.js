@@ -29,9 +29,10 @@ module.exports = function (deployer, network) {
             });
             break
         case "mainnet":
+        case "mainnet-fork":
             deployer.then(async () => {
-                const block = await deployer.deploy(BlockhashStore);
-                await deployer.deploy(VORCoordinator, "0x892A6f9dF0147e5f079b0993F486F9acA3c87881", block.address);
+                // const block = await deployer.deploy(BlockhashStore);
+                await deployer.deploy(VORCoordinator, "0x892A6f9dF0147e5f079b0993F486F9acA3c87881", "0x540FCdd99F4EC8cDac1345D152857B1B20e4d5f6");
             });
             break
     }
