@@ -5,7 +5,7 @@ Addresses for the currently deployed contracts, required for interaction and int
 ## Mainnet
 
 **xFUND Token**: [`0x892A6f9dF0147e5f079b0993F486F9acA3c87881`](https://etherscan.io/address/0x892A6f9dF0147e5f079b0993F486F9acA3c87881#code)  
-**VORCoordinator**: TBD  
+**VORCoordinator**: [`0xCeB679DE692660dD701837c25a4181492050ED8F`](https://etherscan.io/address/0xCeB679DE692660dD701837c25a4181492050ED8F#code)  
 
 ## Testnet (Rinkeby)
 
