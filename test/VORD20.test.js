@@ -6,10 +6,11 @@ const { expect } = chai;
 
 const MockERC20 = artifacts.require('MockERC20');
 const VORD20 = artifacts.require('VORD20');
-const VORCoordinator = artifacts.require('VORCoordinatorMock');
+const VORCoordinatorMock = artifacts.require('VORCoordinatorMock');
+const VORCoordinator = artifacts.require('VORCoordinator');
 const BlockhashStore = artifacts.require('BlockhashStore');
 
-contract('VORD20', ([owner, alice, dummy]) => {
+contract('VORD20', ([owner, alice, dummy, oracle]) => {
     beforeEach(async () => {
         this.fee = web3.utils.toWei('0.1', 'ether');
         this.keyHash = web3.utils.fromAscii('keyHash');
@@ -19,7 +20,7 @@ contract('VORD20', ([owner, alice, dummy]) => {
 
         this.xFund = await MockERC20.new('xFUND', 'xFUND', web3.utils.toWei('1000000000', 'ether'), { from: owner });
         this.blockhashStore = await BlockhashStore.new({ from: owner });
-        this.vorCoordinator = await VORCoordinator.new({ from: owner });
+        this.vorCoordinator = await VORCoordinatorMock.new({ from: owner });
         this.vorD20 = await VORD20.new(this.vorCoordinator.address, this.xFund.address, this.keyHash, this.fee, { from: owner });
 
         await this.xFund.transfer(this.vorD20.address, this.deposit, { from: owner });
@@ -131,6 +132,28 @@ contract('VORD20', ([owner, alice, dummy]) => {
         });
     });
 
+    describe('#getMyFeeFromVORCoordinator', () => {
+        describe('success', () => {
+            it('returns the correct fee', async () => {
+                const vorCoordinator = await VORCoordinator.new(this.xFund.address, this.blockhashStore.address, { from: owner });
+                const publicProvingKey = [new BN('0'), new BN('0')];
+                const keyHash = await vorCoordinator.hashOfKey(publicProvingKey);
+                const vorD20 = await VORD20.new(vorCoordinator.address, this.xFund.address, keyHash, this.fee, { from: owner });
+
+                await vorCoordinator.registerProvingKey(this.fee, oracle, publicProvingKey);
+
+                const feeBefore = await vorD20.getMyFeeFromVORCoordinator();
+                expect(feeBefore).to.be.bignumber.equal(new BN(this.fee));
+
+                const newFee = web3.utils.toWei('0.2', 'ether');
+                await vorCoordinator.changeGranularFee(publicProvingKey, newFee, vorD20.address, { from: oracle });
+
+                const feeAfter = await vorD20.getMyFeeFromVORCoordinator();
+                expect(feeAfter).to.be.bignumber.equal(new BN(newFee));
+            });
+        });
+    });
+
     describe('#rollDice', () => {
         describe('failure', () => {
             it('reverts when xFUND balance is zero', async () => {
@@ -155,4 +178,5 @@ contract('VORD20', ([owner, alice, dummy]) => {
             });
         });
     });
+
 });
