@@ -137,7 +137,8 @@ The config options are as follows:
 - `keystore.account` - account name used to identify the private key. Set on 
   first run.
 - `gas_limit` - gas units limit for fulfilling a request. Default `500000`
-- `max_gas_price` - max gas price in gwei you are willing to pay to fulfil a request. Default `150`
+- `max_gas_price` - max gas price in gwei you are willing to pay to fulfil a request. 
+  Gas price is estimated with each fulfillment Tx, but will be capped at this value. Default `150`
 - `database.dialect` - `postgres` or `sqlite`. Default `sqlite`
 - `database.storage` - (`sqlite` only) - path to the DB file. It will be created on the oracle's first
   run if one does not exist. Default `./oracle.db`
@@ -424,4 +425,48 @@ Output `oraclecli`'s version information
 
 ```bash
 oraclecli version
+```
+
+### analytics
+
+Run some basic analytics to return gas, gas price, costs and fee statistics.
+Pass the number of successful requests you want to analyse, for example 100
+to analyse the last 100 successful fulfillments.
+
+```bash
+oraclecli analytics 100
+oraclecli analytics 1000
+```
+
+### analytics sim
+
+Pass simulation values for gas price and fees using the `--if-gas` and `--if-fees`
+flags respectively. These will be applied to the analytics results in place of
+the real values to see what costs/fees would be like with these simulated values.
+
+use the `[num_to_analyse]` arg to limit the number of requests to analyse.
+
+The `--consumer` flag can be used to filter a single consumer contract, which can help
+set granular fees for individual consumers.
+
+Example:
+
+```bash
+oraclecli analytics sim 1000 -g 150 -f 0.05
+oraclecli analytics sim 200 --if-gas=150 --if-fees=0.1
+oraclecli analytics sim 200 --if-gas=100 --if-fees=0.05 --consumer=0x232AbC...
+```
+
+### analytics consumers
+
+Run some analytics to return gas, gas price, costs and fee statistics
+for all contracts served. Results are grouped by each consumer contract.
+
+Optional [consumer_address] can be passed to filter by that address
+
+Example:
+
+```bash
+oraclecli analytics consumers
+oraclecli analytics consumers 0x1234AbcD...
 ```
