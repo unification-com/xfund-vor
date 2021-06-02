@@ -119,7 +119,6 @@ func (d *VORCoordinatorCaller) RenewTransactOpts() (err error) {
 }
 
 func (d *VORCoordinatorCaller) HashOfKey() ([32]byte, error) {
-	defer d.RenewTransactOpts()
 	return d.instance.HashOfKey(d.callOpts, d.publicProvingKey)
 }
 
@@ -132,45 +131,61 @@ func (d *VORCoordinatorCaller) HashOfKey() ([32]byte, error) {
 //}
 
 func (d *VORCoordinatorCaller) Withdraw(recipientAddress string, amount *big.Int) (*types.Transaction, error) {
-	defer d.RenewTransactOpts()
+	err := d.RenewTransactOpts()
+	if err != nil {
+		return nil, err
+	}
 	recipientAddr := common.HexToAddress(recipientAddress)
 	return d.instance.Withdraw(d.transactOpts, recipientAddr, amount)
 }
 
 func (d *VORCoordinatorCaller) RegisterProvingKey(fee *big.Int) (*types.Transaction, error) {
-	defer d.RenewTransactOpts()
+	err := d.RenewTransactOpts()
+	if err != nil {
+		return nil, err
+	}
 	transaction, err := d.instance.RegisterProvingKey(d.transactOpts, fee, common.HexToAddress(d.oracleAddress), d.publicProvingKey)
 	return transaction, err
 }
 
 func (d *VORCoordinatorCaller) RandomnessRequest(keyHash [32]byte, consumerSeed *big.Int, feePaid *big.Int) (*types.Transaction, error) {
-	defer d.RenewTransactOpts()
+	err := d.RenewTransactOpts()
+	if err != nil {
+		return nil, err
+	}
 	transaction, err := d.instance.RandomnessRequest(d.transactOpts, keyHash, consumerSeed, feePaid)
 	return transaction, err
 }
 
 func (d *VORCoordinatorCaller) ChangeFee(fee *big.Int) (*types.Transaction, error) {
-	defer d.RenewTransactOpts()
+	err := d.RenewTransactOpts()
+	if err != nil {
+		return nil, err
+	}
 	return d.instance.ChangeFee(d.transactOpts, d.publicProvingKey, fee)
 }
 
 func (d *VORCoordinatorCaller) ChangeGranularFee(_consumer common.Address, fee *big.Int) (*types.Transaction, error) {
-	defer d.RenewTransactOpts()
+	err := d.RenewTransactOpts()
+	if err != nil {
+		return nil, err
+	}
 	return d.instance.ChangeGranularFee(d.transactOpts, d.publicProvingKey, fee, _consumer)
 }
 
 func (d *VORCoordinatorCaller) FulfillRandomnessRequest(proof []byte) (*types.Transaction, error) {
-	defer d.RenewTransactOpts()
+	err := d.RenewTransactOpts()
+	if err != nil {
+		return nil, err
+	}
 	return d.instance.FulfillRandomnessRequest(d.transactOpts, proof)
 }
 
 func (d *VORCoordinatorCaller) QueryWithdrawableTokens() (*big.Int, error) {
-	defer d.RenewTransactOpts()
 	return d.instance.WithdrawableTokens(d.callOpts, common.HexToAddress(d.oracleAddress))
 }
 
 func (d *VORCoordinatorCaller) QueryFees(consumer string) (*big.Int, error) {
-	defer d.RenewTransactOpts()
 	keyHash, _ := d.HashOfKey()
 	if consumer == "" {
 		return d.instance.GetProviderFee(d.callOpts, keyHash)
@@ -180,6 +195,5 @@ func (d *VORCoordinatorCaller) QueryFees(consumer string) (*big.Int, error) {
 }
 
 func (d *VORCoordinatorCaller) GetOracleEthBalance() (*big.Int, error) {
-	defer d.RenewTransactOpts()
 	return d.client.BalanceAt(d.context, common.HexToAddress(d.oracleAddress), nil)
 }
