@@ -135,6 +135,7 @@ func (d *VORCoordinatorCaller) Withdraw(recipientAddress string, amount *big.Int
 	if err != nil {
 		return nil, err
 	}
+	defer d.RenewTransactOpts()
 	recipientAddr := common.HexToAddress(recipientAddress)
 	return d.instance.Withdraw(d.transactOpts, recipientAddr, amount)
 }
@@ -144,6 +145,7 @@ func (d *VORCoordinatorCaller) RegisterProvingKey(fee *big.Int) (*types.Transact
 	if err != nil {
 		return nil, err
 	}
+	defer d.RenewTransactOpts()
 	transaction, err := d.instance.RegisterProvingKey(d.transactOpts, fee, common.HexToAddress(d.oracleAddress), d.publicProvingKey)
 	return transaction, err
 }
@@ -153,6 +155,7 @@ func (d *VORCoordinatorCaller) RandomnessRequest(keyHash [32]byte, consumerSeed 
 	if err != nil {
 		return nil, err
 	}
+	defer d.RenewTransactOpts()
 	transaction, err := d.instance.RandomnessRequest(d.transactOpts, keyHash, consumerSeed, feePaid)
 	return transaction, err
 }
@@ -162,6 +165,7 @@ func (d *VORCoordinatorCaller) ChangeFee(fee *big.Int) (*types.Transaction, erro
 	if err != nil {
 		return nil, err
 	}
+	defer d.RenewTransactOpts()
 	return d.instance.ChangeFee(d.transactOpts, d.publicProvingKey, fee)
 }
 
@@ -170,6 +174,7 @@ func (d *VORCoordinatorCaller) ChangeGranularFee(_consumer common.Address, fee *
 	if err != nil {
 		return nil, err
 	}
+	defer d.RenewTransactOpts()
 	return d.instance.ChangeGranularFee(d.transactOpts, d.publicProvingKey, fee, _consumer)
 }
 
@@ -178,6 +183,7 @@ func (d *VORCoordinatorCaller) FulfillRandomnessRequest(proof []byte) (*types.Tr
 	if err != nil {
 		return nil, err
 	}
+	defer d.RenewTransactOpts()
 	return d.instance.FulfillRandomnessRequest(d.transactOpts, proof)
 }
 
