@@ -1,4 +1,5 @@
-[![npm version](http://img.shields.io/npm/v/@unification-com/xfund-vor.svg?style=flat)](https://npmjs.org/package/@unification-com/xfund-vor "View this project on npm")
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/unification-com/xfund-vor?label=oracle%20version)](https://github.com/unification-com/xfund-vor/releases/latest)
+[![npm](https://img.shields.io/npm/v/@unification-com/xfund-vor?label=smart%20contract%20version%20%28npm%29)](https://www.npmjs.com/package/@unification-com/xfund-vor)
 ![sc unit tests](https://github.com/unification-com/xfund-vor/actions/workflows/test-contracts.yml/badge.svg)
 
 # Verified Open Randomness
