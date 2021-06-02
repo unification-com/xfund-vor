@@ -40,7 +40,9 @@ install-oracle-cli:
 
 install: install-oracle install-oracle-cli
 
-# Create a new release on Github, then run this target to generate archive & checksum for upload
+# 1. Create a new release tag on Github, e.g. v0.1.5
+# 2. 'git checkout main && git pull' to get tag in local repo
+# 3. run this target to generate archive & checksum for upload
 build-release: build
 	rm -rf "dist/vor-oracle_v${VERSION}"
 	mkdir -p "dist/vor-oracle_v${VERSION}"
