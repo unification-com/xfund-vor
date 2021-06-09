@@ -67,7 +67,11 @@ npx truffle compile
 
 ### Dev Environment
 
-A complete Dockerised development environment is available, and can be run using:
+A complete Dockerised development environment is available, which is useful for both
+contributing to the development of VOR and when developing your own VOR-enabled smart
+contracts.
+
+The development environment can be run using:
 
 ```bash
 make dev-env
@@ -82,7 +86,7 @@ docker run -it -p 8545:8545 -p 8445:8445 vor_dev_env
 
 The environment will:
 
-1. Spawn a deterministic `ganach-cli` development chain
+1. Spawn a deterministic `ganach-cli` development chain with 20 accounts funded with 100 ETH
 2. Compile and deploy the necessary VOR smart contracts
 3. Initialise the test accounts, send test tokens and register the Oracle's proving key
 4. Run the `oracle` application
@@ -95,6 +99,9 @@ tool.
 
 #### Dev environment configuration
 
+- Ganache CLI wallet mnemonic: `myth like bonus scare over problem client lizard pioneer submit female collect`
+- Ganache CLI URL: `http://127.0.0.1:8545`
+- Ganache CLI Network ID: `696969`
 - VORCoordinator Contract address: `0xCfEB869F69431e42cdB54A4F4f105C19C080A601`
 - BlockHashStore contract address: `0x5b1869D9A4C187F2EAa108f3062412ecf0526b24`
 - VOR Oracle Wallet Address: `0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0`
@@ -109,21 +116,14 @@ You will need to build the tool:
 make build-oracle-cli
 ```
 
-and save the following to `$HOME/.oracle-cli_settings_dev_env.json`:
-
-```json
-{
-  "oracle_host": "127.0.0.1",
-  "oracle_port": "8445",
-  "oracle_key": "0pear3uoznba36fwzoaspwrvc164bkjd"
-}
-```
-
 The `oracle-cli` commands should now be available when the dev environment is running, for example:
 
 ```bash
-./oracle-cli/build/oraclecli about -c $HOME/.oracle-cli_settings_dev_env.json
+./oracle-cli/build/oraclecli about -c ./docker/assets/oracle-cli_settings.json
 ```
+
+**Note**: you will need to pass the `-c ./docker/assets/oracle-cli_settings.json` flag
+with each command in order to use the correct connection settings.
 
 ### Unit Testing
 
