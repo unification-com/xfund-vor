@@ -1,0 +1,29 @@
+{
+  "contract_address": "0xCfEB869F69431e42cdB54A4F4f105C19C080A601",
+  "blockhash_store_Address": "0x5b1869D9A4C187F2EAa108f3062412ecf0526b24",
+  "eth_http_host": "http://127.0.0.1:8545",
+  "eth_ws_host": "http://127.0.0.1:8545",
+  "network_id": 696969,
+  "serve": {
+    "host": "0.0.0.0",
+    "port": 8445
+  },
+  "first_block": 1,
+  "keystorage": {
+    "file": "./keystore.json",
+    "account": "oracle"
+  },
+  "gas_limit": 500000,
+  "max_gas_price": 150,
+  "check_duration": 2,
+  "database": {
+    "dialect": "sqlite",
+    "storage": "./vor_oracle.db",
+    "host": "localhost",
+    "port": 5432,
+    "user": "vor",
+    "password": "vor",
+    "database": "vor"
+  }
+}
+
