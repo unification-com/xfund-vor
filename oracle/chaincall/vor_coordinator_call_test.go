@@ -39,8 +39,8 @@ func Init(configAddress string, pass string) (err error) {
 	return err
 }
 
-func VORCoordinatorCallerTestValues() (string, string, *big.Int, []byte) {
-	return Config.VORCoordinatorContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetByUsername(Config.Keystorage.Account).Private)
+func VORCoordinatorCallerTestValues() (string, string, string, *big.Int, []byte) {
+	return Config.VORCoordinatorContractAddress, Config.BlockHashStoreContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetByUsername(Config.Keystorage.Account).Private)
 }
 
 func MockERC20CallerTestValues() (string, string, *big.Int, []byte) {
