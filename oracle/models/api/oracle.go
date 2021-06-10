@@ -11,9 +11,9 @@ type OracleWithdrawRequestModel struct {
 }
 
 type OracleRegisterRequestModel struct {
-	AccountName     string `json:"account_name"`
-	PrivateKey      string `json:"private_key"`
-	Fee             int64  `json:"fee"`
+	AccountName string `json:"account_name"`
+	PrivateKey  string `json:"private_key"`
+	Fee         int64  `json:"fee"`
 }
 
 type OracleChangeFeeRequestModel struct {
@@ -67,5 +67,5 @@ type Pages struct {
 }
 type RequestResponse struct {
 	Requests []RandomnessRequestModel `json:"requests"`
-	Pages    Pages `json:"pagination"`
+	Pages    Pages                    `json:"pagination"`
 }

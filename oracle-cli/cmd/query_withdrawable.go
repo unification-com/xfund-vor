@@ -41,4 +41,3 @@ var querywithdrawableCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(querywithdrawableCmd)
 }
-

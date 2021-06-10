@@ -23,7 +23,7 @@ func NewService(ctx context.Context, store *store.Store) (*Service, error) {
 		config.Conf.EthHTTPHost,
 		big.NewInt(config.Conf.NetworkID),
 		[]byte(store.Keystorage.GetSelectedPrivateKey()),
-		)
+	)
 	if err != nil {
 		return nil, err
 	}

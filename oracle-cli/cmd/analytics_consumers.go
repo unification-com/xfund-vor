@@ -12,7 +12,7 @@ import (
 var analyticsConsumersCmd = &cobra.Command{
 	Use:   "consumers [consumer_address]",
 	Short: "detailed consumer analytics",
-	Long:  `
+	Long: `
 Run some analytics to return gas, gas price, costs and fee statistics
 for all contracts served. Results are grouped by each consumer contract.
 

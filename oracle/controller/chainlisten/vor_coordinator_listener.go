@@ -70,7 +70,7 @@ func NewVORCoordinatorListener(contractHexAddress string, ethHostAddress string,
 		context: ctx,
 		keyHash: keyHash,
 		wg:      &sync.WaitGroup{},
-		logger: logger,
+		logger:  logger,
 	}, err
 }
 
@@ -78,9 +78,9 @@ func (d VORCoordinatorListener) StartPoll() (err error) {
 	d.wg.Add(1)
 
 	d.logger.WithFields(logrus.Fields{
-		"package":  "chainlisten",
-		"function": "StartPoll",
-		"action": "begin polling",
+		"package":    "chainlisten",
+		"function":   "StartPoll",
+		"action":     "begin polling",
 		"from_block": d.query.FromBlock.Uint64(),
 	}).Info()
 
@@ -126,8 +126,8 @@ func (d *VORCoordinatorListener) processStuckRequest(request *database.Randomnes
 		d.logger.WithFields(logrus.Fields{
 			"package":  "chainlisten",
 			"function": "processStuckRequest",
-			"action": "get fulfil tx",
-			"tx_hash": request.GetFulfillTxHash(),
+			"action":   "get fulfil tx",
+			"tx_hash":  request.GetFulfillTxHash(),
 		}).Error(err.Error())
 		return
 	}
@@ -139,8 +139,8 @@ func (d *VORCoordinatorListener) processStuckRequest(request *database.Randomnes
 		d.logger.WithFields(logrus.Fields{
 			"package":  "chainlisten",
 			"function": "processStuckRequest",
-			"action": "get fulfil tx",
-			"tx_hash": request.GetFulfillTxHash(),
+			"action":   "get fulfil tx",
+			"tx_hash":  request.GetFulfillTxHash(),
 		}).Info("tx still pending")
 		// todo - if block diff is high, store block hash in block hash store contract to be safe
 		return
@@ -164,8 +164,8 @@ func (d *VORCoordinatorListener) processStuckRequest(request *database.Randomnes
 			d.logger.WithFields(logrus.Fields{
 				"package":  "chainlisten",
 				"function": "processStuckRequest",
-				"action": "get fulfil tx receipt",
-				"tx_hash": request.GetFulfillTxHash(),
+				"action":   "get fulfil tx receipt",
+				"tx_hash":  request.GetFulfillTxHash(),
 			}).Error(err.Error())
 		}
 
@@ -195,7 +195,7 @@ func (d *VORCoordinatorListener) processStuckRequest(request *database.Randomnes
 			d.logger.WithFields(logrus.Fields{
 				"package":  "chainlisten",
 				"function": "processStuckRequest",
-				"action": "store blockhash in block store",
+				"action":   "store blockhash in block store",
 			}).Error(err.Error())
 		} else {
 			// add block store tx data to db table
@@ -213,20 +213,20 @@ func (d *VORCoordinatorListener) processStuckRequest(request *database.Randomnes
 
 	if err != nil {
 		d.logger.WithFields(logrus.Fields{
-			"package":  "chainlisten",
-			"function": "processStuckRequest",
-			"action": "retry fulfill request",
+			"package":    "chainlisten",
+			"function":   "processStuckRequest",
+			"action":     "retry fulfill request",
 			"request_id": request.GetRequestId(),
 		}).Error(err.Error())
 		// possibly failed due to gas too low, or nonce too low. Flag so we can try again later
 		_ = d.service.Store.Db.UpdateRequestStatus(request.GetRequestId(), database.REQUEST_STATUS_TX_FAILED, err.Error())
 	} else {
 		d.logger.WithFields(logrus.Fields{
-			"package":  "chainlisten",
-			"function": "processStuckRequest",
-			"action": "retry fulfill request",
+			"package":    "chainlisten",
+			"function":   "processStuckRequest",
+			"action":     "retry fulfill request",
 			"request_id": request.GetRequestId(),
-			"tx_hash": fTx.Hash().Hex(),
+			"tx_hash":    fTx.Hash().Hex(),
 		}).Info("fulfill tx sent")
 		_ = d.service.Store.Db.UpdateFulfilmentSent(request.GetRequestId(), database.REQUEST_STATUS_SENT, tx.Hash().Hex())
 	}
@@ -237,7 +237,7 @@ func (d *VORCoordinatorListener) CheckStuck() error {
 	d.logger.WithFields(logrus.Fields{
 		"package":  "chainlisten",
 		"function": "CheckStuck",
-		"action": "check stuck fulfilments",
+		"action":   "check stuck fulfilments",
 	}).Info()
 
 	currentBlockNum, err := d.client.BlockNumber(context.Background())
@@ -246,7 +246,7 @@ func (d *VORCoordinatorListener) CheckStuck() error {
 		d.logger.WithFields(logrus.Fields{
 			"package":  "chainlisten",
 			"function": "CheckStuck",
-			"action": "get block num",
+			"action":   "get block num",
 		}).Error(err.Error())
 		return err
 	}
@@ -258,7 +258,7 @@ func (d *VORCoordinatorListener) CheckStuck() error {
 		d.logger.WithFields(logrus.Fields{
 			"package":  "chainlisten",
 			"function": "CheckStuck",
-			"action": "get stuck or failed tx requests",
+			"action":   "get stuck or failed tx requests",
 		}).Error(err.Error())
 		return err
 	}
@@ -279,18 +279,18 @@ func (d *VORCoordinatorListener) Request() error {
 
 	if len(logs) == 0 {
 		d.logger.WithFields(logrus.Fields{
-			"package":  "chainlisten",
-			"function": "Request",
-			"action": "check events",
+			"package":    "chainlisten",
+			"function":   "Request",
+			"action":     "check events",
 			"from_block": d.query.FromBlock.Uint64(),
 		}).Info("no applicable logs")
 
 		thisBlockNum, err := d.client.BlockNumber(context.Background())
 		if err == nil {
 			d.logger.WithFields(logrus.Fields{
-				"package":  "chainlisten",
-				"function": "Request",
-				"action": "set last block",
+				"package":    "chainlisten",
+				"function":   "Request",
+				"action":     "set last block",
 				"from_block": thisBlockNum - 1,
 			}).Info("no applicable logs")
 			_ = d.SetLastBlockNumber(thisBlockNum - 1)
@@ -298,7 +298,7 @@ func (d *VORCoordinatorListener) Request() error {
 			d.logger.WithFields(logrus.Fields{
 				"package":  "chainlisten",
 				"function": "Request",
-				"action": "get block num",
+				"action":   "get block num",
 			}).Error(err.Error())
 		}
 		return nil
@@ -315,9 +315,9 @@ func (d *VORCoordinatorListener) Request() error {
 	for index, vLog := range logs {
 
 		d.logger.WithFields(logrus.Fields{
-			"package":  "chainlisten",
-			"function": "Request",
-			"action": "log",
+			"package":   "chainlisten",
+			"function":  "Request",
+			"action":    "log",
 			"block_num": vLog.BlockNumber,
 			"log_index": vLog.Index,
 		}).Info()
@@ -333,7 +333,7 @@ func (d *VORCoordinatorListener) Request() error {
 			d.logger.WithFields(logrus.Fields{
 				"package":  "chainlisten",
 				"function": "Request",
-				"action": "get TransactionReceipt",
+				"action":   "get TransactionReceipt",
 			}).Error(err.Error())
 		}
 
@@ -345,7 +345,7 @@ func (d *VORCoordinatorListener) Request() error {
 			d.logger.WithFields(logrus.Fields{
 				"package":  "chainlisten",
 				"function": "Request",
-				"action": "get TransactionByHash",
+				"action":   "get TransactionByHash",
 			}).Error(err.Error())
 		}
 
@@ -355,9 +355,9 @@ func (d *VORCoordinatorListener) Request() error {
 		switch vLog.Topics[0].Hex() {
 		case logRandomnessRequestHash.Hex():
 			d.logger.WithFields(logrus.Fields{
-				"package":  "chainlisten",
-				"function": "Request",
-				"action": "check event name",
+				"package":    "chainlisten",
+				"function":   "Request",
+				"action":     "check event name",
 				"event_name": "RandomnessRequest",
 			}).Info("processing event")
 
@@ -367,7 +367,7 @@ func (d *VORCoordinatorListener) Request() error {
 				d.logger.WithFields(logrus.Fields{
 					"package":  "chainlisten",
 					"function": "Request",
-					"action": "UnpackIntoInterface",
+					"action":   "UnpackIntoInterface",
 				}).Error(err.Error())
 				return err
 			}
@@ -377,9 +377,9 @@ func (d *VORCoordinatorListener) Request() error {
 				requestId := common.Bytes2Hex(event.RequestID[:])
 
 				d.logger.WithFields(logrus.Fields{
-					"package":  "chainlisten",
-					"function": "Request",
-					"action": "check event keyhash",
+					"package":    "chainlisten",
+					"function":   "Request",
+					"action":     "check event keyhash",
 					"request_id": requestId,
 				}).Info("It's a request for me =)")
 
@@ -389,7 +389,7 @@ func (d *VORCoordinatorListener) Request() error {
 					d.logger.WithFields(logrus.Fields{
 						"package":  "chainlisten",
 						"function": "Request",
-						"action": "BigToSeed",
+						"action":   "BigToSeed",
 					}).Error(err.Error())
 					return err
 				}
@@ -401,7 +401,7 @@ func (d *VORCoordinatorListener) Request() error {
 					d.logger.WithFields(logrus.Fields{
 						"package":  "chainlisten",
 						"function": "Request",
-						"action": "check db for request",
+						"action":   "check db for request",
 					}).Info("new request")
 
 					seedHex := hexutil.EncodeBig(event.Seed)
@@ -423,44 +423,44 @@ func (d *VORCoordinatorListener) Request() error {
 
 					if err != nil {
 						d.logger.WithFields(logrus.Fields{
-							"package":  "chainlisten",
-							"function": "Request",
-							"action": "fulfill request",
+							"package":    "chainlisten",
+							"function":   "Request",
+							"action":     "fulfill request",
 							"request_id": requestId,
 						}).Error(err.Error())
 						_ = d.service.Store.Db.UpdateRequestStatus(requestId, database.REQUEST_STATUS_TX_FAILED, err.Error())
 					} else {
 						d.logger.WithFields(logrus.Fields{
-							"package":  "chainlisten",
-							"function": "Request",
-							"action": "fulfill request",
+							"package":    "chainlisten",
+							"function":   "Request",
+							"action":     "fulfill request",
 							"request_id": requestId,
-							"tx_hash": fulfillTx.Hash().Hex(),
+							"tx_hash":    fulfillTx.Hash().Hex(),
 						}).Info("fulfill tx sent")
 						_ = d.service.Store.Db.UpdateFulfilmentSent(requestId, database.REQUEST_STATUS_SENT, fulfillTx.Hash().Hex())
 					}
 				} else {
 					d.logger.WithFields(logrus.Fields{
-						"package":  "chainlisten",
-						"function": "Request",
-						"action": "check db for request",
-						"request_id":  reqDbRes.RequestId,
-						"status": reqDbRes.GetStatusString(),
+						"package":    "chainlisten",
+						"function":   "Request",
+						"action":     "check db for request",
+						"request_id": reqDbRes.RequestId,
+						"status":     reqDbRes.GetStatusString(),
 					}).Info("request already in db")
 				}
 			} else {
 				d.logger.WithFields(logrus.Fields{
 					"package":  "chainlisten",
 					"function": "Request",
-					"action": "check event keyhash",
+					"action":   "check event keyhash",
 				}).Info("Looks like it's not addressed to me =(")
 			}
 			continue
 		case logRandomnessRequestFulfilledHash.Hex():
 			d.logger.WithFields(logrus.Fields{
-				"package":  "chainlisten",
-				"function": "Request",
-				"action": "check event name",
+				"package":    "chainlisten",
+				"function":   "Request",
+				"action":     "check event name",
 				"event_name": "RandomnessRequestFulfilled",
 			}).Info("processing event")
 
@@ -468,9 +468,9 @@ func (d *VORCoordinatorListener) Request() error {
 			err := contractAbi.UnpackIntoInterface(&event, "RandomnessRequestFulfilled", vLog.Data)
 			requestId := common.Bytes2Hex(event.RequestId[:])
 			d.logger.WithFields(logrus.Fields{
-				"package":  "chainlisten",
-				"function": "Request",
-				"action": "check request exists",
+				"package":    "chainlisten",
+				"function":   "Request",
+				"action":     "check request exists",
 				"request_id": requestId,
 			}).Info()
 
@@ -478,9 +478,9 @@ func (d *VORCoordinatorListener) Request() error {
 
 			if reqDbRes.ID != 0 {
 				d.logger.WithFields(logrus.Fields{
-					"package":  "chainlisten",
-					"function": "Request",
-					"action": "confirm fulfillment",
+					"package":    "chainlisten",
+					"function":   "Request",
+					"action":     "confirm fulfillment",
 					"request_id": requestId,
 				}).Info("confirmed request fulfilment for request")
 
@@ -502,15 +502,15 @@ func (d *VORCoordinatorListener) Request() error {
 					d.logger.WithFields(logrus.Fields{
 						"package":  "chainlisten",
 						"function": "Request",
-						"action": "UpdateFulfillment",
+						"action":   "UpdateFulfillment",
 					}).Error(err.Error())
 					return err
 				}
 			} else {
 				d.logger.WithFields(logrus.Fields{
-					"package":  "chainlisten",
-					"function": "Request",
-					"action": "confirm fulfillment",
+					"package":    "chainlisten",
+					"function":   "Request",
+					"action":     "confirm fulfillment",
 					"request_id": requestId,
 				}).Warning("request id does not exist in db. Probably not mine")
 			}
@@ -519,7 +519,7 @@ func (d *VORCoordinatorListener) Request() error {
 			d.logger.WithFields(logrus.Fields{
 				"package":  "chainlisten",
 				"function": "Request",
-				"action": "check event name",
+				"action":   "check event name",
 			}).Info("event not applicable")
 			continue
 		}

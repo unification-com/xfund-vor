@@ -27,7 +27,7 @@ func (d *DB) InsertNewRequest(keyHash string, seed string,
 	return
 }
 
-func (d *DB) UpdateRequestStatus(requestId string, status int, statusReason string) (error) {
+func (d *DB) UpdateRequestStatus(requestId string, status int, statusReason string) error {
 	req := database.RandomnessRequest{}
 	err := d.Where("request_id = ?", requestId).First(&req).Error
 	if err != nil {
@@ -60,7 +60,7 @@ func (d *DB) UpdateFulfilmentSent(requestId string, status int, txHash string) e
 }
 
 func Paginate(page, pageSize int) func(db *gorm.DB) *gorm.DB {
-	return func (db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
 		if page == 0 {
 			page = 1
 		}
@@ -146,7 +146,7 @@ func (d DB) GetLastXRequests(limit int, consumer string) ([]database.RandomnessR
 	} else {
 		err = d.Where(where).Order(fmt.Sprintf("id %s", "desc")).Find(&requests).Error
 	}
-    return requests, err
+	return requests, err
 }
 
 func (d DB) GetMostGasUsed() (database.RandomnessRequest, error) {

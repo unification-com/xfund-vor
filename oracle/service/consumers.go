@@ -34,8 +34,8 @@ func (d *Service) Consumers(xFundEth, xFundUsd float64, consumer string) (interf
 		currentXfundFee, _ = currentFeeTokens.Float64()
 
 		consumerAnalytics := api.ConsumerAnalytics{
-			Consumer: consumer.Sender,
-			CurrentFee: currentXfundFee,
+			Consumer:      consumer.Sender,
+			CurrentFee:    currentXfundFee,
 			AnalyticsData: analyticsData,
 		}
 

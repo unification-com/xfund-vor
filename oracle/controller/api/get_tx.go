@@ -12,7 +12,7 @@ func (d *Oracle) GetTxInfo(c echo.Context) error {
 	tx, receipt, err := d.service.GetTxInfo(txHashStr)
 
 	txInfo := api.TxInfo{
-		Tx: tx,
+		Tx:      tx,
 		Receipt: receipt,
 	}
 

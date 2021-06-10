@@ -4,9 +4,9 @@ import "gorm.io/gorm"
 
 type FailedFulfilment struct {
 	gorm.Model
-	RequestId   string `gorm:"index"`
-	TxHash      string `gorm:"index"`
-	FailReason  string
+	RequestId  string `gorm:"index"`
+	TxHash     string `gorm:"index"`
+	FailReason string
 }
 
 func (FailedFulfilment) TableName() string {

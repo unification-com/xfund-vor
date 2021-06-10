@@ -131,7 +131,7 @@ func (d *VORCoordinatorCaller) RenewTransactOpts() (err error) {
 			d.transactOpts.GasPrice = maxGasPrice
 		}
 	}
-	
+
 	return
 }
 
@@ -205,7 +205,7 @@ func (d *VORCoordinatorCaller) FulfillRandomnessRequest(proof []byte) (*types.Tr
 	return d.vorCoordinatorInstance.FulfillRandomnessRequest(d.transactOpts, proof)
 }
 
-func (d *VORCoordinatorCaller) StoreBlockHash(blockNum uint64)  (*types.Transaction, error) {
+func (d *VORCoordinatorCaller) StoreBlockHash(blockNum uint64) (*types.Transaction, error) {
 	err := d.RenewTransactOpts()
 	if err != nil {
 		return nil, err
@@ -241,7 +241,7 @@ func (d *VORCoordinatorCaller) GetTxReceipt(txHashStr string) (*types.Receipt, e
 	return d.client.TransactionReceipt(context.Background(), txHash)
 }
 
-func (d *VORCoordinatorCaller) GetBlockHashFromBlockStore(blockNum uint64) (bool, common.Hash,  error) {
+func (d *VORCoordinatorCaller) GetBlockHashFromBlockStore(blockNum uint64) (bool, common.Hash, error) {
 	hash, err := d.blockHashStoreInstance.GetBlockhash(d.callOpts, big.NewInt(0).SetUint64(blockNum))
 	h := common.BytesToHash(hash[:])
 

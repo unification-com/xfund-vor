@@ -57,4 +57,3 @@ var queryfeesCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(queryfeesCmd)
 }
-
