@@ -6,30 +6,32 @@ const (
 	REQUEST_STATUS_UNKNOWN = iota
 	REQUEST_STATUS_INITIALISED
 	REQUEST_STATUS_SENT
-	REQUEST_STATUS_FAILED
+	REQUEST_STATUS_TX_FAILED
 	REQUEST_STATUS_SUCCESS
+	REQUEST_STATUS_FULFILMENT_FAILED
 )
 
 type RandomnessRequest struct {
 	gorm.Model
-	KeyHash            string
-	Seed               string
-	Sender             string `gorm:"index"`
-	RequestId          string `gorm:"uniqueIndex"`
-	RequestBlockHash   string `gorm:"index"`
-	RequestBlockNumber uint64 `gorm:"index"`
-	RequestTxHash      string `gorm:"index"`
-	RequestGasUsed     uint64
-	RequestGasPrice    uint64
-	Fee                uint64
-	Randomness         string
-	FulfillBlockHash   string `gorm:"index"`
-	FulfillBlockNumber uint64 `gorm:"index"`
-	FulfillTxHash      string `gorm:"index"`
-	FulfillGasUsed     uint64
-	FulfillGasPrice    uint64
-	Status             int    `gorm:"index"`
-	StatusReason       string
+	KeyHash             string
+	Seed                string
+	Sender              string `gorm:"index"`
+	RequestId           string `gorm:"uniqueIndex"`
+	RequestBlockHash    string `gorm:"index"`
+	RequestBlockNumber  uint64 `gorm:"index"`
+	RequestTxHash       string `gorm:"index"`
+	RequestGasUsed      uint64
+	RequestGasPrice     uint64
+	Fee                 uint64
+	Randomness          string
+	FulfillBlockHash    string `gorm:"index"`
+	FulfillBlockNumber  uint64 `gorm:"index"`
+	FulfillTxHash       string `gorm:"index"`
+	FulfillGasUsed      uint64
+	FulfillGasPrice     uint64
+	FulfillmentAttempts uint64 `gorm:"default:0"`
+	Status              int    `gorm:"index"`
+	StatusReason        string
 }
 
 func (RandomnessRequest) TableName() string {
@@ -104,6 +106,10 @@ func (r RandomnessRequest) GetFulfillGasPrice() uint64 {
 	return r.FulfillGasPrice
 }
 
+func (r RandomnessRequest) GetFulfillmentAttempts() uint64 {
+	return r.FulfillmentAttempts
+}
+
 func (r RandomnessRequest) GetStatus() int {
 	return r.Status
 }
@@ -117,10 +123,12 @@ func (r RandomnessRequest) GetStatusString() string {
 		return "INITIALISED"
 	case REQUEST_STATUS_SENT:
 		return "SENT"
-	case REQUEST_STATUS_FAILED:
-		return "FAILED"
+	case REQUEST_STATUS_TX_FAILED:
+		return "TX FAILED"
 	case REQUEST_STATUS_SUCCESS:
 		return "SUCCESS"
+	case REQUEST_STATUS_FULFILMENT_FAILED:
+		return "FULFILMENT FAILED"
 	}
 
 	return "UNKNOWN"
