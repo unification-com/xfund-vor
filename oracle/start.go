@@ -130,6 +130,7 @@ func start() (err error) {
 	e.GET("/requests", oracleController.QueryRequests)
 	e.GET("/analytics", oracleController.Analytics)
 	e.GET("/consumers", oracleController.Consumers)
+	e.GET("/tx", oracleController.GetTxInfo)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", config.Conf.Serve.Host, config.Conf.Serve.Port)))
 
