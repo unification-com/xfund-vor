@@ -53,7 +53,11 @@ build-release: build
 	cd dist && sha256sum "vor-oracle_linux_v${VERSION}.tar.gz" > "checksum_v${VERSION}.txt"
 	cd dist && sha256sum --check "checksum_v${VERSION}.txt"
 
-.PHONY: abigen build-oracle build-oracle-cli build install-oracle install-oracle-cli install build-release
+lint:
+	@cd oracle && find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" | xargs gofmt -w -s
+	@cd oracle-cli && find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" | xargs gofmt -w -s
+
+.PHONY: abigen build-oracle build-oracle-cli build install-oracle install-oracle-cli install build-release lint
 
 # Tests
 
