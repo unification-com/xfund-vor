@@ -19,10 +19,11 @@ type Service struct {
 func NewService(ctx context.Context, store *store.Store) (*Service, error) {
 	VORCoordinatorCaller, err := chaincall.NewVORCoordinatorCaller(
 		config.Conf.VORCoordinatorContractAddress,
+		config.Conf.BlockHashStoreContractAddress,
 		config.Conf.EthHTTPHost,
 		big.NewInt(config.Conf.NetworkID),
 		[]byte(store.Keystorage.GetSelectedPrivateKey()),
-		)
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -32,6 +33,7 @@ func NewService(ctx context.Context, store *store.Store) (*Service, error) {
 func NewServiceFromPassedConfig(ctx context.Context, store *store.Store, conf *config.Config) (*Service, error) {
 	VORCoordinatorCaller, err := chaincall.NewVORCoordinatorCaller(
 		conf.VORCoordinatorContractAddress,
+		conf.BlockHashStoreContractAddress,
 		conf.EthHTTPHost,
 		big.NewInt(conf.NetworkID),
 		[]byte(store.Keystorage.GetSelectedPrivateKey()),

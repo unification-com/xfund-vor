@@ -26,12 +26,11 @@ var (
 	consumer string
 )
 
-
 // aboutCmd represents the about command
 var analyticsCmd = &cobra.Command{
 	Use:   "analytics [num_to_analyse]",
 	Short: "Basic analytics summary",
-	Long:  `
+	Long: `
 Run some basic analytics to return gas, gas price, costs and fee statistics.
 Pass the number of successful requests you want to analyse, for example 100
 to analyse the last 100 successful fulfillments.

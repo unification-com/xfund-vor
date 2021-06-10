@@ -7,8 +7,8 @@ import (
 )
 
 func (d *Oracle) Consumers(c echo.Context) error {
-	xFundEth, _  := strconv.ParseFloat(c.QueryParam("eth"), 64)
-	xFundUsd, _  := strconv.ParseFloat(c.QueryParam("usd"), 64)
+	xFundEth, _ := strconv.ParseFloat(c.QueryParam("eth"), 64)
+	xFundUsd, _ := strconv.ParseFloat(c.QueryParam("usd"), 64)
 	consumer := c.QueryParam("consumer")
 	analyticsData, err := d.service.Consumers(xFundEth, xFundUsd, consumer)
 
@@ -17,4 +17,3 @@ func (d *Oracle) Consumers(c echo.Context) error {
 	}
 	return c.JSONPretty(http.StatusOK, analyticsData, "  ")
 }
-

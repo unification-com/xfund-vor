@@ -30,7 +30,7 @@ func (d *Service) About() (response string, err error) {
 	}
 
 	balance, err := d.VORCoordinatorCaller.GetOracleEthBalance()
-    var ethBalance  = ""
+	var ethBalance = ""
 	if err != nil {
 		ethBalance = err.Error()
 	} else {
@@ -52,13 +52,13 @@ Address:                %s
 Withdrawable Tokens:    %s
 ETH Balance:            %s
 `,
-config.Conf.VORCoordinatorContractAddress,
-config.Conf.Serve.Host,
-config.Conf.Serve.Port,
-config.Conf.NetworkID,
-config.Conf.Keystorage.Account,
-publicKey,
-common.BytesToHash([]byte(keyhash[:])),
-oracleAddress, withdrawableTokens,
-ethBalance), nil
+		config.Conf.VORCoordinatorContractAddress,
+		config.Conf.Serve.Host,
+		config.Conf.Serve.Port,
+		config.Conf.NetworkID,
+		config.Conf.Keystorage.Account,
+		publicKey,
+		common.BytesToHash([]byte(keyhash[:])),
+		oracleAddress, withdrawableTokens,
+		ethBalance), nil
 }

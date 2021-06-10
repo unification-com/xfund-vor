@@ -1,6 +1,9 @@
 package api
 
-import "time"
+import (
+	"github.com/ethereum/go-ethereum/core/types"
+	"time"
+)
 
 type OracleWithdrawRequestModel struct {
 	Address string `json:"address"`
@@ -8,9 +11,9 @@ type OracleWithdrawRequestModel struct {
 }
 
 type OracleRegisterRequestModel struct {
-	AccountName     string `json:"account_name"`
-	PrivateKey      string `json:"private_key"`
-	Fee             int64  `json:"fee"`
+	AccountName string `json:"account_name"`
+	PrivateKey  string `json:"private_key"`
+	Fee         int64  `json:"fee"`
 }
 
 type OracleChangeFeeRequestModel struct {
@@ -33,18 +36,27 @@ type RandomnessRequestModel struct {
 	Sender             string    `json:"consumer"`
 	RequestId          string    `json:"request_id"`
 	RequestBlockNumber uint64    `json:"request_block_num"`
+	RequestBlockHash   string    `json:"request_block_hash"`
 	RequestTxHash      string    `json:"request_tx_hash"`
 	RequestGasUsed     uint64    `json:"request_gas"`
 	RequestGasPrice    uint64    `json:"request_gas_price"`
+	SeedHex            string    `json:"seed_hex"`
+	Seed               uint64    `json:"seed"`
 	Fee                uint64    `json:"fee"`
 	Randomness         string    `json:"randomness"`
 	FulfillBlockNumber uint64    `json:"fulfill_block_num"`
+	FulfillBlockHash   string    `json:"fulfill_block_hash"`
 	FulfillTxHash      string    `json:"fulfill_tx_hash"`
 	FulfillGasUsed     uint64    `json:"fulfill_gas"`
 	FulfillGasPrice    uint64    `json:"fulfill_gas_price"`
 	Status             int       `json:"status"`
 	StatusText         string    `json:"status_text"`
 	StatusReason       string    `json:"status_reason"`
+}
+
+type TxInfo struct {
+	Tx      *types.Transaction
+	Receipt *types.Receipt
 }
 
 type Pages struct {
@@ -55,5 +67,5 @@ type Pages struct {
 }
 type RequestResponse struct {
 	Requests []RandomnessRequestModel `json:"requests"`
-	Pages    Pages `json:"pagination"`
+	Pages    Pages                    `json:"pagination"`
 }

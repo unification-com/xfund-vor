@@ -52,9 +52,9 @@ func Register(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 	requestStruct := models.OracleRegisterRequestModel{
-		AccountName:     accountName,
-		PrivateKey:      privateKey,
-		Fee:             fee,
+		AccountName: accountName,
+		PrivateKey:  privateKey,
+		Fee:         fee,
 	}
 	requestJSON, err := json.Marshal(requestStruct)
 	if err != nil {
@@ -117,7 +117,6 @@ func GetFee() (input int64, err error) {
 	}
 	return
 }
-
 
 func GetConsumerContractAddress() (input string, err error) {
 	fmt.Println("")

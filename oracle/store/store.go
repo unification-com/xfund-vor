@@ -6,8 +6,8 @@ import (
 )
 
 type Store struct {
-	Db                *db.DB
-	Keystorage        IKeystorageStore
+	Db         *db.DB
+	Keystorage IKeystorageStore
 }
 
 func NewStore(ctx context.Context, keystorage IKeystorageStore) (*Store, error) {

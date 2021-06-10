@@ -11,22 +11,23 @@ func (d *DB) InsertNewRequest(keyHash string, seed string,
 	blockNumber uint64, txHash string, gasUsed uint64, gasPrice uint64,
 	fee uint64) (err error) {
 	err = d.Omit("FulfilTx").Create(&database.RandomnessRequest{
-		KeyHash:            keyHash,
-		Seed:               seed,
-		Sender:             sender,
-		RequestId:          requestId,
-		RequestBlockHash:   blockHash,
-		RequestBlockNumber: blockNumber,
-		RequestTxHash:      txHash,
-		RequestGasUsed:     gasUsed,
-		RequestGasPrice:    gasPrice,
-		Fee:                fee,
-		Status:             status,
+		KeyHash:             keyHash,
+		Seed:                seed,
+		Sender:              sender,
+		RequestId:           requestId,
+		RequestBlockHash:    blockHash,
+		RequestBlockNumber:  blockNumber,
+		RequestTxHash:       txHash,
+		RequestGasUsed:      gasUsed,
+		RequestGasPrice:     gasPrice,
+		Fee:                 fee,
+		Status:              status,
+		FulfillmentAttempts: 0,
 	}).Error
 	return
 }
 
-func (d *DB) UpdateRequestStatus(requestId string, status int, statusReason string) (error) {
+func (d *DB) UpdateRequestStatus(requestId string, status int, statusReason string) error {
 	req := database.RandomnessRequest{}
 	err := d.Where("request_id = ?", requestId).First(&req).Error
 	if err != nil {
@@ -34,13 +35,32 @@ func (d *DB) UpdateRequestStatus(requestId string, status int, statusReason stri
 	}
 	req.Status = status
 	req.StatusReason = statusReason
+
+	// if the Tx failed as a result of "nonce too low" or "out of gas" increment the num attempts made
+	if status == database.REQUEST_STATUS_TX_FAILED {
+		req.FulfillmentAttempts = req.FulfillmentAttempts + 1
+	}
+	err = d.Save(&req).Error
+
+	return err
+}
+
+func (d *DB) UpdateFulfilmentSent(requestId string, status int, txHash string) error {
+	req := database.RandomnessRequest{}
+	err := d.Where("request_id = ?", requestId).First(&req).Error
+	if err != nil {
+		return err
+	}
+	req.Status = status
+	req.FulfillTxHash = txHash
+	req.FulfillmentAttempts = req.FulfillmentAttempts + 1
 	err = d.Save(&req).Error
 
 	return err
 }
 
 func Paginate(page, pageSize int) func(db *gorm.DB) *gorm.DB {
-	return func (db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
 		if page == 0 {
 			page = 1
 		}
@@ -126,7 +146,7 @@ func (d DB) GetLastXRequests(limit int, consumer string) ([]database.RandomnessR
 	} else {
 		err = d.Where(where).Order(fmt.Sprintf("id %s", "desc")).Find(&requests).Error
 	}
-    return requests, err
+	return requests, err
 }
 
 func (d DB) GetMostGasUsed() (database.RandomnessRequest, error) {
@@ -144,6 +164,12 @@ func (d DB) GetLeastGasUsed() (database.RandomnessRequest, error) {
 func (d DB) GetByStatus(status int) ([]database.RandomnessRequest, error) {
 	var requests = []database.RandomnessRequest{}
 	err := d.Where("status = ?", status).Order(fmt.Sprintf("id %s", "asc")).Find(&requests).Error
+	return requests, err
+}
+
+func (d DB) GetStuckOrFailedTx() ([]database.RandomnessRequest, error) {
+	var requests = []database.RandomnessRequest{}
+	err := d.Where("status = ? OR status = ?", database.REQUEST_STATUS_SENT, database.REQUEST_STATUS_TX_FAILED).Order(fmt.Sprintf("id %s", "asc")).Find(&requests).Error
 	return requests, err
 }
 

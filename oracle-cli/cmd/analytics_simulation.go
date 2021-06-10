@@ -15,7 +15,7 @@ import (
 var analyticsSimCmd = &cobra.Command{
 	Use:   "sim [num_to_analyse]",
 	Short: "simulate analytics with given params",
-	Long:  `
+	Long: `
 Pass simulation values for gas price and fees using the --if-gas and --if-fees
 flags respectively. These will be applied to the analytics results in place of
 the real values to see what costs/fees would be like with these simulated values.

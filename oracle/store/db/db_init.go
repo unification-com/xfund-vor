@@ -38,7 +38,8 @@ func NewPostgresDb() (*DB, error) {
 		return nil, nil
 	}
 
-	dsn := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=disable", cfg.Database.Host, cfg.Database.Port, cfg.Database.User, cfg.Database.Database, cfg.Database.Password)
+	dsn := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=disable",
+		cfg.Database.Host, cfg.Database.Port, cfg.Database.User, cfg.Database.Database, cfg.Database.Password)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
@@ -50,6 +51,6 @@ func NewPostgresDb() (*DB, error) {
 }
 
 func (d DB) Migrate() (err error) {
-	err = d.AutoMigrate(&database.RandomnessRequest{})
+	err = d.AutoMigrate(&database.RandomnessRequest{}, &database.FailedFulfilment{}, &database.BlocksStored{})
 	return
 }

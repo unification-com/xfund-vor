@@ -139,7 +139,7 @@ func (d *VORRandomnessRequestMockListener) Request() error {
 			fmt.Println(fulfilTx)
 			if err != nil {
 				fmt.Println(err)
-				status = database.REQUEST_STATUS_FAILED
+				status = database.REQUEST_STATUS_TX_FAILED
 			} else {
 				status = database.REQUEST_STATUS_SENT
 			}

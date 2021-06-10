@@ -47,6 +47,7 @@ var Conf = &Config{
 
 type Config struct {
 	VORCoordinatorContractAddress string      `json:"contract_address"`
+	BlockHashStoreContractAddress string      `json:"blockhash_store_address"`
 	ContractCallerAddress         string      `json:"contract_caller_address"`
 	MockContractAddress           string      `json:"mock_contract_address"`
 	EthHTTPHost                   string      `json:"eth_http_host"`

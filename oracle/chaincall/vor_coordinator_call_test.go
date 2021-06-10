@@ -39,8 +39,8 @@ func Init(configAddress string, pass string) (err error) {
 	return err
 }
 
-func VORCoordinatorCallerTestValues() (string, string, *big.Int, []byte) {
-	return Config.VORCoordinatorContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetByUsername(Config.Keystorage.Account).Private)
+func VORCoordinatorCallerTestValues() (string, string, string, *big.Int, []byte) {
+	return Config.VORCoordinatorContractAddress, Config.BlockHashStoreContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetByUsername(Config.Keystorage.Account).Private)
 }
 
 func MockERC20CallerTestValues() (string, string, *big.Int, []byte) {
@@ -129,7 +129,7 @@ func TestVORCoordinatorCaller_RandomnessRequest(t *testing.T) {
 	TransactOut, err := VORCoordinator.RandomnessRequest(keyHash, big.NewInt(10), fee)
 	//debug.PrintStack()
 	t.Log(TransactOut)
-	assert.Equal(t, "VM Exception while processing transaction: revert request can only be made by a contract",err.Error())
+	assert.Equal(t, "VM Exception while processing transaction: revert request can only be made by a contract", err.Error())
 	transactJson, err := json.Marshal(TransactOut)
 	fmt.Println(string(transactJson))
 }

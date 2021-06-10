@@ -40,22 +40,22 @@ func (d *Service) Analytics(xFundEth, xFundUsd, fees float64, limit int, gasPric
 
 	filters := api.AnalyticsFilter{
 		ConsumerContract: consumer,
-		Limit: limit,
+		Limit:            limit,
 	}
 
 	if simulation == 1 {
 		return &api.AnalyticsSimResponse{
 			AnalyticsData: analyticsData,
-			Filters: filters,
+			Filters:       filters,
 			SimValues: api.SimValues{
 				IfFees: fees,
-				IfGas: uint64(gasPrice),
+				IfGas:  uint64(gasPrice),
 			},
 		}, nil
 	} else {
 		return &api.AnalyticsResponse{
 			AnalyticsData: analyticsData,
-			Filters: filters,
+			Filters:       filters,
 		}, nil
 	}
 }
@@ -172,18 +172,18 @@ func process(rows []database.RandomnessRequest, xFundEth, xFundUsd, fees float64
 
 	return api.AnalyticsData{
 		GasUsed: api.IntStats{
-			Min: gasMin.Uint64(),
-			Max: gasMax.Uint64(),
+			Min:  gasMin.Uint64(),
+			Max:  gasMax.Uint64(),
 			Mean: gasMeanUint64,
 		},
 		GasPrice: api.IntStats{
-			Min: gasPriceMinGweiUint64,
-			Max: gasPriceMaxGweiUint64,
+			Min:  gasPriceMinGweiUint64,
+			Max:  gasPriceMaxGweiUint64,
 			Mean: gasPriceMeanGweiUint64,
 		},
 		EthCosts: api.FloatStats{
-			Min: cMin,
-			Max: cMax,
+			Min:  cMin,
+			Max:  cMax,
 			Mean: cMean,
 		},
 		Earnings: api.EarningsStats{
@@ -193,6 +193,6 @@ func process(rows []database.RandomnessRequest, xFundEth, xFundUsd, fees float64
 			TotalCostsEth:        tCost,
 			ProfitLossEth:        profitLossFloat64,
 		},
-		NumberAnalysed:       numRows,
+		NumberAnalysed: numRows,
 	}
 }

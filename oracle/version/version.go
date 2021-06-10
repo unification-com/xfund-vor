@@ -13,10 +13,10 @@ import (
 )
 
 var (
-	Name = "VOR Oracle Server"
-	Binary = "oracle"
+	Name    = "VOR Oracle Server"
+	Binary  = "oracle"
 	Version = "0.0.1"
-	Commit = ""
+	Commit  = ""
 )
 
 type Info struct {

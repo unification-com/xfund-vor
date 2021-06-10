@@ -19,7 +19,7 @@ var (
 var queryrequestsCmd = &cobra.Command{
 	Use:   "queryrequests",
 	Short: "get the requests from the DB",
-	Long:  `Query for all paginated randomness requests that match optional filters.
+	Long: `Query for all paginated randomness requests that match optional filters.
 
 Status filters:
 The --status | -s flag accepts the following:
@@ -66,4 +66,3 @@ func init() {
 	queryrequestsCmd.Flags().StringVarP(&order, "order", "o", "desc", "order asc | desc")
 	rootCmd.AddCommand(queryrequestsCmd)
 }
-
