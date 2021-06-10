@@ -96,6 +96,7 @@ nano $HOME/vor/config.json
 ```json
 {
   "contract_address": "0x00.....",
+  "blockhash_store_address": "0x123...",
   "eth_http_host": "http://127.0.0.1:8545",
   "eth_ws_host": "http://127.0.0.1:8545",
   "network_id": 696969,
@@ -121,6 +122,8 @@ The config options are as follows:
 
 - `contract_address` - the address of the `VORCoordinator` smart contract. See
 [contracts](https://vor.unification.io/contracts.html).
+- `blockhash_store_address` - the address of the `BlockHashStore` smart contract. See
+  [contracts](https://vor.unification.io/contracts.html).
 - `eth_http_host` - HTTP(S) host for your Eth provider. E.g. Infura
 - `eth_ws_host` - WS(S) host for your Eth provider. E.g. Infura
 - `network_id` - Eth network ID, e.g. 1 = mainnet, 4 = Rinkeby etc.
