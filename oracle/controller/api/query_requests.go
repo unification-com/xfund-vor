@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"oracle/models/api"
@@ -28,6 +29,8 @@ func (d *Oracle) QueryRequests(c echo.Context) error {
 	}
 
 	for _, reqRow := range dbRequests {
+		seedBig, _ := hexutil.DecodeBig(reqRow.Seed)
+
 		res := api.RandomnessRequestModel{
 			ID: reqRow.ID,
 			CreatedAt: reqRow.CreatedAt,
@@ -35,12 +38,16 @@ func (d *Oracle) QueryRequests(c echo.Context) error {
 			Sender: reqRow.Sender,
 			RequestId: reqRow.RequestId,
 			RequestBlockNumber: reqRow.RequestBlockNumber,
+			RequestBlockHash: reqRow.RequestBlockHash,
 			RequestTxHash: reqRow.RequestTxHash,
 			RequestGasUsed: reqRow.RequestGasUsed,
 			RequestGasPrice: reqRow.RequestGasPrice,
+			SeedHex: reqRow.Seed,
+			Seed: seedBig.Uint64(),
 			Fee: reqRow.Fee,
 			Randomness: reqRow.Randomness,
 			FulfillBlockNumber: reqRow.FulfillBlockNumber,
+			FulfillBlockHash: reqRow.FulfillBlockHash,
 			FulfillTxHash: reqRow.FulfillTxHash,
 			FulfillGasUsed: reqRow.FulfillGasUsed,
 			FulfillGasPrice: reqRow.FulfillGasPrice,
