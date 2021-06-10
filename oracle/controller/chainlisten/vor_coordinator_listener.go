@@ -5,6 +5,7 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/sirupsen/logrus"
@@ -15,7 +16,6 @@ import (
 	"oracle/models/database"
 	"oracle/service"
 	"oracle/tools/vor"
-	"oracle/utils"
 	"strings"
 	"sync"
 	"time"
@@ -90,6 +90,7 @@ func (d VORCoordinatorListener) StartPoll() (err error) {
 	}
 	for {
 		err = d.Request()
+		err = d.CheckStuck()
 		time.Sleep(time.Duration(rand.Int31n(sleepTime)) * time.Second)
 	}
 	d.wg.Wait()
@@ -104,6 +105,170 @@ func (d *VORCoordinatorListener) SetLastBlockNumber(blockNumber uint64) (err err
 	d.query.FromBlock = big.NewInt(int64(blockNumber + 1))
 	err = d.service.Store.Keystorage.SetBlockNumber(int64(blockNumber))
 	return
+}
+
+func (d *VORCoordinatorListener) processStuckRequest(request *database.RandomnessRequest, currentBlockNum uint64) {
+
+	blockDiff := currentBlockNum - request.GetRequestBlockNumber()
+	fulfilTxHash := common.HexToHash(request.GetFulfillTxHash())
+
+	// older Oracle versions did not store fulfil Tx hash until the fulfil event had been emitted
+	// need to check for null hash first
+	if len(request.GetFulfillTxHash()) == 0 {
+		_ = d.service.Store.Db.UpdateRequestStatus(request.GetRequestId(), database.REQUEST_STATUS_FULFILMENT_FAILED, "request too old - block hash not in block store")
+		return
+	}
+
+	// check if it's pending
+	tx, isPending, err := d.client.TransactionByHash(context.Background(), fulfilTxHash)
+
+	if err != nil {
+		d.logger.WithFields(logrus.Fields{
+			"package":  "chainlisten",
+			"function": "processStuckRequest",
+			"action": "get fulfil tx",
+			"tx_hash": request.GetFulfillTxHash(),
+		}).Error(err.Error())
+		return
+	}
+
+	foundHash, _, err := d.service.VORCoordinatorCaller.GetBlockHashFromBlockStore(request.GetRequestBlockNumber())
+
+	// no point continuing if it's still pending. Log it and move on.
+	if isPending {
+		d.logger.WithFields(logrus.Fields{
+			"package":  "chainlisten",
+			"function": "processStuckRequest",
+			"action": "get fulfil tx",
+			"tx_hash": request.GetFulfillTxHash(),
+		}).Info("tx still pending")
+		// todo - if block diff is high, store block hash in block hash store contract to be safe
+		return
+	}
+
+	if blockDiff > 250 {
+		// check if hash is in block store
+		if !foundHash || err != nil {
+			// block hash not in store. Flag as failed and move on
+			_ = d.service.Store.Db.UpdateRequestStatus(request.GetRequestId(), database.REQUEST_STATUS_FULFILMENT_FAILED, "request too old and block hash not in block store")
+			return
+		}
+	}
+
+	failReason := request.GetStatusReason()
+
+	if request.GetStatus() == database.REQUEST_STATUS_SENT {
+		// try and get the receipt
+		fulfillReceipt, err := d.client.TransactionReceipt(context.Background(), fulfilTxHash)
+		if err != nil {
+			d.logger.WithFields(logrus.Fields{
+				"package":  "chainlisten",
+				"function": "processStuckRequest",
+				"action": "get fulfil tx receipt",
+				"tx_hash": request.GetFulfillTxHash(),
+			}).Error(err.Error())
+		}
+
+		if fulfillReceipt.Status == 1 {
+			// seems OK.
+			// todo - check why event wasn't recorded
+			return
+		}
+
+		failReason = "transaction reverted"
+	}
+
+	// Tx failed. Add to failed Tx history table, and try again
+	_ = d.service.Store.Db.InsertNewFailedFulfilment(request.GetRequestId(), request.GetFulfillTxHash(), failReason)
+
+	if request.GetFulfillmentAttempts() >= 3 {
+		// too many fails
+		_ = d.service.Store.Db.UpdateRequestStatus(request.GetRequestId(), database.REQUEST_STATUS_FULFILMENT_FAILED, "too many failed attempts")
+		return
+	}
+
+	if blockDiff > 50 && !foundHash {
+		// to be safe, store the block hash of the request Tx's block in block store contract
+		// this ensures the request can still hopefully be fulfilled when more than 256 blocks have passed.
+		bhTx, err := d.service.VORCoordinatorCaller.StoreBlockHash(request.GetRequestBlockNumber())
+		if err != nil {
+			d.logger.WithFields(logrus.Fields{
+				"package":  "chainlisten",
+				"function": "processStuckRequest",
+				"action": "store blockhash in block store",
+			}).Error(err.Error())
+		} else {
+			// add block store tx data to db table
+			_ = d.service.Store.Db.InsertNewStoredBlock(request.GetRequestBlockHash(), request.GetRequestBlockNumber(), bhTx.Hash().Hex())
+		}
+	}
+
+	// retry sending fulfilment Tx and update DBs as appropriate.
+	seedBig, _ := hexutil.DecodeBig(request.Seed)
+	byteSeed, err := vor.BigToSeed(seedBig)
+
+	reqBlockHash := common.HexToHash(request.GetRequestBlockHash())
+
+	fTx, err := d.service.FulfillRandomness(byteSeed, reqBlockHash, int64(request.GetRequestBlockNumber()))
+
+	if err != nil {
+		d.logger.WithFields(logrus.Fields{
+			"package":  "chainlisten",
+			"function": "processStuckRequest",
+			"action": "retry fulfill request",
+			"request_id": request.GetRequestId(),
+		}).Error(err.Error())
+		// possibly failed due to gas too low, or nonce too low. Flag so we can try again later
+		_ = d.service.Store.Db.UpdateRequestStatus(request.GetRequestId(), database.REQUEST_STATUS_TX_FAILED, err.Error())
+	} else {
+		d.logger.WithFields(logrus.Fields{
+			"package":  "chainlisten",
+			"function": "processStuckRequest",
+			"action": "retry fulfill request",
+			"request_id": request.GetRequestId(),
+			"tx_hash": fTx.Hash().Hex(),
+		}).Info("fulfill tx sent")
+		_ = d.service.Store.Db.UpdateFulfilmentSent(request.GetRequestId(), database.REQUEST_STATUS_SENT, tx.Hash().Hex())
+	}
+}
+
+func (d *VORCoordinatorListener) CheckStuck() error {
+
+	d.logger.WithFields(logrus.Fields{
+		"package":  "chainlisten",
+		"function": "CheckStuck",
+		"action": "check stuck fulfilments",
+	}).Info()
+
+	currentBlockNum, err := d.client.BlockNumber(context.Background())
+
+	if err != nil {
+		d.logger.WithFields(logrus.Fields{
+			"package":  "chainlisten",
+			"function": "CheckStuck",
+			"action": "get block num",
+		}).Error(err.Error())
+		return err
+	}
+
+	// get requests status = SENT || FAILED_TX from request_randomness table
+	requests, err := d.service.Store.Db.GetStuckOrFailedTx()
+
+	if err != nil {
+		d.logger.WithFields(logrus.Fields{
+			"package":  "chainlisten",
+			"function": "CheckStuck",
+			"action": "get stuck or failed tx requests",
+		}).Error(err.Error())
+		return err
+	}
+
+	for _, request := range requests {
+		// process
+		d.processStuckRequest(&request, currentBlockNum)
+	}
+
+	return nil
 }
 
 func (d *VORCoordinatorListener) Request() error {
@@ -209,10 +374,13 @@ func (d *VORCoordinatorListener) Request() error {
 
 			if event.KeyHash == d.keyHash {
 
+				requestId := common.Bytes2Hex(event.RequestID[:])
+
 				d.logger.WithFields(logrus.Fields{
 					"package":  "chainlisten",
 					"function": "Request",
 					"action": "check event keyhash",
+					"request_id": requestId,
 				}).Info("It's a request for me =)")
 
 				byteSeed, err := vor.BigToSeed(event.Seed)
@@ -227,7 +395,6 @@ func (d *VORCoordinatorListener) Request() error {
 				}
 
 				// check status and if requests already exists
-				requestId := common.Bytes2Hex(event.RequestID[:])
 				reqDbRes, _ := d.service.Store.Db.FindByRequestId(requestId)
 
 				if reqDbRes.ID == 0 {
@@ -237,7 +404,7 @@ func (d *VORCoordinatorListener) Request() error {
 						"action": "check db for request",
 					}).Info("new request")
 
-					seedHex, err := utils.Uint256ToHex(event.Seed)
+					seedHex := hexutil.EncodeBig(event.Seed)
 
 					err = d.service.Store.Db.InsertNewRequest(
 						common.Bytes2Hex(event.KeyHash[:]),
@@ -252,7 +419,7 @@ func (d *VORCoordinatorListener) Request() error {
 						event.Fee.Uint64(),
 					)
 
-					tx, err := d.service.FulfillRandomness(byteSeed, vLog.BlockHash, int64(vLog.BlockNumber))
+					fulfillTx, err := d.service.FulfillRandomness(byteSeed, vLog.BlockHash, int64(vLog.BlockNumber))
 
 					if err != nil {
 						d.logger.WithFields(logrus.Fields{
@@ -261,16 +428,16 @@ func (d *VORCoordinatorListener) Request() error {
 							"action": "fulfill request",
 							"request_id": requestId,
 						}).Error(err.Error())
-						_ = d.service.Store.Db.UpdateRequestStatus(requestId, database.REQUEST_STATUS_FAILED, err.Error())
+						_ = d.service.Store.Db.UpdateRequestStatus(requestId, database.REQUEST_STATUS_TX_FAILED, err.Error())
 					} else {
 						d.logger.WithFields(logrus.Fields{
 							"package":  "chainlisten",
 							"function": "Request",
 							"action": "fulfill request",
 							"request_id": requestId,
-							"tx_hash": tx.Hash().Hex(),
+							"tx_hash": fulfillTx.Hash().Hex(),
 						}).Info("fulfill tx sent")
-						_ = d.service.Store.Db.UpdateRequestStatus(requestId, database.REQUEST_STATUS_SENT, "")
+						_ = d.service.Store.Db.UpdateFulfilmentSent(requestId, database.REQUEST_STATUS_SENT, fulfillTx.Hash().Hex())
 					}
 				} else {
 					d.logger.WithFields(logrus.Fields{
