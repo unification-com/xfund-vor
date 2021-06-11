@@ -89,7 +89,7 @@ func (d VORCoordinatorListener) StartPoll() (err error) {
 		sleepTime = config.Conf.CheckDuration
 	}
 	for {
-		err = d.Request()
+		err = d.ProcessIncommingEvents()
 		err = d.CheckStuck()
 		time.Sleep(time.Duration(rand.Int31n(sleepTime)) * time.Second)
 	}
@@ -107,56 +107,90 @@ func (d *VORCoordinatorListener) SetLastBlockNumber(blockNumber uint64) (err err
 	return
 }
 
-func (d *VORCoordinatorListener) processStuckRequest(request *database.RandomnessRequest, currentBlockNum uint64) {
+func (d *VORCoordinatorListener) processStuckRequest(request database.RandomnessRequest, currentBlockNum uint64) {
 
 	blockDiff := currentBlockNum - request.GetRequestBlockNumber()
 	fulfilTxHash := common.HexToHash(request.GetFulfillTxHash())
 
-	// older Oracle versions did not store fulfil Tx hash until the fulfil event had been emitted
-	// need to check for null hash first
-	if len(request.GetFulfillTxHash()) == 0 {
-		_ = d.service.Store.Db.UpdateRequestStatus(request.GetRequestId(), database.REQUEST_STATUS_FULFILMENT_FAILED, "request too old - block hash not in block store")
+	d.logger.WithFields(logrus.Fields{
+		"package":  "chainlisten",
+		"function": "processStuckRequest",
+		"action":   "log info",
+		"request_id":  request.GetRequestId(),
+		"tx_hash":  request.GetFulfillTxHash(),
+		"req_block": request.GetRequestBlockNumber(),
+		"curr_block": currentBlockNum,
+		"block_diff": blockDiff,
+	}).Info()
+
+	// same block - ignore for now
+	if blockDiff == 0 {
 		return
 	}
 
-	// check if it's pending
-	tx, isPending, err := d.client.TransactionByHash(context.Background(), fulfilTxHash)
+	// check if the block hash for the request has been stored
+	foundHash, _, bhErr := d.service.VORCoordinatorCaller.GetBlockHashFromBlockStore(request.GetRequestBlockNumber())
 
-	if err != nil {
-		d.logger.WithFields(logrus.Fields{
-			"package":  "chainlisten",
-			"function": "processStuckRequest",
-			"action":   "get fulfil tx",
-			"tx_hash":  request.GetFulfillTxHash(),
-		}).Error(err.Error())
-		return
+	// used later to store failed fulfill tx history
+	failedGasUsed := uint64(0)
+	failedGasPrice := uint64(0)
+
+	// only relevant if the tx was broadcast
+	if len(request.GetFulfillTxHash()) > 0 {
+		// check if it's pending
+		lastFulfillTx, isPending, err := d.client.TransactionByHash(context.Background(), fulfilTxHash)
+
+		if err != nil {
+			// probably not in Tx pool yet
+			d.logger.WithFields(logrus.Fields{
+				"package":  "chainlisten",
+				"function": "processStuckRequest",
+				"action":   "get fulfill tx",
+				"request_id":  request.GetRequestId(),
+				"tx_hash":  request.GetFulfillTxHash(),
+			}).Error(err.Error())
+			return
+		}
+
+		// no point continuing if it's still pending. Log it and move on.
+		// todo - However, if block diff is high, store block hash in block hash store contract
+		//        and resend using same tx nonce, with higher gas price
+		if isPending {
+			d.logger.WithFields(logrus.Fields{
+				"package":  "chainlisten",
+				"function": "processStuckRequest",
+				"action":   "get fulfill tx",
+				"request_id":  request.GetRequestId(),
+				"tx_hash":  request.GetFulfillTxHash(),
+			}).Info("tx still pending - ignore")
+			return
+		}
+
+		// grab the actual gas price used to broadcast the tx
+		failedGasPrice = lastFulfillTx.GasPrice().Uint64()
 	}
 
-	foundHash, _, err := d.service.VORCoordinatorCaller.GetBlockHashFromBlockStore(request.GetRequestBlockNumber())
-
-	// no point continuing if it's still pending. Log it and move on.
-	if isPending {
-		d.logger.WithFields(logrus.Fields{
-			"package":  "chainlisten",
-			"function": "processStuckRequest",
-			"action":   "get fulfil tx",
-			"tx_hash":  request.GetFulfillTxHash(),
-		}).Info("tx still pending")
-		// todo - if block diff is high, store block hash in block hash store contract to be safe
-		return
-	}
-
+	// is the request really old?
 	if blockDiff > 250 {
 		// check if hash is in block store
-		if !foundHash || err != nil {
+		if !foundHash || bhErr != nil {
 			// block hash not in store. Flag as failed and move on
+			d.logger.WithFields(logrus.Fields{
+				"package":  "chainlisten",
+				"function": "processStuckRequest",
+				"action":   "check request age",
+				"request_id":  request.GetRequestId(),
+			}).Info("request too old and block hash not in block store")
 			_ = d.service.Store.Db.UpdateRequestStatus(request.GetRequestId(), database.REQUEST_STATUS_FULFILMENT_FAILED, "request too old and block hash not in block store")
 			return
 		}
 	}
 
+	// get original fail reason stored in db. This may be a tx that was not broadcast due to
+	// out of gas, nonce too low etc.
 	failReason := request.GetStatusReason()
 
+	// if it was broadcast, however, try to get the receipt and determine the fail reason
 	if request.GetStatus() == database.REQUEST_STATUS_SENT {
 		// try and get the receipt
 		fulfillReceipt, err := d.client.TransactionReceipt(context.Background(), fulfilTxHash)
@@ -165,31 +199,54 @@ func (d *VORCoordinatorListener) processStuckRequest(request *database.Randomnes
 				"package":  "chainlisten",
 				"function": "processStuckRequest",
 				"action":   "get fulfil tx receipt",
+				"request_id":  request.GetRequestId(),
 				"tx_hash":  request.GetFulfillTxHash(),
 			}).Error(err.Error())
+			return
 		}
 
+		d.logger.WithFields(logrus.Fields{
+			"package":  "chainlisten",
+			"function": "processStuckRequest",
+			"action":   "got fulfil tx receipt",
+			"request_id":  request.GetRequestId(),
+			"tx_hash":  request.GetFulfillTxHash(),
+			"status": fulfillReceipt.Status,
+		}).Info()
+
 		if fulfillReceipt.Status == 1 {
-			// seems OK.
+			// oddly, seems OK, but this should probably never occur.
 			// todo - check why event wasn't recorded
 			return
 		}
 
+		// generic reason for now
+		// todo - try to get actual revert reason
 		failReason = "transaction reverted"
+		failedGasUsed = fulfillReceipt.GasUsed
 	}
 
-	// Tx failed. Add to failed Tx history table, and try again
-	_ = d.service.Store.Db.InsertNewFailedFulfilment(request.GetRequestId(), request.GetFulfillTxHash(), failReason)
+	// Add fail info to failed Tx history table
+	_ = d.service.Store.Db.InsertNewFailedFulfilment(request.GetRequestId(), request.GetFulfillTxHash(), failedGasUsed, failedGasPrice, failReason)
 
+	// at some point, we just have to stop trying...
 	if request.GetFulfillmentAttempts() >= 3 {
 		// too many fails
+		d.logger.WithFields(logrus.Fields{
+			"package":  "chainlisten",
+			"function": "processStuckRequest",
+			"action":   "check num attempts",
+			"request_id":  request.GetRequestId(),
+			"num_attempts": request.GetFulfillmentAttempts(),
+		}).Info()
+
 		_ = d.service.Store.Db.UpdateRequestStatus(request.GetRequestId(), database.REQUEST_STATUS_FULFILMENT_FAILED, "too many failed attempts")
 		return
 	}
 
+	// to be safe, if the request is getting old, store the block hash of the request Tx's block in block store contract
+	// this ensures the request can still hopefully be fulfilled if more than 256 blocks pass during subsequent retries.
 	if blockDiff > 50 && !foundHash {
-		// to be safe, store the block hash of the request Tx's block in block store contract
-		// this ensures the request can still hopefully be fulfilled when more than 256 blocks have passed.
 		bhTx, err := d.service.VORCoordinatorCaller.StoreBlockHash(request.GetRequestBlockNumber())
 		if err != nil {
 			d.logger.WithFields(logrus.Fields{
@@ -199,16 +256,25 @@ func (d *VORCoordinatorListener) processStuckRequest(request *database.Randomnes
 			}).Error(err.Error())
 		} else {
 			// add block store tx data to db table
+			d.logger.WithFields(logrus.Fields{
+				"package":  "chainlisten",
+				"function": "processStuckRequest",
+				"action":   "store blockhash in block store",
+				"block_num": request.GetRequestBlockNumber(),
+				"block_hash": request.GetRequestBlockHash(),
+			}).Info("store tx sent")
 			_ = d.service.Store.Db.InsertNewStoredBlock(request.GetRequestBlockHash(), request.GetRequestBlockNumber(), bhTx.Hash().Hex())
 		}
 	}
 
-	// retry sending fulfilment Tx and update DBs as appropriate.
+	// retry sending fulfilment Tx and update DB as appropriate.
+	// We'll use the original seed, block hash data etc. but the proof
+	// generated will be unique
 	seedBig, _ := hexutil.DecodeBig(request.Seed)
 	byteSeed, err := vor.BigToSeed(seedBig)
-
 	reqBlockHash := common.HexToHash(request.GetRequestBlockHash())
 
+	// retry fulfillment
 	fTx, err := d.service.FulfillRandomness(byteSeed, reqBlockHash, int64(request.GetRequestBlockNumber()))
 
 	if err != nil {
@@ -228,8 +294,11 @@ func (d *VORCoordinatorListener) processStuckRequest(request *database.Randomnes
 			"request_id": request.GetRequestId(),
 			"tx_hash":    fTx.Hash().Hex(),
 		}).Info("fulfill tx sent")
-		_ = d.service.Store.Db.UpdateFulfilmentSent(request.GetRequestId(), database.REQUEST_STATUS_SENT, tx.Hash().Hex())
+		// update the Db - Tx successfully broadcast.
+		_ = d.service.Store.Db.UpdateFulfilmentSent(request.GetRequestId(), database.REQUEST_STATUS_SENT, fTx.Hash().Hex())
 	}
+
+	return
 }
 
 func (d *VORCoordinatorListener) CheckStuck() error {
@@ -265,13 +334,13 @@ func (d *VORCoordinatorListener) CheckStuck() error {
 
 	for _, request := range requests {
 		// process
-		d.processStuckRequest(&request, currentBlockNum)
+		d.processStuckRequest(request, currentBlockNum)
 	}
 
 	return nil
 }
 
-func (d *VORCoordinatorListener) Request() error {
+func (d *VORCoordinatorListener) ProcessIncommingEvents() error {
 	logs, err := d.client.FilterLogs(context.Background(), d.query)
 	if err != nil {
 		return err
@@ -280,7 +349,7 @@ func (d *VORCoordinatorListener) Request() error {
 	if len(logs) == 0 {
 		d.logger.WithFields(logrus.Fields{
 			"package":    "chainlisten",
-			"function":   "Request",
+			"function":   "ProcessIncommingEvents",
 			"action":     "check events",
 			"from_block": d.query.FromBlock.Uint64(),
 		}).Info("no applicable logs")
@@ -289,7 +358,7 @@ func (d *VORCoordinatorListener) Request() error {
 		if err == nil {
 			d.logger.WithFields(logrus.Fields{
 				"package":    "chainlisten",
-				"function":   "Request",
+				"function":   "ProcessIncommingEvents",
 				"action":     "set last block",
 				"from_block": thisBlockNum - 1,
 			}).Info("no applicable logs")
@@ -297,7 +366,7 @@ func (d *VORCoordinatorListener) Request() error {
 		} else {
 			d.logger.WithFields(logrus.Fields{
 				"package":  "chainlisten",
-				"function": "Request",
+				"function": "ProcessIncommingEvents",
 				"action":   "get block num",
 			}).Error(err.Error())
 		}
@@ -316,7 +385,7 @@ func (d *VORCoordinatorListener) Request() error {
 
 		d.logger.WithFields(logrus.Fields{
 			"package":   "chainlisten",
-			"function":  "Request",
+			"function":  "ProcessIncommingEvents",
 			"action":    "log",
 			"block_num": vLog.BlockNumber,
 			"log_index": vLog.Index,
@@ -327,24 +396,24 @@ func (d *VORCoordinatorListener) Request() error {
 
 		txRec, err := d.client.TransactionReceipt(context.Background(), vLog.TxHash)
 		if err == nil {
-			// todo - need a thread to clean up and gather any data when Tx query fails
+			// todo - need to clean up and gather any missing data if Tx query above fails
 			gasUsed = txRec.GasUsed
 		} else {
 			d.logger.WithFields(logrus.Fields{
 				"package":  "chainlisten",
-				"function": "Request",
+				"function": "ProcessIncommingEvents",
 				"action":   "get TransactionReceipt",
 			}).Error(err.Error())
 		}
 
 		tx, _, err := d.client.TransactionByHash(context.Background(), vLog.TxHash)
 		if err == nil {
-			// todo - need a thread to clean up and gather any data when Tx query fails
+			// todo - need to clean up and gather any missing data if Tx query above fails
 			gasPrice = tx.GasPrice().Uint64()
 		} else {
 			d.logger.WithFields(logrus.Fields{
 				"package":  "chainlisten",
-				"function": "Request",
+				"function": "ProcessIncommingEvents",
 				"action":   "get TransactionByHash",
 			}).Error(err.Error())
 		}
@@ -352,11 +421,13 @@ func (d *VORCoordinatorListener) Request() error {
 		if index == len(logs)-1 {
 			err = d.SetLastBlockNumber(vLog.BlockNumber)
 		}
+
 		switch vLog.Topics[0].Hex() {
+		// RandomnessRequest event detected
 		case logRandomnessRequestHash.Hex():
 			d.logger.WithFields(logrus.Fields{
 				"package":    "chainlisten",
-				"function":   "Request",
+				"function":   "ProcessIncommingEvents",
 				"action":     "check event name",
 				"event_name": "RandomnessRequest",
 			}).Info("processing event")
@@ -366,7 +437,7 @@ func (d *VORCoordinatorListener) Request() error {
 			if err != nil {
 				d.logger.WithFields(logrus.Fields{
 					"package":  "chainlisten",
-					"function": "Request",
+					"function": "ProcessIncommingEvents",
 					"action":   "UnpackIntoInterface",
 				}).Error(err.Error())
 				return err
@@ -378,7 +449,7 @@ func (d *VORCoordinatorListener) Request() error {
 
 				d.logger.WithFields(logrus.Fields{
 					"package":    "chainlisten",
-					"function":   "Request",
+					"function":   "ProcessIncommingEvents",
 					"action":     "check event keyhash",
 					"request_id": requestId,
 				}).Info("It's a request for me =)")
@@ -388,7 +459,7 @@ func (d *VORCoordinatorListener) Request() error {
 				if err != nil {
 					d.logger.WithFields(logrus.Fields{
 						"package":  "chainlisten",
-						"function": "Request",
+						"function": "ProcessIncommingEvents",
 						"action":   "BigToSeed",
 					}).Error(err.Error())
 					return err
@@ -400,7 +471,7 @@ func (d *VORCoordinatorListener) Request() error {
 				if reqDbRes.ID == 0 {
 					d.logger.WithFields(logrus.Fields{
 						"package":  "chainlisten",
-						"function": "Request",
+						"function": "ProcessIncommingEvents",
 						"action":   "check db for request",
 					}).Info("new request")
 
@@ -424,7 +495,7 @@ func (d *VORCoordinatorListener) Request() error {
 					if err != nil {
 						d.logger.WithFields(logrus.Fields{
 							"package":    "chainlisten",
-							"function":   "Request",
+							"function":   "ProcessIncommingEvents",
 							"action":     "fulfill request",
 							"request_id": requestId,
 						}).Error(err.Error())
@@ -432,7 +503,7 @@ func (d *VORCoordinatorListener) Request() error {
 					} else {
 						d.logger.WithFields(logrus.Fields{
 							"package":    "chainlisten",
-							"function":   "Request",
+							"function":   "ProcessIncommingEvents",
 							"action":     "fulfill request",
 							"request_id": requestId,
 							"tx_hash":    fulfillTx.Hash().Hex(),
@@ -442,7 +513,7 @@ func (d *VORCoordinatorListener) Request() error {
 				} else {
 					d.logger.WithFields(logrus.Fields{
 						"package":    "chainlisten",
-						"function":   "Request",
+						"function":   "ProcessIncommingEvents",
 						"action":     "check db for request",
 						"request_id": reqDbRes.RequestId,
 						"status":     reqDbRes.GetStatusString(),
@@ -451,15 +522,16 @@ func (d *VORCoordinatorListener) Request() error {
 			} else {
 				d.logger.WithFields(logrus.Fields{
 					"package":  "chainlisten",
-					"function": "Request",
+					"function": "ProcessIncommingEvents",
 					"action":   "check event keyhash",
 				}).Info("Looks like it's not addressed to me =(")
 			}
 			continue
+		// RandomnessRequestFulfilled event detected
 		case logRandomnessRequestFulfilledHash.Hex():
 			d.logger.WithFields(logrus.Fields{
 				"package":    "chainlisten",
-				"function":   "Request",
+				"function":   "ProcessIncommingEvents",
 				"action":     "check event name",
 				"event_name": "RandomnessRequestFulfilled",
 			}).Info("processing event")
@@ -469,7 +541,7 @@ func (d *VORCoordinatorListener) Request() error {
 			requestId := common.Bytes2Hex(event.RequestId[:])
 			d.logger.WithFields(logrus.Fields{
 				"package":    "chainlisten",
-				"function":   "Request",
+				"function":   "ProcessIncommingEvents",
 				"action":     "check request exists",
 				"request_id": requestId,
 			}).Info()
@@ -479,7 +551,7 @@ func (d *VORCoordinatorListener) Request() error {
 			if reqDbRes.ID != 0 {
 				d.logger.WithFields(logrus.Fields{
 					"package":    "chainlisten",
-					"function":   "Request",
+					"function":   "ProcessIncommingEvents",
 					"action":     "confirm fulfillment",
 					"request_id": requestId,
 				}).Info("confirmed request fulfilment for request")
@@ -501,7 +573,7 @@ func (d *VORCoordinatorListener) Request() error {
 				if err != nil {
 					d.logger.WithFields(logrus.Fields{
 						"package":  "chainlisten",
-						"function": "Request",
+						"function": "ProcessIncommingEvents",
 						"action":   "UpdateFulfillment",
 					}).Error(err.Error())
 					return err
@@ -509,7 +581,7 @@ func (d *VORCoordinatorListener) Request() error {
 			} else {
 				d.logger.WithFields(logrus.Fields{
 					"package":    "chainlisten",
-					"function":   "Request",
+					"function":   "ProcessIncommingEvents",
 					"action":     "confirm fulfillment",
 					"request_id": requestId,
 				}).Warning("request id does not exist in db. Probably not mine")
@@ -518,7 +590,7 @@ func (d *VORCoordinatorListener) Request() error {
 		default:
 			d.logger.WithFields(logrus.Fields{
 				"package":  "chainlisten",
-				"function": "Request",
+				"function": "ProcessIncommingEvents",
 				"action":   "check event name",
 			}).Info("event not applicable")
 			continue

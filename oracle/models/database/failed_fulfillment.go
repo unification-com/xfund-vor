@@ -6,6 +6,8 @@ type FailedFulfilment struct {
 	gorm.Model
 	RequestId  string `gorm:"index"`
 	TxHash     string `gorm:"index"`
+	GasUsed    uint64
+	GasPrice   uint64
 	FailReason string
 }
 
@@ -23,6 +25,14 @@ func (f FailedFulfilment) GetRequestId() string {
 
 func (f FailedFulfilment) GetTxHash() string {
 	return f.TxHash
+}
+
+func (f FailedFulfilment) GetGasUsed() uint64 {
+	return f.GasUsed
+}
+
+func (f FailedFulfilment) GetGasPrice() uint64 {
+	return f.GasPrice
 }
 
 func (f FailedFulfilment) GetFailReason() string {

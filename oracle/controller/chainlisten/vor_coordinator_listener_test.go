@@ -53,7 +53,7 @@ func TestVORCoordinatorListener_Request(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = VORCoordinator.Request()
+	err = VORCoordinator.ProcessIncommingEvents()
 	if err != nil {
 		t.Error(err)
 	}

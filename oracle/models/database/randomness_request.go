@@ -3,12 +3,12 @@ package database
 import "gorm.io/gorm"
 
 const (
-	REQUEST_STATUS_UNKNOWN = iota
-	REQUEST_STATUS_INITIALISED
-	REQUEST_STATUS_SENT
-	REQUEST_STATUS_TX_FAILED
-	REQUEST_STATUS_SUCCESS
-	REQUEST_STATUS_FULFILMENT_FAILED
+	REQUEST_STATUS_UNKNOWN = iota    // Saywhatnow?
+	REQUEST_STATUS_INITIALISED       // Request initialised - used when RandomnessRequest event detected
+	REQUEST_STATUS_SENT              // Fulfilment Tx broadcast
+	REQUEST_STATUS_TX_FAILED         // Fulfilment Tx failed and not broadcast
+	REQUEST_STATUS_SUCCESS           // Fulfilment Tx successful and confirmed in RandomnessRequestFulfilled event
+	REQUEST_STATUS_FULFILMENT_FAILED // Fulfilment failed - too many failed attempts, request too old etc.
 )
 
 type RandomnessRequest struct {

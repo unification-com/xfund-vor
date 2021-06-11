@@ -148,7 +148,7 @@ func TestStartEverything(t *testing.T) {
 
 	//	run check
 	time.Sleep(time.Second * 1)
-	err = oracleVORCoordinatorListener.Request()
+	err = oracleVORCoordinatorListener.ProcessIncommingEvents()
 	if err != nil {
 		t.Error(err)
 	}
