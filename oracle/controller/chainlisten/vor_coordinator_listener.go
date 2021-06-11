@@ -153,8 +153,6 @@ func (d *VORCoordinatorListener) processStuckRequest(request database.Randomness
 		}
 
 		// no point continuing if it's still pending. Log it and move on.
-		// todo - However, if block diff is high, store block hash in block hash store contract
-		//        and resend using same tx nonce, with higher gas price
 		if isPending {
 			d.logger.WithFields(logrus.Fields{
 				"package":  "chainlisten",
@@ -163,6 +161,10 @@ func (d *VORCoordinatorListener) processStuckRequest(request database.Randomness
 				"request_id":  request.GetRequestId(),
 				"tx_hash":  request.GetFulfillTxHash(),
 			}).Info("tx still pending - ignore")
+
+			// todo - However, if block diff is high, store block hash in block hash store contract
+			//        and resend using same tx nonce, with higher gas price
+
 			return
 		}
 
@@ -215,8 +217,9 @@ func (d *VORCoordinatorListener) processStuckRequest(request database.Randomness
 		}).Info()
 
 		if fulfillReceipt.Status == 1 {
-			// oddly, seems OK, but this should probably never occur.
-			// todo - check why event wasn't recorded
+			// Tx was successful. Move on and wait for RandomnessRequestFulfilled event
+			// to be picked up by the ProcessIncommingEvents function
+			// todo - check if the event was missed for some reason and try to get event data
 			return
 		}
 
