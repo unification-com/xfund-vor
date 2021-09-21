@@ -111,6 +111,7 @@ nano $HOME/vor/config.json
   },
   "gas_limit": 1000000,
   "max_gas_price": 100,
+  "wait_confirmations": 10,
   "database": {
     "dialect": "sqlite",
     "storage": "/home/username/vor/oracle.db"
@@ -142,6 +143,7 @@ The config options are as follows:
 - `gas_limit` - gas units limit for fulfilling a request. Default `500000`
 - `max_gas_price` - max gas price in gwei you are willing to pay to fulfil a request. 
   Gas price is estimated with each fulfillment Tx, but will be capped at this value. Default `150`
+- `wait_confirmations` - number of block confirmations to wait before fulfilling a request. Default `10`
 - `database.dialect` - `postgres` or `sqlite`. Default `sqlite`
 - `database.storage` - (`sqlite` only) - path to the DB file. It will be created on the oracle's first
   run if one does not exist. Default `./oracle.db`
