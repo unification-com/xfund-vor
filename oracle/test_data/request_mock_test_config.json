@@ -10,6 +10,7 @@
     "port": 8445
   },
   "first_block": 1,
+  "wait_confirmations": 0,
   "keystorage": {
     "file": "/root/xfund-vor/oracle/test_data/request_mock_test_keystore.json",
     "account": "test"

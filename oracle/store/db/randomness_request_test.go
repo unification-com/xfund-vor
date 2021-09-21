@@ -30,11 +30,8 @@ func TestRandomnessRequestStore_Insert(t *testing.T) {
 	}
 	err = thestore.Db.InsertNewRequest(
 		"keyHashStore",
-		"Seed",
 		"Sender",
 		"RequestId",
-		1,
-		"blockHash",
 		1,
 		"txHash",
 		1, 1, 1)
