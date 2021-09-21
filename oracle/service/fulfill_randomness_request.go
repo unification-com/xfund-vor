@@ -9,11 +9,11 @@ import (
 	"oracle/utils"
 )
 
-func (d *Service) FulfillRandomness(seed vor.Seed, blockHash common.Hash, blockNum int64) (tx *types.Transaction, err error) {
+func (d *Service) FulfillRandomness(seed vor.Seed, blockHash common.Hash, blockNum uint64) (tx *types.Transaction, err error) {
 	preSeed := vor.PreSeedData{
 		PreSeed:   seed,
 		BlockHash: blockHash,
-		BlockNum:  uint64(blockNum),
+		BlockNum:  blockNum,
 	}
 	oraclePrivateKeyECDSA, err := crypto.HexToECDSA(utils.RemoveHexPrefix(d.Store.Keystorage.GetSelectedPrivateKey()))
 

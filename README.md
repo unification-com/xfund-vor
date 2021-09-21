@@ -101,7 +101,7 @@ tool.
 
 - Ganache CLI wallet mnemonic: `myth like bonus scare over problem client lizard pioneer submit female collect`
 - Ganache CLI URL: `http://127.0.0.1:8545`
-- Ganache CLI Network ID: `696969`
+- Ganache CLI Network/Chain ID: `696969`
 - VORCoordinator Contract address: `0xCfEB869F69431e42cdB54A4F4f105C19C080A601`
 - BlockHashStore contract address: `0x5b1869D9A4C187F2EAa108f3062412ecf0526b24`
 - VOR Oracle Wallet Address: `0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0`

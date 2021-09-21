@@ -148,9 +148,11 @@ func (d *Keystorage) GeneratePrivate(username string) (string, error) {
 }
 
 func (d *Keystorage) AddExisting(username string, privateKey string) (err error) {
-	privateKey = utils.AddHexPrefix(privateKey)
+	privkeyHex := utils.AddHexPrefix(privateKey)
+	//privkeyRaw, err := hex.DecodeString(string(privkeyHex[:len(privkeyHex)-1]))
+	//privateKeyECDSA, err := crypto.ToECDSA(privkey)
 
-	cipherPrivate, err := Encrypt(privateKey, d.KeyStore.Token)
+	cipherPrivate, err := Encrypt(privkeyHex, d.KeyStore.Token)
 	if err != nil {
 		return err
 	}
@@ -162,7 +164,7 @@ func (d *Keystorage) AddExisting(username string, privateKey string) (err error)
 			return username
 		}(),
 		CipherPrivate: cipherPrivate,
-		Private:       privateKey,
+		Private:       privkeyHex,
 	})
 	d.KeyStore.Key = newKey
 	err = d.save()
