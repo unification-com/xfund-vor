@@ -153,6 +153,13 @@ func TestStartEverything(t *testing.T) {
 		t.Error(err)
 	}
 
+	//	run jobs
+	time.Sleep(time.Second * 1)
+	err = oracleVORCoordinatorListener.CheckJobs()
+	if err != nil {
+		t.Error(err)
+	}
+
 	time.Sleep(time.Second * 1)
 	house, err := rootVORD20Owner.House("0xf408f04F9b7691f7174FA2bb73ad6d45fD5d3CBe")
 	if err != nil {
