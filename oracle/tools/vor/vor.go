@@ -40,6 +40,7 @@ import (
 
 	"oracle/tools/secp256k1"
 	"oracle/utils"
+	bm "oracle/utils/big_math"
 
 	"go.dedis.ch/kyber/v3"
 )
@@ -52,44 +53,42 @@ func bigFromHex(s string) *big.Int {
 	return n
 }
 
-// FieldSize is number of elements in secp256k1's base field, i.e. GF(FieldSize)
-var FieldSize = bigFromHex(
-	"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F")
-
-var bi = big.NewInt
-var zero, one, two, three, four, seven = bi(0), bi(1), bi(2), bi(3), bi(4), bi(7)
-
-// Compensate for awkward big.Int API. Can cause an extra allocation or two.
-func i() *big.Int                                    { return new(big.Int) }
-func add(addend1, addend2 *big.Int) *big.Int         { return i().Add(addend1, addend2) }
-func div(dividend, divisor *big.Int) *big.Int        { return i().Div(dividend, divisor) }
-func equal(left, right *big.Int) bool                { return left.Cmp(right) == 0 }
-func exp(base, exponent, modulus *big.Int) *big.Int  { return i().Exp(base, exponent, modulus) }
-func mul(multiplicand, multiplier *big.Int) *big.Int { return i().Mul(multiplicand, multiplier) }
-func mod(dividend, divisor *big.Int) *big.Int        { return i().Mod(dividend, divisor) }
-func sub(minuend, subtrahend *big.Int) *big.Int      { return i().Sub(minuend, subtrahend) }
-
 var (
-	// (fieldSize-1)/2: Half Fermat's Little Theorem exponent
-	eulersCriterionPower = div(sub(FieldSize, one), two)
-	// (fieldSize+1)/4: As long as P%4==3 and n=x^2 in GF(fieldSize), n^sqrtPower=±x
-	sqrtPower = div(add(FieldSize, one), four)
+	// FieldSize is number of elements in secp256k1's base field, i.e. GF(FieldSize)
+	FieldSize = bigFromHex(
+		"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F",
+	)
+	Secp256k1Curve       = &secp256k1.Secp256k1{}
+	Generator            = Secp256k1Curve.Point().Base()
+	eulersCriterionPower = bm.Div(bm.Sub(FieldSize, bm.One), bm.Two)
+	sqrtPower            = bm.Div(bm.Add(FieldSize, bm.One), bm.Four)
+	ErrCGammaEqualsSHash = fmt.Errorf("pick a different nonce; c*gamma = s*hash, with this one")
+	// hashToCurveHashPrefix is domain-separation tag for initial HashToCurve hash.
+	// Corresponds to HASH_TO_CURVE_HASH_PREFIX in VOR.sol.
+	hashToCurveHashPrefix = common.BigToHash(bm.One).Bytes()
+	// scalarFromCurveHashPrefix is a domain-separation tag for the hash taken in
+	// ScalarFromCurve. Corresponds to SCALAR_FROM_CURVE_POINTS_HASH_PREFIX in
+	// VOR.sol.
+	scalarFromCurveHashPrefix = common.BigToHash(bm.Two).Bytes()
+	// RandomOutputHashPrefix is a domain-separation tag for the hash used to
+	// compute the final VOR random output
+	RandomOutputHashPrefix = common.BigToHash(bm.Three).Bytes()
 )
 
 // IsSquare returns true iff x = y^2 for some y in GF(p)
 func IsSquare(x *big.Int) bool {
-	return equal(one, exp(x, eulersCriterionPower, FieldSize))
+	return bm.Equal(bm.One, bm.Exp(x, eulersCriterionPower, FieldSize))
 }
 
 // SquareRoot returns a s.t. a^2=x, as long as x is a square
 func SquareRoot(x *big.Int) *big.Int {
-	return exp(x, sqrtPower, FieldSize)
+	return bm.Exp(x, sqrtPower, FieldSize)
 }
 
 // YSquared returns x^3+7 mod fieldSize, the right-hand side of the secp256k1
 // curve equation.
 func YSquared(x *big.Int) *big.Int {
-	return mod(add(exp(x, three, FieldSize), seven), FieldSize)
+	return bm.Mod(bm.Add(bm.Exp(x, bm.Three, FieldSize), bm.Seven), FieldSize)
 }
 
 // IsCurveXOrdinate returns true iff there is y s.t. y^2=x^3+7
@@ -112,8 +111,6 @@ func packUint256s(xs ...*big.Int) ([]byte, error) {
 
 var secp256k1Curve = &secp256k1.Secp256k1{}
 
-// Generator is the generator point of secp256k1
-var Generator = secp256k1Curve.Point().Base()
 
 // HashUint256s returns a uint256 representing the hash of the concatenated byte
 // representations of the inputs
@@ -144,15 +141,11 @@ func FieldHash(msg []byte) *big.Int {
 	return rv
 }
 
-// hashToCurveHashPrefix is domain-separation tag for initial HashToCurve hash.
-// Corresponds to HASH_TO_CURVE_HASH_PREFIX in VOR.sol.
-var hashToCurveHashPrefix = common.BigToHash(one).Bytes()
-
 // HashToCurve is a cryptographic hash function which outputs a secp256k1 point,
 // or an error. It passes each candidate x ordinate to ordinates function.
 func HashToCurve(p kyber.Point, input *big.Int, ordinates func(x *big.Int),
 ) (kyber.Point, error) {
-	if !(secp256k1.ValidPublicKey(p) && input.BitLen() <= 256 && input.Cmp(zero) >= 0) {
+	if !(secp256k1.ValidPublicKey(p) && input.BitLen() <= 256 && input.Cmp(bm.Zero) >= 0) {
 		return nil, fmt.Errorf("bad input to vor.HashToCurve")
 	}
 	x := FieldHash(append(hashToCurveHashPrefix, append(secp256k1.LongMarshal(p),
@@ -164,16 +157,11 @@ func HashToCurve(p kyber.Point, input *big.Int, ordinates func(x *big.Int),
 	}
 	y := SquareRoot(YSquared(x))
 	rv := secp256k1.SetCoordinates(x, y)
-	if equal(i().Mod(y, two), one) { // Negate response if y odd
+	if bm.Equal(bm.I().Mod(y, bm.Two), bm.One) { // Negate response if y odd
 		rv = rv.Neg(rv)
 	}
 	return rv, nil
 }
-
-// scalarFromCurveHashPrefix is a domain-separation tag for the hash taken in
-// ScalarFromCurve. Corresponds to SCALAR_FROM_CURVE_POINTS_HASH_PREFIX in
-// VOR.sol.
-var scalarFromCurveHashPrefix = common.BigToHash(two).Bytes()
 
 // ScalarFromCurve returns a hash for the curve points. Corresponds to the
 // hash computed in VOR.sol#ScalarFromCurvePoints
@@ -189,7 +177,7 @@ func ScalarFromCurvePoints(
 		msg = append(msg, secp256k1.LongMarshal(p)...)
 	}
 	msg = append(msg, uWitness[:]...)
-	return i().SetBytes(utils.MustHash(string(msg)).Bytes())
+	return bm.I().SetBytes(utils.MustHash(string(msg)).Bytes())
 }
 
 // linearComination returns c*p1+s*p2
@@ -228,9 +216,6 @@ func (p *Proof) WellFormed() bool {
 		secp256k1.RepresentsScalar(p.S) && p.Output.BitLen() <= 256)
 }
 
-var ErrCGammaEqualsSHash = fmt.Errorf(
-	"pick a different nonce; c*gamma = s*hash, with this one")
-
 // checkCGammaNotEqualToSHash checks c*gamma ≠ s*hash, as required by solidity
 // verifier
 func checkCGammaNotEqualToSHash(c *big.Int, gamma kyber.Point, s *big.Int,
@@ -242,10 +227,6 @@ func checkCGammaNotEqualToSHash(c *big.Int, gamma kyber.Point, s *big.Int,
 	}
 	return nil
 }
-
-// vorRandomOutputHashPrefix is a domain-separation tag for the hash used to
-// compute the final VOR random output
-var vorRandomOutputHashPrefix = common.BigToHash(three).Bytes()
 
 // VerifyProof is true iff gamma was generated in the mandated way from the
 // given publicKey and seed, and no error was encountered
@@ -269,8 +250,8 @@ func (p *Proof) VerifyVORProof() (bool, error) {
 	uWitness := secp256k1.EthereumAddress(uPrime)
 	cPrime := ScalarFromCurvePoints(h, p.PublicKey, p.Gamma, uWitness, vPrime)
 	output := utils.MustHash(string(append(
-		vorRandomOutputHashPrefix, secp256k1.LongMarshal(p.Gamma)...)))
-	return equal(p.C, cPrime) && equal(p.Output, output.Big()), nil
+		RandomOutputHashPrefix, secp256k1.LongMarshal(p.Gamma)...)))
+	return bm.Equal(p.C, cPrime) && bm.Equal(p.Output, output.Big()), nil
 }
 
 // generateProofWithNonce allows external nonce generation for testing purposes
@@ -295,11 +276,11 @@ func generateProofWithNonce(secretKey, seed, nonce *big.Int) (Proof, error) {
 	v := secp256k1Curve.Point().Mul(sm, h)
 	c := ScalarFromCurvePoints(h, publicKey, gamma, uWitness, v)
 	// (m - c*secretKey) % GroupOrder
-	s := mod(sub(nonce, mul(c, secretKey)), secp256k1.GroupOrder)
+	s := bm.Mod(bm.Sub(nonce, bm.Mul(c, secretKey)), secp256k1.GroupOrder)
 	if e := checkCGammaNotEqualToSHash(c, gamma, s, h); e != nil {
 		return Proof{}, e
 	}
-	outputHash := utils.MustHash(string(append(vorRandomOutputHashPrefix,
+	outputHash := utils.MustHash(string(append(RandomOutputHashPrefix,
 		secp256k1.LongMarshal(gamma)...)))
 	rv := Proof{
 		PublicKey: publicKey,

@@ -15,7 +15,6 @@ import (
 	"oracle/models/database"
 	"oracle/service"
 	"oracle/tools/vor"
-	"oracle/utils"
 	"strings"
 	"sync"
 )
@@ -135,7 +134,7 @@ func (d *VORRandomnessRequestMockListener) Request() error {
 			byteSeed, err := vor.BigToSeed(event.Seed)
 
 			var status int
-			fulfilTx, err := d.service.FulfillRandomness(byteSeed, vLog.BlockHash, int64(vLog.BlockNumber))
+			fulfilTx, err := d.service.FulfillRandomness(byteSeed, vLog.BlockHash, vLog.BlockNumber)
 			fmt.Println(fulfilTx)
 			if err != nil {
 				fmt.Println(err)
@@ -143,14 +142,12 @@ func (d *VORRandomnessRequestMockListener) Request() error {
 			} else {
 				status = database.REQUEST_STATUS_SENT
 			}
-			seedHex, err := utils.Uint256ToHex(event.Seed)
+			//seedHex, err := utils.Uint256ToHex(event.Seed)
 			err = d.service.Store.Db.InsertNewRequest(
 				common.Bytes2Hex(event.KeyHash[:]),
-				seedHex, event.Sender.Hex(),
+				event.Sender.Hex(),
 				common.Bytes2Hex(event.RequestID[:]),
 				status,
-				vLog.BlockHash.Hex(),
-				vLog.BlockNumber,
 				vLog.TxHash.Hex(),
 				gasUsed,
 				gasPrice,

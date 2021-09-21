@@ -6,17 +6,14 @@ import (
 	"oracle/models/database"
 )
 
-func (d *DB) InsertNewRequest(keyHash string, seed string,
-	sender string, requestId string, status int, blockHash string,
-	blockNumber uint64, txHash string, gasUsed uint64, gasPrice uint64,
+func (d *DB) InsertNewRequest(keyHash string,
+	sender string, requestId string, status int,
+	txHash string, gasUsed uint64, gasPrice uint64,
 	fee uint64) (err error) {
 	err = d.Omit("FulfilTx").Create(&database.RandomnessRequest{
 		KeyHash:             keyHash,
-		Seed:                seed,
 		Sender:              sender,
 		RequestId:           requestId,
-		RequestBlockHash:    blockHash,
-		RequestBlockNumber:  blockNumber,
 		RequestTxHash:       txHash,
 		RequestGasUsed:      gasUsed,
 		RequestGasPrice:     gasPrice,
@@ -25,6 +22,21 @@ func (d *DB) InsertNewRequest(keyHash string, seed string,
 		FulfillmentAttempts: 0,
 	}).Error
 	return
+}
+
+func (d *DB) UpdateRequestBlockAndSeed(requestId string, blockHash string, seed string, blockNumber uint64) error {
+	req := database.RandomnessRequest{}
+	err := d.Where("request_id = ?", requestId).First(&req).Error
+	if err != nil {
+		return err
+	}
+	req.RequestBlockHash = blockHash
+	req.RequestBlockNumber = blockNumber
+	req.Seed = seed
+
+	err = d.Save(&req).Error
+
+	return err
 }
 
 func (d *DB) UpdateRequestStatus(requestId string, status int, statusReason string) error {
@@ -45,12 +57,13 @@ func (d *DB) UpdateRequestStatus(requestId string, status int, statusReason stri
 	return err
 }
 
-func (d *DB) UpdateFulfilmentSent(requestId string, status int, txHash string) error {
+func (d *DB) UpdateFulfilmentSent(requestId string, status int, txHash string, blockNum uint64) error {
 	req := database.RandomnessRequest{}
 	err := d.Where("request_id = ?", requestId).First(&req).Error
 	if err != nil {
 		return err
 	}
+	req.LastFulfillSentBlockNumber = blockNum
 	req.Status = status
 	req.FulfillTxHash = txHash
 	req.FulfillmentAttempts = req.FulfillmentAttempts + 1
@@ -167,9 +180,21 @@ func (d DB) GetByStatus(status int) ([]database.RandomnessRequest, error) {
 	return requests, err
 }
 
+func (d DB) GetInitialisedRequests() ([]database.RandomnessRequest, error) {
+	var requests = []database.RandomnessRequest{}
+	err := d.Where("status = ?", database.REQUEST_STATUS_INITIALISED).Order(fmt.Sprintf("id %s", "asc")).Find(&requests).Error
+	return requests, err
+}
+
 func (d DB) GetStuckOrFailedTx() ([]database.RandomnessRequest, error) {
 	var requests = []database.RandomnessRequest{}
 	err := d.Where("status = ? OR status = ?", database.REQUEST_STATUS_SENT, database.REQUEST_STATUS_TX_FAILED).Order(fmt.Sprintf("id %s", "asc")).Find(&requests).Error
+	return requests, err
+}
+
+func (d DB) GetJobs() ([]database.RandomnessRequest, error) {
+	var requests = []database.RandomnessRequest{}
+	err := d.Where("status = ? OR status = ? OR status = ?", database.REQUEST_STATUS_INITIALISED, database.REQUEST_STATUS_SENT, database.REQUEST_STATUS_TX_FAILED).Order(fmt.Sprintf("id %s", "asc")).Find(&requests).Error
 	return requests, err
 }
 

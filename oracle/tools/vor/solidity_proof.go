@@ -9,6 +9,7 @@ import (
 
 	"oracle/tools/secp256k1"
 	"oracle/utils"
+	bm "oracle/utils/big_math"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
@@ -122,10 +123,10 @@ func UnmarshalSolidityProof(proof []byte) (rv Proof, err error) {
 	if rv.Gamma, err = secp256k1.LongUnmarshal(rawGamma); err != nil {
 		return failedProof, errors.Wrapf(err, "while reading proof gamma")
 	}
-	rv.C = i().SetBytes(proof[128:160])
-	rv.S = i().SetBytes(proof[160:192])
-	rv.Seed = i().SetBytes(proof[192:224])
-	rv.Output = utils.MustHash(string(vorRandomOutputHashPrefix) +
+	rv.C = bm.I().SetBytes(proof[128:160])
+	rv.S = bm.I().SetBytes(proof[160:192])
+	rv.Seed = bm.I().SetBytes(proof[192:224])
+	rv.Output = utils.MustHash(string(RandomOutputHashPrefix) +
 		string(rawGamma)).Big()
 	return rv, nil
 }
