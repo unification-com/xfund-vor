@@ -26,6 +26,19 @@ contract('VORD20', ([owner, alice, dummy, oracle]) => {
         await this.xFund.transfer(this.vorD20.address, this.deposit, { from: owner });
     });
 
+    describe('#deploy', () => {
+        describe('success', () => {
+            it('correct vorCoordinator address', async () => {
+                const vc = await this.vorD20.getVORCoordinator();
+                expect(vc).to.be.equal(this.vorCoordinator.address);
+            });
+            it('correct xFUND address', async () => {
+                const vc = await this.vorD20.getXfund();
+                expect(vc).to.be.equal(this.xFund.address);
+            });
+        });
+    });
+
     describe('#withdrawToken', () => {
         describe('failure', () => {
             it('reverts when called by a non-owner', async () => {

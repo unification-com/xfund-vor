@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.12;
+pragma solidity >=0.6.12;
 
 import "./vendor/VORSafeMath.sol";
 import "./interfaces/IERC20_Ex.sol";
@@ -186,6 +186,7 @@ abstract contract VORConsumerBase is VORRequestIDBase {
         vorCoordinator = _vorCoordinator;
     }
 
+    address internal immutable xFUNDAddress;
     IERC20_Ex internal immutable xFUND;
     address internal vorCoordinator;
 
@@ -200,8 +201,9 @@ abstract contract VORConsumerBase is VORRequestIDBase {
      * @param _vorCoordinator address of VORCoordinator contract
      * @param _xfund address of xFUND token contract
      */
-    constructor(address _vorCoordinator, address _xfund) public {
+    constructor(address _vorCoordinator, address _xfund) internal {
         vorCoordinator = _vorCoordinator;
+        xFUNDAddress = _xfund;
         xFUND = IERC20_Ex(_xfund);
     }
 

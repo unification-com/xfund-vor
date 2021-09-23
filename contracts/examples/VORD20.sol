@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.12;
+pragma solidity >=0.6.12;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
@@ -117,6 +117,14 @@ contract VORD20 is Ownable, VORConsumerBase {
      */
     function getVORCoordinator() external view returns (address) {
         return vorCoordinator;
+    }
+
+    /**
+     * @notice returns the current VORCoordinator contract address
+     * @return vorCoordinator address
+     */
+    function getXfund() external view returns (address) {
+        return xFUNDAddress;
     }
 
     /**
