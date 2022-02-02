@@ -49,11 +49,11 @@ func NewVORCoordinatorListener(contractHexAddress string, ethHostAddress string,
 	var lastBlock *big.Int
 	lastRequest, err := service.Store.Db.GetLast()
 	if blockNumber, _ := service.Store.Keystorage.GetBlockNumber(); blockNumber != 0 {
-		lastBlock = big.NewInt(blockNumber + 1)
+		lastBlock = big.NewInt(blockNumber)
 	} else if lastRequest.GetRequestBlockNumber() != 0 {
 		lastBlock = big.NewInt(int64(lastRequest.GetRequestBlockNumber()))
 	} else if config.Conf.FirstBlockNumber != 0 {
-		lastBlock = big.NewInt(int64(config.Conf.FirstBlockNumber + 1))
+		lastBlock = big.NewInt(int64(config.Conf.FirstBlockNumber))
 	} else {
 		lastBlock = big.NewInt(1)
 	}
@@ -103,8 +103,8 @@ func (d VORCoordinatorListener) Shutdown() {
 }
 
 func (d *VORCoordinatorListener) SetLastBlockNumber(blockNumber uint64) (err error) {
-	d.query.FromBlock = big.NewInt(int64(blockNumber + 1))
-	err = d.service.Store.Keystorage.SetBlockNumber(int64(blockNumber))
+	d.query.FromBlock = big.NewInt(int64(blockNumber - 1))
+	err = d.service.Store.Keystorage.SetBlockNumber(int64(blockNumber - 1))
 	return
 }
 
@@ -121,10 +121,10 @@ func (d *VORCoordinatorListener) recordBlockHash(blockNumber uint64, blockHash s
 	} else {
 		// add block store tx data to db table
 		d.logger.WithFields(logrus.Fields{
-			"package":  "chainlisten",
-			"function": "recordBlockHash",
-			"action":   "store blockhash in block store",
-			"block_num": blockNumber,
+			"package":    "chainlisten",
+			"function":   "recordBlockHash",
+			"action":     "store blockhash in block store",
+			"block_num":  blockNumber,
 			"block_hash": blockHash,
 		}).Info("store tx sent")
 		_ = d.service.Store.Db.InsertNewStoredBlock(blockHash, blockNumber, bhTx.Hash().Hex())
@@ -148,10 +148,10 @@ func (d *VORCoordinatorListener) processFulfillment(requestId string, requestTxR
 			err := contractAbi.UnpackIntoInterface(&event, "RandomnessRequest", vLog.Data)
 			if err != nil {
 				d.logger.WithFields(logrus.Fields{
-					"package":  "chainlisten",
-					"function": "processFulfillment",
-					"action":   "unpack RandomnessRequest event to abi",
-					"request_id":  requestId,
+					"package":    "chainlisten",
+					"function":   "processFulfillment",
+					"action":     "unpack RandomnessRequest event to abi",
+					"request_id": requestId,
 				}).Error(err.Error())
 				return
 			}
@@ -195,10 +195,10 @@ func (d *VORCoordinatorListener) processFulfillment(requestId string, requestTxR
 func (d *VORCoordinatorListener) processFailed(request database.RandomnessRequest, requestTxReceipt *types.Receipt, currentBlockNum uint64) {
 	requestId := request.GetRequestId()
 	d.logger.WithFields(logrus.Fields{
-		"package":  "chainlisten",
-		"function": "processFailed",
-		"action":   "start",
-		"request_id":  requestId,
+		"package":    "chainlisten",
+		"function":   "processFailed",
+		"action":     "start",
+		"request_id": requestId,
 	}).Info()
 
 	// used later to store failed fulfill tx history
@@ -213,10 +213,10 @@ func (d *VORCoordinatorListener) processFailed(request database.RandomnessReques
 	if request.GetFulfillmentAttempts() >= 3 {
 		// too many fails
 		d.logger.WithFields(logrus.Fields{
-			"package":  "chainlisten",
-			"function": "processFailed",
-			"action":   "check num attempts",
-			"request_id":  requestId,
+			"package":      "chainlisten",
+			"function":     "processFailed",
+			"action":       "check num attempts",
+			"request_id":   requestId,
 			"num_attempts": request.GetFulfillmentAttempts(),
 		}).Info()
 
@@ -236,10 +236,10 @@ func (d *VORCoordinatorListener) processFailed(request database.RandomnessReques
 		if !foundHash || bhErr != nil {
 			// block hash not in store. Flag as failed and move on
 			d.logger.WithFields(logrus.Fields{
-				"package":  "chainlisten",
-				"function": "processFailed",
-				"action":   "check request age",
-				"request_id":  request.GetRequestId(),
+				"package":    "chainlisten",
+				"function":   "processFailed",
+				"action":     "check request age",
+				"request_id": request.GetRequestId(),
 			}).Info("request too old and block hash not in block store")
 			_ = d.service.Store.Db.UpdateRequestStatus(request.GetRequestId(), database.REQUEST_STATUS_FULFILMENT_FAILED, "request too old and block hash not in block store")
 			return
@@ -259,10 +259,10 @@ func (d *VORCoordinatorListener) processFailed(request database.RandomnessReques
 func (d *VORCoordinatorListener) processPossiblyStuck(request database.RandomnessRequest, requestTxReceipt *types.Receipt, currentBlockNum uint64) {
 	requestId := request.GetRequestId()
 	d.logger.WithFields(logrus.Fields{
-		"package":  "chainlisten",
-		"function": "processPossiblyStuck",
-		"action":   "start",
-		"request_id":  requestId,
+		"package":    "chainlisten",
+		"function":   "processPossiblyStuck",
+		"action":     "start",
+		"request_id": requestId,
 	}).Info()
 
 	requestBlockDiff := currentBlockNum - requestTxReceipt.BlockNumber.Uint64()
@@ -270,11 +270,11 @@ func (d *VORCoordinatorListener) processPossiblyStuck(request database.Randomnes
 	if lastFulfillSentBlockDiff < 2 {
 		// too soon - may take a while for Tx to be broadcast/picked up
 		d.logger.WithFields(logrus.Fields{
-			"package":       "chainlisten",
-			"function":      "processPossiblyStuck",
-			"action":        "check block diff since fulfill tx sent",
-			"request_id":    requestId,
-			"block_diff":    lastFulfillSentBlockDiff,
+			"package":    "chainlisten",
+			"function":   "processPossiblyStuck",
+			"action":     "check block diff since fulfill tx sent",
+			"request_id": requestId,
+			"block_diff": lastFulfillSentBlockDiff,
 		}).Info("not enough blocks since last sent. Wait.")
 		return
 	}
@@ -286,11 +286,11 @@ func (d *VORCoordinatorListener) processPossiblyStuck(request database.Randomnes
 	if err != nil {
 		// probably not in Tx pool yet
 		d.logger.WithFields(logrus.Fields{
-			"package":  "chainlisten",
-			"function": "processPossiblyStuck",
-			"action":   "get fulfill tx",
-			"request_id":  requestId,
-			"tx_hash":  request.GetFulfillTxHash(),
+			"package":    "chainlisten",
+			"function":   "processPossiblyStuck",
+			"action":     "get fulfill tx",
+			"request_id": requestId,
+			"tx_hash":    request.GetFulfillTxHash(),
 		}).Error(err.Error())
 		return
 	}
@@ -298,11 +298,11 @@ func (d *VORCoordinatorListener) processPossiblyStuck(request database.Randomnes
 	// no point continuing if it's still pending. Log it and move on.
 	if isPending {
 		d.logger.WithFields(logrus.Fields{
-			"package":  "chainlisten",
-			"function": "processPossiblyStuck",
-			"action":   "check fulfill tx pending",
-			"request_id":  requestId,
-			"tx_hash":  request.GetFulfillTxHash(),
+			"package":    "chainlisten",
+			"function":   "processPossiblyStuck",
+			"action":     "check fulfill tx pending",
+			"request_id": requestId,
+			"tx_hash":    request.GetFulfillTxHash(),
 		}).Info("tx still pending - ignore")
 		return
 	}
@@ -311,11 +311,11 @@ func (d *VORCoordinatorListener) processPossiblyStuck(request database.Randomnes
 	fulfillReceipt, err := d.client.TransactionReceipt(context.Background(), fulfilTxHash)
 	if err != nil {
 		d.logger.WithFields(logrus.Fields{
-			"package":  "chainlisten",
-			"function": "processPossiblyStuck",
-			"action":   "get fulfil tx receipt",
-			"request_id":  request.GetRequestId(),
-			"tx_hash":  request.GetFulfillTxHash(),
+			"package":    "chainlisten",
+			"function":   "processPossiblyStuck",
+			"action":     "get fulfil tx receipt",
+			"request_id": request.GetRequestId(),
+			"tx_hash":    request.GetFulfillTxHash(),
 		}).Error(err.Error())
 		return
 	}
@@ -325,10 +325,10 @@ func (d *VORCoordinatorListener) processPossiblyStuck(request database.Randomnes
 		// to be picked up by the ProcessIncommingEvents function
 		// todo - check if the event was missed for some reason and try to get event data
 		d.logger.WithFields(logrus.Fields{
-			"package":  "chainlisten",
-			"function": "processPossiblyStuck",
-			"action":   "check fulfill tx status",
-			"request_id":  requestId,
+			"package":    "chainlisten",
+			"function":   "processPossiblyStuck",
+			"action":     "check fulfill tx status",
+			"request_id": requestId,
 		}).Info("tx success. wait for RandomnessRequestFulfilled event")
 		return
 	}
@@ -348,10 +348,10 @@ func (d *VORCoordinatorListener) processPossiblyStuck(request database.Randomnes
 	if request.GetFulfillmentAttempts() >= 3 {
 		// too many fails
 		d.logger.WithFields(logrus.Fields{
-			"package":  "chainlisten",
-			"function": "processPossiblyStuck",
-			"action":   "check num attempts",
-			"request_id":  requestId,
+			"package":      "chainlisten",
+			"function":     "processPossiblyStuck",
+			"action":       "check num attempts",
+			"request_id":   requestId,
 			"num_attempts": request.GetFulfillmentAttempts(),
 		}).Info()
 
@@ -369,10 +369,10 @@ func (d *VORCoordinatorListener) processPossiblyStuck(request database.Randomnes
 		if !foundHash || bhErr != nil {
 			// block hash not in store. Flag as failed and move on
 			d.logger.WithFields(logrus.Fields{
-				"package":  "chainlisten",
-				"function": "processPossiblyStuck",
-				"action":   "check request age",
-				"request_id":  request.GetRequestId(),
+				"package":    "chainlisten",
+				"function":   "processPossiblyStuck",
+				"action":     "check request age",
+				"request_id": request.GetRequestId(),
 			}).Info("request too old and block hash not in block store")
 			_ = d.service.Store.Db.UpdateRequestStatus(request.GetRequestId(), database.REQUEST_STATUS_FULFILMENT_FAILED, "request too old and block hash not in block store")
 			return
@@ -381,7 +381,7 @@ func (d *VORCoordinatorListener) processPossiblyStuck(request database.Randomnes
 
 	// record the block hash in the contract to be safe
 	if requestBlockDiff > 50 && !foundHash {
-        d.recordBlockHash(requestTxReceipt.BlockNumber.Uint64(), requestTxReceipt.BlockHash.Hex())
+		d.recordBlockHash(requestTxReceipt.BlockNumber.Uint64(), requestTxReceipt.BlockHash.Hex())
 	}
 
 	d.processFulfillment(requestId, requestTxReceipt, currentBlockNum)
@@ -392,11 +392,11 @@ func (d *VORCoordinatorListener) processPossiblyStuck(request database.Randomnes
 func (d *VORCoordinatorListener) preProcessJob(request database.RandomnessRequest, currentBlockNum uint64) {
 	requestId := request.GetRequestId()
 	d.logger.WithFields(logrus.Fields{
-		"package":  "chainlisten",
-		"function": "preProcessJob",
-		"action":   "preprocess job",
-		"request_id":  requestId,
-		"status": request.GetStatusString(),
+		"package":    "chainlisten",
+		"function":   "preProcessJob",
+		"action":     "preprocess job",
+		"request_id": requestId,
+		"status":     request.GetStatusString(),
 	}).Info()
 
 	// get request Tx receipt from chain
@@ -404,10 +404,10 @@ func (d *VORCoordinatorListener) preProcessJob(request database.RandomnessReques
 	if err != nil {
 		// possibly not in Tx pool yet
 		d.logger.WithFields(logrus.Fields{
-			"package":  "chainlisten",
-			"function": "preProcessJob",
-			"action":   "get tx receipt from chain",
-			"request_id":  requestId,
+			"package":    "chainlisten",
+			"function":   "preProcessJob",
+			"action":     "get tx receipt from chain",
+			"request_id": requestId,
 			"request_tx": request.GetRequestTxHash(),
 		}).Error(err.Error())
 		return
@@ -488,18 +488,20 @@ func (d *VORCoordinatorListener) ProcessIncommingEvents() error {
 		return err
 	}
 
+	thisBlockNum, err := d.client.BlockNumber(context.Background())
+	if err == nil {
+		_ = d.SetLastBlockNumber(thisBlockNum)
+	}
+
 	if len(logs) == 0 {
 		d.logger.WithFields(logrus.Fields{
 			"package":    "chainlisten",
 			"function":   "ProcessIncommingEvents",
 			"action":     "check events",
 			"from_block": d.query.FromBlock.Uint64(),
+			"to_block":   thisBlockNum,
 		}).Info("no applicable logs")
 
-		thisBlockNum, err := d.client.BlockNumber(context.Background())
-		if err == nil {
-			_ = d.SetLastBlockNumber(thisBlockNum - 1)
-		}
 		return nil
 	}
 
@@ -511,7 +513,7 @@ func (d *VORCoordinatorListener) ProcessIncommingEvents() error {
 	logRandomnessRequestHash := crypto.Keccak256Hash([]byte("RandomnessRequest(bytes32,uint256,address,uint256,bytes32)"))
 	logRandomnessRequestFulfilledHash := crypto.Keccak256Hash([]byte("RandomnessRequestFulfilled(bytes32,uint256)"))
 
-	for index, vLog := range logs {
+	for _, vLog := range logs {
 		d.logger.WithFields(logrus.Fields{
 			"package":   "chainlisten",
 			"function":  "ProcessIncommingEvents",
@@ -545,10 +547,6 @@ func (d *VORCoordinatorListener) ProcessIncommingEvents() error {
 				"function": "ProcessIncommingEvents",
 				"action":   "get TransactionByHash",
 			}).Error(err.Error())
-		}
-
-		if index == len(logs)-1 {
-			_ = d.SetLastBlockNumber(vLog.BlockNumber)
 		}
 
 		switch vLog.Topics[0].Hex() {
