@@ -95,7 +95,7 @@ until it calls responds to a request.
 - [`requestRandomness(bytes32 _keyHash, uint256 _fee, uint256 _seed) internal`](#VORConsumerBase-requestRandomness-bytes32-uint256-uint256-)
 - [`_increaseVorCoordinatorAllowance(uint256 _amount) internal`](#VORConsumerBase-_increaseVorCoordinatorAllowance-uint256-)
 - [`_setVORCoordinator(address _vorCoordinator) internal`](#VORConsumerBase-_setVORCoordinator-address-)
-- [`constructor(address _vorCoordinator, address _xfund) public`](#VORConsumerBase-constructor-address-address-)
+- [`constructor(address _vorCoordinator, address _xfund) internal`](#VORConsumerBase-constructor-address-address-)
 - [`rawFulfillRandomness(bytes32 requestId, uint256 randomness) external`](#VORConsumerBase-rawFulfillRandomness-bytes32-uint256-)
 
 
@@ -153,7 +153,7 @@ No description
 #### Parameters:
 - `_vorCoordinator`: address new VORCoordinator address
 <a name="VORConsumerBase-constructor-address-address-"></a>
-### Function `constructor(address _vorCoordinator, address _xfund) public `
+### Function `constructor(address _vorCoordinator, address _xfund) internal `
 No description
 #### Parameters:
 - `_vorCoordinator`: address of VORCoordinator contract

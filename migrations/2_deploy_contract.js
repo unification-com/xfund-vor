@@ -35,6 +35,13 @@ module.exports = function (deployer, network) {
                 await deployer.deploy(VORCoordinator, "0x892A6f9dF0147e5f079b0993F486F9acA3c87881", "0x540FCdd99F4EC8cDac1345D152857B1B20e4d5f6");
             });
             break
+        case "polygon":
+        case "polygon-fork":
+            deployer.then(async () => {
+                // const block = await deployer.deploy(BlockhashStore);
+                await deployer.deploy(VORCoordinator, "0x77a3840f78e4685afaf9c416b36e6eae6122567b", "0x2E9ade949900e19735689686E61BF6338a65B881");
+            });
+            break
     }
 
 };
