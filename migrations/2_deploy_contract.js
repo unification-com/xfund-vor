@@ -1,4 +1,5 @@
 const MockERC20 = artifacts.require("MockERC20");
+const TestXFUND = artifacts.require("TestXFUND");
 const BlockhashStore = artifacts.require("BlockhashStore");
 const VORCoordinator = artifacts.require("VORCoordinator");
 const VORD20 = artifacts.require("VORD20");
@@ -21,6 +22,13 @@ module.exports = function (deployer, network) {
                 await deployer.deploy(VORRandomnessRequestMock);
             });
             break
+        case "goerli":
+        case "goerli-fork":
+            deployer.then(async () => {
+                // const block = await deployer.deploy(BlockhashStore);
+                await deployer.deploy(VORCoordinator, "0xb07C72acF3D7A5E9dA28C56af6F93862f8cc8196", "0xC1e1a7f39fB6E3E1FBAa5d33407F7844e5C843Ff");
+            });
+            break
         case "rinkeby":
         case "rinkeby-fork":
             deployer.then(async () => {
@@ -40,6 +48,21 @@ module.exports = function (deployer, network) {
             deployer.then(async () => {
                 // const block = await deployer.deploy(BlockhashStore);
                 await deployer.deploy(VORCoordinator, "0x77a3840f78e4685afaf9c416b36e6eae6122567b", "0x2E9ade949900e19735689686E61BF6338a65B881");
+            });
+            break
+        case "polygon_mumbai":
+        case "polygon_mumbai-fork":
+            deployer.then(async () => {
+                const testXfund = await deployer.deploy(TestXFUND, 'xFUND', 'xFUND', web3.utils.toWei('100', 'ether'), 9);
+                const block = await deployer.deploy(BlockhashStore);
+                await deployer.deploy(VORCoordinator, testXfund.address, block.address);
+            });
+            break
+        case "sepolia":
+        case "sepolia-fork":
+            deployer.then(async () => {
+                const block = await deployer.deploy(BlockhashStore);
+                await deployer.deploy(VORCoordinator, "0xb07C72acF3D7A5E9dA28C56af6F93862f8cc8196", block.address);
             });
             break
     }
