@@ -86,7 +86,7 @@ docker run -it -p 8545:8545 -p 8445:8445 vor_dev_env
 
 The environment will:
 
-1. Spawn a deterministic `ganach-cli` development chain with 20 accounts funded with 100 ETH
+1. Spawn a deterministic `ganache-cli` development chain with 20 accounts funded with 100 ETH
 2. Compile and deploy the necessary VOR smart contracts
 3. Initialise the test accounts, send test tokens and register the Oracle's proving key
 4. Run the `oracle` application
@@ -141,3 +141,15 @@ make test-oracle
 
 This will run the `go` tests in a self-contained, dockerised environment. A Ganache
 network will be run within the container for the tests to run against.
+
+### Polygon Mumbai
+
+TestXFUND:      0xb07C72acF3D7A5E9dA28C56af6F93862f8cc8196  
+BlockHashStore: 0xf6b5d6eafE402d22609e685DE3394c8b359CaD31  
+VORCoordinator: 0xc12678b997ce94e9f3921B65AD144565dC20Aefc   
+
+Provider: `0x06b5959C3D8212a5718c4b5d6827aa7b2f29E2D5`  
+**Public Key**: `0x0499d4b80d710ad8ca1ae12ac0682a3e3e004637cd10ccf47a6badc1f45b56cfcbc7504ed77f062e2b9922c13daeb001004a19ca632a8354f6c65d4b00991c85c8`  
+**Key Hash**: `0x91c07383e58d6a27a1e8d89806b5959c3d8212a5718c4b5d6827aa7b2f29e2d5`  
+**Global Fee**: 0.000001 xFUNDMOCK  
+**Wait Time**: 10 block confirmations
