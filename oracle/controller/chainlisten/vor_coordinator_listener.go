@@ -46,17 +46,7 @@ func NewVORCoordinatorListener(contractHexAddress string, ethHostAddress string,
 		return nil, err
 	}
 
-	var lastBlock *big.Int
-	lastRequest, err := service.Store.Db.GetLast()
-	if blockNumber, _ := service.Store.Keystorage.GetBlockNumber(); blockNumber != 0 {
-		lastBlock = big.NewInt(blockNumber)
-	} else if lastRequest.GetRequestBlockNumber() != 0 {
-		lastBlock = big.NewInt(int64(lastRequest.GetRequestBlockNumber()))
-	} else if config.Conf.FirstBlockNumber != 0 {
-		lastBlock = big.NewInt(int64(config.Conf.FirstBlockNumber))
-	} else {
-		lastBlock = big.NewInt(1)
-	}
+	lastBlock, err := startBlock(service)
 
 	keyHash, err := service.VORCoordinatorCaller.HashOfKey()
 	return &VORCoordinatorListener{
@@ -75,7 +65,7 @@ func NewVORCoordinatorListener(contractHexAddress string, ethHostAddress string,
 	}, err
 }
 
-func (d VORCoordinatorListener) StartPoll() (err error) {
+func (d *VORCoordinatorListener) StartPoll() (err error) {
 	d.wg.Add(1)
 
 	d.logger.WithFields(logrus.Fields{
@@ -85,24 +75,78 @@ func (d VORCoordinatorListener) StartPoll() (err error) {
 		"from_block": d.query.FromBlock.Uint64(),
 	}).Info()
 
-	var sleepTime = int32(30)
-	if config.Conf.CheckDuration != 0 {
-		sleepTime = config.Conf.CheckDuration
+	// Poll cadence: a base interval plus bounded jitter, so the floor is ALWAYS non-zero. The old code slept
+	// time.Sleep(rand.Int31n(base)) which returns [0,base) - frequently 0 - so a stuck job (e.g. a permanently
+	// reverting under-fee request) re-ran the loop with no delay, pegging a core and churning the heap (the
+	// 2026-06 CPU/RAM runaway). It also discarded every iteration error and never honoured ctx cancellation.
+	base := int32(30)
+	if config.Conf.CheckDuration > 0 {
+		base = config.Conf.CheckDuration
 	}
 	for {
-		err = d.ProcessIncommingEvents()
-		err = d.CheckJobs()
-		time.Sleep(time.Duration(rand.Int31n(sleepTime)) * time.Second)
+		if d.context.Err() != nil {
+			d.logger.WithFields(logrus.Fields{
+				"package":  "chainlisten",
+				"function": "StartPoll",
+				"action":   "context cancelled - stopping poller",
+			}).Info()
+			return d.context.Err()
+		}
+
+		errEvents := d.ProcessIncommingEvents()
+		errJobs := d.CheckJobs()
+
+		// Always wait at least `base` seconds; back off further on an RPC/processing error so a struggling
+		// or dead endpoint is not hammered in a tight loop.
+		wait := base + rand.Int31n(base)
+		if errEvents != nil || errJobs != nil {
+			fields := logrus.Fields{"package": "chainlisten", "function": "StartPoll", "action": "poll iteration error - backing off"}
+			if errEvents != nil {
+				fields["err_events"] = errEvents.Error()
+			}
+			if errJobs != nil {
+				fields["err_jobs"] = errJobs.Error()
+			}
+			d.logger.WithFields(fields).Warn()
+			wait = base * 2
+		}
+
+		select {
+		case <-d.context.Done():
+			return d.context.Err()
+		case <-time.After(time.Duration(wait) * time.Second):
+		}
 	}
-	d.wg.Wait()
-	return
 }
 
 func (d VORCoordinatorListener) Shutdown() {
 	d.wg.Done()
 }
 
+// startBlock is where polling resumes: the block saved in the keystore, else the last request's block, else
+// the configured first block, else 1. A saved block that isn't positive is ignored: older versions could save
+// -1 (see SetLastBlockNumber).
+func startBlock(service *service.Service) (*big.Int, error) {
+	lastRequest, err := service.Store.Db.GetLast()
+	if blockNumber, _ := service.Store.Keystorage.GetBlockNumber(); blockNumber > 0 {
+		return big.NewInt(blockNumber), err
+	}
+	if lastRequest.GetRequestBlockNumber() != 0 {
+		return big.NewInt(int64(lastRequest.GetRequestBlockNumber())), err
+	}
+	if config.Conf.FirstBlockNumber != 0 {
+		return big.NewInt(int64(config.Conf.FirstBlockNumber)), err
+	}
+	return big.NewInt(1), err
+}
+
+// SetLastBlockNumber makes the next poll start from the block before blockNumber. A zero block number (e.g.
+// from a misbehaving RPC) is ignored: blockNumber - 1 would wrap round to the maximum uint64, which used to be
+// saved in the keystore as -1.
 func (d *VORCoordinatorListener) SetLastBlockNumber(blockNumber uint64) (err error) {
+	if blockNumber == 0 {
+		return nil
+	}
 	d.query.FromBlock = big.NewInt(int64(blockNumber - 1))
 	err = d.service.Store.Keystorage.SetBlockNumber(int64(blockNumber - 1))
 	return
@@ -129,6 +173,25 @@ func (d *VORCoordinatorListener) recordBlockHash(blockNumber uint64, blockHash s
 		}).Info("store tx sent")
 		_ = d.service.Store.Db.InsertNewStoredBlock(blockHash, blockNumber, bhTx.Hash().Hex())
 	}
+}
+
+// isPermanentFulfilmentError reports whether a fulfilment send/estimate error is PERMANENT - one that will
+// never succeed by retrying, so the request must be failed terminally rather than re-sent forever. The classic
+// case is a request whose paid fee is below the oracle's registered fee: the coordinator reverts ("Below agreed
+// payment"), which - with gas estimation enabled (GasLimit 0) - surfaces as an "execution reverted" error BEFORE
+// broadcast. Genuinely transient errors (nonce too low, RPC blips) are NOT matched and fall through to the normal
+// capped retry. This guard is what stops the fee-revert CPU/RAM runaway.
+func isPermanentFulfilmentError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	for _, marker := range []string{"execution reverted", "below agreed payment", "always failing transaction"} {
+		if strings.Contains(msg, marker) {
+			return true
+		}
+	}
+	return false
 }
 
 func (d *VORCoordinatorListener) processFulfillment(requestId string, requestTxReceipt *types.Receipt, currentBlockNum uint64) {
@@ -164,14 +227,23 @@ func (d *VORCoordinatorListener) processFulfillment(requestId string, requestTxR
 			// send fulfillment
 			fTx, err := d.service.FulfillRandomness(byteSeed, requestBlockHash, requestTxReceipt.BlockNumber.Uint64())
 			if err != nil {
+				// A permanent revert (e.g. the request's paid fee is below the registered fee) is caught
+				// here by gas estimation BEFORE broadcast - fail it terminally so it drops out of the job
+				// queue, instead of re-sending it forever (the fee-revert CPU/RAM runaway). Transient errors
+				// (nonce/RPC) fall through to TX_FAILED and the normal capped retry.
+				permanent := isPermanentFulfilmentError(err)
+				status := database.REQUEST_STATUS_TX_FAILED
+				if permanent {
+					status = database.REQUEST_STATUS_FULFILMENT_FAILED
+				}
 				d.logger.WithFields(logrus.Fields{
 					"package":    "chainlisten",
 					"function":   "processFulfillment",
 					"action":     "fulfill request",
 					"request_id": requestId,
+					"permanent":  permanent,
 				}).Error(err.Error())
-				// possibly failed due to gas too low, or nonce too low. Flag so we can try again later
-				_ = d.service.Store.Db.UpdateRequestStatus(requestId, database.REQUEST_STATUS_TX_FAILED, err.Error())
+				_ = d.service.Store.Db.UpdateRequestStatus(requestId, status, err.Error())
 			} else {
 				d.logger.WithFields(logrus.Fields{
 					"package":            "chainlisten",

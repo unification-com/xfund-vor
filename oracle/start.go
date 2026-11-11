@@ -28,7 +28,8 @@ func start() (err error) {
 			"package":  "main",
 			"function": "start",
 			"action":   "open keystorage",
-		}).Warning("can't read keystorage, creating a new one...")
+		}).Error(err.Error())
+		return err
 	}
 
 	store, err := store2.NewStore(context.Background(), keystore)

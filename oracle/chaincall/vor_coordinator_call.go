@@ -89,7 +89,10 @@ func NewVORCoordinatorCaller(vorCoordinatorStringAddress string,
 	transactOpts.Value = big.NewInt(0)
 
 	transactOpts.GasPrice = nil
-	transactOpts.GasLimit = uint64(config.Conf.GasLimit) // in units
+	// GasLimit 0 → go-ethereum estimates gas before each send (re-asserted in RenewTransactOpts). A FIXED
+	// limit skips estimation and lets a doomed tx (e.g. a request whose paid fee is below the registered
+	// fee) broadcast, revert on-chain, and get re-sent forever - the fee-revert CPU/RAM runaway.
+	transactOpts.GasLimit = 0
 	transactOpts.Context = ctx
 
 	callOpts := &bind.CallOpts{From: common.HexToAddress(oracleAddress), Context: ctx}
@@ -117,6 +120,11 @@ func (d *VORCoordinatorCaller) RenewTransactOpts() (err error) {
 	}
 
 	d.transactOpts.Nonce = big.NewInt(int64(nonce))
+
+	// Estimate gas before sending: with GasLimit 0, go-ethereum runs eth_estimateGas, which returns an
+	// error for a tx that would revert on-chain (e.g. a below-fee request → "execution reverted"). A fixed
+	// GasLimit skips that and broadcasts the doomed tx → revert → endless re-send (the fee-revert runaway).
+	d.transactOpts.GasLimit = 0
 
 	gasPrice, err := d.client.SuggestGasPrice(d.context)
 	if err != nil {

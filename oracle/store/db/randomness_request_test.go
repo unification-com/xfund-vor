@@ -6,6 +6,7 @@ import (
 	"oracle/config"
 	"oracle/store"
 	"oracle/store/keystorage"
+	"path/filepath"
 	"runtime/debug"
 	"testing"
 )
@@ -16,6 +17,10 @@ var Log = logrus.New()
 
 func TestRandomnessRequestStore_Insert(t *testing.T) {
 	var err error
+	// a fresh database per run: the insert below uses a fixed request id, so a database left by an earlier
+	// run fails it on the unique index
+	config.Conf.Database.Dialect = "sqlite"
+	config.Conf.Database.Storage = filepath.Join(t.TempDir(), "oracle.db")
 	keystore, err = keystorage.NewKeyStorage(Log, "../../test_data/generic_keystore.json")
 	if err != nil || keystore == nil {
 		t.Error(err)

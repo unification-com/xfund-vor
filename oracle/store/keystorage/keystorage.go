@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
@@ -21,76 +22,54 @@ import (
 	"time"
 )
 
+// keystoreFileMode: the keystore holds the oracle's private keys, so only its owner may read it.
+const keystoreFileMode = 0600
+
 type Keystorage struct {
 	log      *logrus.Logger
-	File     *os.File
+	path     string
 	KeyStore *keystorage.KeyStorageModel
 	mu       sync.Mutex
 }
 
+// NewKeyStorage opens the keystore at filePath, creating an empty one if the file doesn't exist. A keystore
+// that exists but can't be read or parsed is an error: carrying on with an empty keystore would send start-up
+// into the interactive first run, which loops forever when the oracle runs without a terminal.
 func NewKeyStorage(log *logrus.Logger, filePath string) (*Keystorage, error) {
-	var err error
-	var keystoreFile *os.File
-	var keyStore = keystorage.KeyStorageModel{}
+	ks := &Keystorage{
+		log:      log,
+		path:     filePath,
+		KeyStore: &keystorage.KeyStorageModel{Key: []*keystorage.KeyStorageKeyModel{}},
+	}
 
-	if _, err = os.Stat(filePath); err == nil {
+	data, err := ioutil.ReadFile(filePath)
+	if os.IsNotExist(err) {
 		log.WithFields(logrus.Fields{
 			"package":  "keystorage",
 			"function": "NewKeyStorage",
-			"action":   "reading file",
+			"action":   "creating file",
 		}).Info()
-		keystoreFile, err = os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0755)
-		if err != nil {
-			log.WithFields(logrus.Fields{
-				"package":  "keystorage",
-				"function": "NewKeyStorage",
-				"action":   "reading file",
-			}).Error(err.Error())
-			return nil, err
-		}
-
-		data, err := ioutil.ReadAll(keystoreFile)
-		if err != nil {
-			log.WithFields(logrus.Fields{
-				"package":  "keystorage",
-				"function": "NewKeyStorage",
-				"action":   "init KeyStore object",
-			}).Error(err.Error())
-			return nil, err
-		}
-
-		err = json.Unmarshal(data, &keyStore)
-		if err != nil {
-			log.WithFields(logrus.Fields{
-				"package":  "keystorage",
-				"function": "NewKeyStorage",
-				"action":   "unmarshal json from file",
-			}).Error(err.Error())
-		}
-	} else if os.IsNotExist(err) {
-		keystoreFile, err = os.Create(filePath)
-		_, err := keystoreFile.Write([]byte(`{"keys":[]}`))
-		keyStore.Key = []*keystorage.KeyStorageKeyModel{}
-		if err != nil {
-			log.WithFields(logrus.Fields{
-				"package":  "keystorage",
-				"function": "NewKeyStorage",
-				"action":   "creating file",
-			}).Error(err.Error())
-			return nil, err
-		}
-
+		return ks, ks.save()
 	}
-
-	return &Keystorage{
-		log:      log,
-		File:     keystoreFile,
-		KeyStore: &keyStore,
-	}, err
+	if err != nil {
+		return nil, fmt.Errorf("reading keystore %s: %w", filePath, err)
+	}
+	if err = json.Unmarshal(data, ks.KeyStore); err != nil {
+		return nil, fmt.Errorf("keystore %s is not valid JSON (%v): restore it from a backup", filePath, err)
+	}
+	// keystores written by older versions are world-readable
+	if err = os.Chmod(filePath, keystoreFileMode); err != nil {
+		return nil, err
+	}
+	return ks, nil
 }
 
+// GetFirst returns the first key in the keystore, or nil if it has none.
 func (d *Keystorage) GetFirst() *keystorage.KeyStorageKeyModel {
 	key := d.KeyStore.GetKey()
+	if len(key) == 0 {
+		return nil
+	}
 	if key[0].Private == "" {
 		key[0].Private, _ = Decrypt(key[0].CipherPrivate, d.KeyStore.Token)
 	}
@@ -246,8 +225,7 @@ func (d *Keystorage) save() error {
 	if err != nil {
 		return err
 	}
-	_, err = d.File.WriteAt(jsonByte, 0)
-	return err
+	return utils.WriteFileWithMaxPerms(d.path, jsonByte, keystoreFileMode)
 }
 
 func (d *Keystorage) GenerateToken() (string, error) {
@@ -265,13 +243,18 @@ func (d *Keystorage) CheckToken(token string) (err error) {
 	return
 }
 
-func (d *Keystorage) SelectPrivateKey(account string) (err error) {
+// SelectPrivateKey selects the named account's key, falling back to the first key in the keystore.
+func (d *Keystorage) SelectPrivateKey(account string) error {
 	if pKey, err := d.GetByAccount(account); err == nil {
 		d.KeyStore.PrivateKey = pKey.GetPrivate()
-	} else {
-		d.KeyStore.PrivateKey = d.GetFirst().GetPrivate()
+		return nil
 	}
-	return err
+	first := d.GetFirst()
+	if first == nil {
+		return errors.New("the keystore has no keys")
+	}
+	d.KeyStore.PrivateKey = first.GetPrivate()
+	return nil
 }
 
 func (d *Keystorage) GetSelectedPrivateKey() string {

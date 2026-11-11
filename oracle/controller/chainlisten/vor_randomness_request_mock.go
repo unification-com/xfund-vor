@@ -9,7 +9,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
-	"oracle/config"
 	"oracle/contracts/vor_coordinator"
 	"oracle/contracts/vor_randomness_request_mock"
 	"oracle/models/database"
@@ -40,17 +39,7 @@ func NewVORRandomnessRequestMockListener(contractHexAddress string, ethHostAddre
 		return nil, err
 	}
 
-	var lastBlock *big.Int
-	lastRequest, err := service.Store.Db.GetLast()
-	if blockNumber, _ := service.Store.Keystorage.GetBlockNumber(); blockNumber != 0 {
-		lastBlock = big.NewInt(blockNumber)
-	} else if lastRequest.GetRequestBlockNumber() != 0 {
-		lastBlock = big.NewInt(int64(lastRequest.GetRequestBlockNumber()))
-	} else if config.Conf.FirstBlockNumber != 0 {
-		lastBlock = big.NewInt(int64(config.Conf.FirstBlockNumber))
-	} else {
-		lastBlock = big.NewInt(1)
-	}
+	lastBlock, err := startBlock(service)
 
 	return &VORRandomnessRequestMockListener{
 		client:          client,

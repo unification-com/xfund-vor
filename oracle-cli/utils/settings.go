@@ -10,8 +10,11 @@ import (
 
 var Settings *SettingsStore
 
+// settingsFileMode: the settings hold the oracle's API key, so only their owner may read them.
+const settingsFileMode = 0600
+
 type SettingsStore struct {
-	File     *os.File
+	path     string
 	Settings *models.Settings
 }
 
@@ -24,36 +27,22 @@ Current oracle-cli settings:
 `, d.Settings.GetOracleHost(), d.Settings.GetOraclePort())
 }
 
+// NewSettingsStore loads the settings at filePath, creating an empty settings file if there is none.
 func NewSettingsStore(filePath string) (*SettingsStore, error) {
-	var err error
-	var settingsFile *os.File
-	var settings = models.Settings{}
+	store := &SettingsStore{path: filePath, Settings: &models.Settings{}}
 
-	if _, err = os.Stat(filePath); err == nil {
-		settingsFile, err = os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0755)
-		if err != nil {
-			return nil, err
-		}
-
-		data, err := ioutil.ReadAll(settingsFile)
-		if err != nil {
-			return nil, err
-		}
-
-		err = json.Unmarshal(data, &settings)
-		if err != nil {
-			return nil, err
-		}
-	} else if os.IsNotExist(err) {
-		settingsFile, err = os.Create(filePath)
-		_, err := settingsFile.Write([]byte(`{}`))
+	data, err := ioutil.ReadFile(filePath)
+	if os.IsNotExist(err) {
+		return store, store.save()
+	}
+	if err != nil {
 		return nil, err
 	}
-
-	return &SettingsStore{
-		File:     settingsFile,
-		Settings: &settings,
-	}, err
+	if err = json.Unmarshal(data, store.Settings); err != nil {
+		return nil, err
+	}
+	// settings written by older versions are world-readable
+	return store, os.Chmod(filePath, settingsFileMode)
 }
 
 func (d *SettingsStore) SetOracleHost(host string) (err error) {
@@ -79,6 +68,6 @@ func (d *SettingsStore) save() error {
 	if err != nil {
 		return err
 	}
-	_, err = d.File.WriteAt(jsonByte, 0)
-	return err
+	// os.WriteFile truncates, so a shorter rewrite can't leave a stale tail behind
+	return os.WriteFile(d.path, jsonByte, settingsFileMode)
 }
