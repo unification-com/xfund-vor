@@ -65,6 +65,23 @@ module.exports = function (deployer, network) {
                 await deployer.deploy(VORCoordinator, "0xb07C72acF3D7A5E9dA28C56af6F93862f8cc8196", block.address);
             });
             break
+        case "shibarium":
+        case "shibarium-fork":
+            deployer.then(async () => {
+                // first time deployment - uncomment and use block.address in arg 2 VORCoordinator deployer below
+                // const block = await deployer.deploy(BlockhashStore);
+                await deployer.deploy(VORCoordinator, "0x89dc93C6c12CaE47aCAf4aD9305d7A442C30dBB2", `0xa8fd75Ff305F0FBf59f50afB4f6290FdB22F0430`);
+            });
+            break
+
+        case "qom":
+        case "qom-fork":
+            deployer.then(async () => {
+                // first time deployment - uncomment and use block.address in arg 2 VORCoordinator deployer below
+                // const block = await deployer.deploy(BlockhashStore);
+                await deployer.deploy(VORCoordinator, "0x0d2FDD551199513D89D64d766E053E6fBC838831", "0x9e84d9DB70fb5767f7bD2A7013C189b4CA8CC374");
+            });
+            break
     }
 
 };
