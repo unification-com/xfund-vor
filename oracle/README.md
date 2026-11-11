@@ -85,7 +85,10 @@ Oracle settings
 }
 ```
 
-`max_gas_price` caps the gas price in gwei (0: uncapped); gas limits are always estimated. Events are read
+Transactions are EIP-1559 where the chain's blocks have a base fee (tip as the node suggests, fee cap twice the
+base fee plus the tip), else legacy-priced; `"legacy_gas": true` forces legacy pricing. `max_gas_price` caps the
+gas price or fee cap in gwei (0: uncapped), so it must stay above the chain's base fee. Gas limits are always
+estimated. Events are read
 with `eth_getLogs` in ranges of at most `event_scan_batch_blocks` blocks (default 2,000), as range-limited
 RPCs reject wider ones.
 

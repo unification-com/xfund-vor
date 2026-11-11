@@ -58,6 +58,7 @@ type Config struct {
 	Serve                         *Serve      `json:"serve"`
 	LogLevel                      string      `json:"log_level"`
 	MaxGasPrice                   int64       `json:"max_gas_price"`
+	LegacyGas                     bool        `json:"legacy_gas"` // send legacy-priced txs even where EIP-1559 is available
 	WaitConfirmations             uint64      `json:"wait_confirmations"`
 	EventScanBatchBlocks          uint64      `json:"event_scan_batch_blocks"` // most blocks per eth_getLogs call (default 2,000)
 	Keystorage                    *Keystorage `json:"keystorage"`

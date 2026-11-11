@@ -43,7 +43,7 @@ func Dial(url string) (*ethclient.Client, error) {
 }
 
 // transactor sends transactions from one account. Each transaction gets fresh options (the nonce read from
-// the chain just before sending, the current gas price, gas estimated) built and sent while holding mu, so
+// the chain just before sending, current gas fees, gas estimated) built and sent while holding mu, so
 // concurrent senders, the poller and the HTTP API, never share options or race for a nonce.
 type transactor struct {
 	client  *ethclient.Client
@@ -86,18 +86,65 @@ func (t *transactor) send(tx func(opts *bind.TransactOpts) (*types.Transaction, 
 	if err != nil {
 		return nil, fmt.Errorf("getting the pending nonce: %w", err)
 	}
-	gasPrice, err := t.client.SuggestGasPrice(t.ctx)
+	fees, err := t.suggestFees()
 	if err != nil {
-		return nil, fmt.Errorf("getting the gas price: %w", err)
+		return nil, err
 	}
 	opts.Context = t.ctx
 	opts.Nonce = new(big.Int).SetUint64(nonce)
-	opts.GasPrice = capToMaxGwei(gasPrice, config.Conf.MaxGasPrice)
+	fees.apply(opts)
 	// GasLimit 0 makes go-ethereum estimate gas, which fails for a transaction that would revert: a fixed limit
 	// skipped that, so a doomed fulfilment (a request paying below the fee) was broadcast, reverted on-chain and
 	// was re-sent forever (the 2026-06 fee-revert runaway).
 	opts.GasLimit = 0
 	return tx(opts)
+}
+
+// gasFees prices one transaction: a legacy gas price, or EIP-1559 tip and fee caps, the others nil.
+type gasFees struct {
+	gasPrice, gasTipCap, gasFeeCap *big.Int
+}
+
+func (f gasFees) apply(opts *bind.TransactOpts) {
+	opts.GasPrice, opts.GasTipCap, opts.GasFeeCap = f.gasPrice, f.gasTipCap, f.gasFeeCap
+}
+
+// feeCapBaseFeeMultiplier: the base fee rises at most 12.5% a block, so twice it lasts ~6 full blocks before
+// an EIP-1559 fee cap would bind.
+const feeCapBaseFeeMultiplier = 2
+
+// suggestFees prices a transaction with EIP-1559 fees where the chain has a base fee (unless legacy_gas is set),
+// else with a legacy gas price; max_gas_price caps either.
+func (t *transactor) suggestFees() (gasFees, error) {
+	maxGwei := config.Conf.MaxGasPrice
+	if !config.Conf.LegacyGas {
+		head, err := t.client.HeaderByNumber(t.ctx, nil)
+		if err != nil {
+			return gasFees{}, fmt.Errorf("getting the head block: %w", err)
+		}
+		if head.BaseFee != nil {
+			tip, err := t.client.SuggestGasTipCap(t.ctx)
+			if err != nil {
+				return gasFees{}, fmt.Errorf("getting the priority fee: %w", err)
+			}
+			feeCap := new(big.Int).Mul(head.BaseFee, big.NewInt(feeCapBaseFeeMultiplier))
+			return dynamicFees(tip, feeCap.Add(feeCap, tip), maxGwei), nil
+		}
+	}
+	gasPrice, err := t.client.SuggestGasPrice(t.ctx)
+	if err != nil {
+		return gasFees{}, fmt.Errorf("getting the gas price: %w", err)
+	}
+	return gasFees{gasPrice: capToMaxGwei(gasPrice, maxGwei)}, nil
+}
+
+// dynamicFees caps the fee cap at maxGwei and keeps the tip within it.
+func dynamicFees(tip, feeCap *big.Int, maxGwei int64) gasFees {
+	feeCap = capToMaxGwei(feeCap, maxGwei)
+	if tip.Cmp(feeCap) > 0 {
+		tip = new(big.Int).Set(feeCap)
+	}
+	return gasFees{gasTipCap: tip, gasFeeCap: feeCap}
 }
 
 // callOpts are the options for a read-only contract call from this account.

@@ -309,19 +309,28 @@ func (d *VORCoordinatorListener) recordFulfilment(vLog types.Log) error {
 	)
 }
 
-// txGas returns a transaction's gas used and gas price for the records, 0 for any that can't be fetched.
+// txGas returns a mined transaction's gas used and the gas price it paid, for the records; 0s if its receipt
+// can't be fetched.
 func (d *VORCoordinatorListener) txGas(txHash common.Hash) (gasUsed, gasPrice uint64) {
-	if receipt, err := d.client.TransactionReceipt(d.context, txHash); err == nil {
-		gasUsed = receipt.GasUsed
-	} else {
+	receipt, err := d.client.TransactionReceipt(d.context, txHash)
+	if err != nil {
 		d.log("txGas").WithField("tx_hash", txHash.Hex()).Warn(err.Error())
+		return 0, 0
 	}
-	if tx, _, err := d.client.TransactionByHash(d.context, txHash); err == nil {
-		gasPrice = tx.GasPrice().Uint64()
-	} else {
-		d.log("txGas").WithField("tx_hash", txHash.Hex()).Warn(err.Error())
+	return receipt.GasUsed, d.paidGasPrice(receipt)
+}
+
+// paidGasPrice is the gas price a mined transaction paid: its receipt's effective price, or, from nodes that
+// don't report one, the price the transaction offered (which is what a legacy one pays). A dynamic-fee
+// transaction's GasPrice is only its cap.
+func (d *VORCoordinatorListener) paidGasPrice(receipt *types.Receipt) uint64 {
+	if receipt.EffectiveGasPrice != nil {
+		return receipt.EffectiveGasPrice.Uint64()
 	}
-	return
+	if tx, _, err := d.client.TransactionByHash(d.context, receipt.TxHash); err == nil {
+		return tx.GasPrice().Uint64()
+	}
+	return 0
 }
 
 // isPermanentFulfilmentError reports whether a fulfilment send/estimate error is PERMANENT - one that will
@@ -471,7 +480,7 @@ func (d *VORCoordinatorListener) checkSent(request database.RandomnessRequest, r
 	}
 
 	fulfilTxHash := common.HexToHash(request.GetFulfillTxHash())
-	lastFulfillTx, isPending, err := d.client.TransactionByHash(d.context, fulfilTxHash)
+	_, isPending, err := d.client.TransactionByHash(d.context, fulfilTxHash)
 	if errors.Is(err, ethereum.NotFound) {
 		if sinceSent < droppedTxBlocks {
 			entry.Info("tx not seen yet")
@@ -500,7 +509,7 @@ func (d *VORCoordinatorListener) checkSent(request database.RandomnessRequest, r
 	return d.retry(request, requestTxReceipt, currentBlockNum, failedAttempt{
 		txHash:   request.GetFulfillTxHash(),
 		gasUsed:  fulfillReceipt.GasUsed,
-		gasPrice: lastFulfillTx.GasPrice().Uint64(),
+		gasPrice: d.paidGasPrice(fulfillReceipt),
 		reason:   "transaction reverted",
 	})
 }
