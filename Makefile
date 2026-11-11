@@ -17,12 +17,15 @@ ldflags = -X oracle/version.Version=$(VERSION) \
 
 BUILD_FLAGS := -ldflags '$(ldflags)'
 
+# abigen is a tool of the oracle module (go.mod `tool`), so the bindings match the go-ethereum it builds with
+ABIGEN := cd oracle && go tool abigen
 abigen:
 	npx truffle run abigen
-	abigen --abi abigenBindings/abi/MockERC20.abi --pkg mock_erc20 --out oracle/contracts/mock_erc20/mock_erc20.go
-	abigen --abi abigenBindings/abi/VORCoordinator.abi --pkg vor_coordinator --out oracle/contracts/vor_coordinator/vor_coordinator.go
-	abigen --abi abigenBindings/abi/VORRandomnessRequestMock.abi --pkg vor_randomness_request_mock --out oracle/contracts/vor_randomness_request_mock/vor_randomness_request_mock.go
-	abigen --abi abigenBindings/abi/VORD20.abi --pkg vord_20 --out oracle/contracts/vord_20/vord20.go
+	$(ABIGEN) --abi ../abigenBindings/abi/MockERC20.abi --pkg mock_erc20 --out contracts/mock_erc20/mock_erc20.go
+	$(ABIGEN) --abi ../abigenBindings/abi/VORCoordinator.abi --pkg vor_coordinator --out contracts/vor_coordinator/vor_coordinator.go
+	$(ABIGEN) --abi ../abigenBindings/abi/VORRandomnessRequestMock.abi --pkg vor_randomness_request_mock --out contracts/vor_randomness_request_mock/vor_randomness_request_mock.go
+	$(ABIGEN) --abi ../abigenBindings/abi/VORD20.abi --pkg vord_20 --out contracts/vord_20/vord20.go
+	$(ABIGEN) --abi ../abigenBindings/abi/BlockhashStore.abi --pkg block_hash_store --out contracts/block_hash_store/block_hash_store.go
 
 build-oracle:
 	cd oracle && rm -f build/oracle && go build -mod=readonly $(BUILD_FLAGS) -o ./build/oracle
