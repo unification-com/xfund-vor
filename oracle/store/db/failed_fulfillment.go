@@ -8,8 +8,8 @@ func (d *DB) InsertNewFailedFulfilment(requestId string, txHash string, gasUsed 
 	err = d.Create(&database.FailedFulfilment{
 		RequestId:  requestId,
 		TxHash:     txHash,
-		GasUsed: gasUsed,
-		GasPrice: gasPrice,
+		GasUsed:    gasUsed,
+		GasPrice:   gasPrice,
 		FailReason: reason,
 	}).Error
 	return

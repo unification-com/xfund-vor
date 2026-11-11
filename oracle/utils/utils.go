@@ -674,11 +674,11 @@ func (q *BoundedPriorityQueue) Empty() bool {
 // WrapIfError decorates an error with the given message.  It is intended to
 // be used with `defer` statements, like so:
 //
-// func SomeFunction() (err error) {
-//     defer WrapIfError(&err, "error in SomeFunction:")
+//	func SomeFunction() (err error) {
+//	    defer WrapIfError(&err, "error in SomeFunction:")
 //
-//     ...
-// }
+//	    ...
+//	}
 func WrapIfError(err *error, msg string) {
 	if *err != nil {
 		*err = errors.Wrap(*err, msg)
