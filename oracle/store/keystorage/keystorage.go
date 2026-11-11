@@ -1,61 +1,70 @@
 package keystorage
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	cryptoRand "crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
+	"crypto/ecdsa"
+	"crypto/rand"
+	"crypto/subtle"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/bcrypt"
-	"io"
-	"io/ioutil"
-	"math/rand"
-	"oracle/models/keystorage"
-	"oracle/utils"
-	"oracle/utils/walletworker"
 	"os"
 	"sync"
-	"time"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/sirupsen/logrus"
+
+	"oracle/models/keystorage"
+	"oracle/utils"
 )
 
 // keystoreFileMode: the keystore holds the oracle's private keys, so only its owner may read it.
 const keystoreFileMode = 0600
 
+// MinPassphraseLength: the keystore passphrase also authenticates the HTTP API, so it must resist guessing on
+// its own.
+const MinPassphraseLength = 16
+
+// ErrLegacyKeystore: the keystore was written by v0.1.x, whose encryption is too weak to keep using.
+var ErrLegacyKeystore = errors.New("its keys use the v0.1.x encryption: convert it with `oracle migrate-keystore`")
+
+// Keystorage is the oracle's keystore: its accounts, each a private key encrypted as a go-ethereum v3 keystore
+// under one passphrase, plus each account's registration state and last polled block. Unlock decrypts the one
+// key the oracle signs with; no other key is ever decrypted.
 type Keystorage struct {
-	log      *logrus.Logger
-	path     string
-	KeyStore *keystorage.KeyStorageModel
-	mu       sync.Mutex
+	log  *logrus.Logger
+	path string
+
+	mu         sync.Mutex
+	file       *keystorage.KeyStorageModel
+	passphrase string
+	selected   int    // index of the unlocked key in file.Key, -1 while locked
+	privateKey string // the unlocked key, 0x-prefixed hex
 }
 
 // NewKeyStorage opens the keystore at filePath, creating an empty one if the file doesn't exist. A keystore
 // that exists but can't be read or parsed is an error: carrying on with an empty keystore would send start-up
 // into the interactive first run, which loops forever when the oracle runs without a terminal.
 func NewKeyStorage(log *logrus.Logger, filePath string) (*Keystorage, error) {
-	ks := &Keystorage{
-		log:      log,
-		path:     filePath,
-		KeyStore: &keystorage.KeyStorageModel{Key: []*keystorage.KeyStorageKeyModel{}},
-	}
+	ks := &Keystorage{log: log, path: filePath, selected: -1}
 
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if os.IsNotExist(err) {
 		log.WithFields(logrus.Fields{
 			"package":  "keystorage",
 			"function": "NewKeyStorage",
 			"action":   "creating file",
 		}).Info()
+		ks.file = emptyKeystore()
 		return ks, ks.save()
 	}
 	if err != nil {
 		return nil, fmt.Errorf("reading keystore %s: %w", filePath, err)
 	}
-	if err = json.Unmarshal(data, ks.KeyStore); err != nil {
-		return nil, fmt.Errorf("keystore %s is not valid JSON (%v): restore it from a backup", filePath, err)
+	if ks.file, err = parseKeystore(data); err != nil {
+		return nil, fmt.Errorf("keystore %s: %w", filePath, err)
 	}
 	// keystores written by older versions are world-readable
 	if err = os.Chmod(filePath, keystoreFileMode); err != nil {
@@ -64,307 +73,228 @@ func NewKeyStorage(log *logrus.Logger, filePath string) (*Keystorage, error) {
 	return ks, nil
 }
 
-// GetFirst returns the first key in the keystore, or nil if it has none.
-func (d *Keystorage) GetFirst() *keystorage.KeyStorageKeyModel {
-	key := d.KeyStore.GetKey()
-	if len(key) == 0 {
-		return nil
-	}
-	if key[0].Private == "" {
-		key[0].Private, _ = Decrypt(key[0].CipherPrivate, d.KeyStore.Token)
-	}
-	d.KeyStore.Key = key
-	return key[0]
+func emptyKeystore() *keystorage.KeyStorageModel {
+	return &keystorage.KeyStorageModel{Version: keystorage.FileVersion, Key: []*keystorage.KeyStorageKeyModel{}}
 }
 
-func (d *Keystorage) GetByUsername(account string) *keystorage.KeyStorageKeyModel {
-	keys := d.KeyStore.GetKey()
-	for _, key := range keys {
-		if key.Account == account {
-			if key.Private == "" {
-				key.Private, _ = Decrypt(key.CipherPrivate, d.KeyStore.Token)
-			}
-			d.KeyStore.Key = keys
-			return key
-		}
+// parseKeystore reads a keystore file. A v0.1.x keystore with keys is ErrLegacyKeystore; one without keys has
+// nothing to protect, so it is read as an empty keystore and written in the current format on the next save.
+func parseKeystore(data []byte) (*keystorage.KeyStorageModel, error) {
+	var file keystorage.KeyStorageModel
+	if err := json.Unmarshal(data, &file); err != nil {
+		return nil, fmt.Errorf("not valid JSON (%v): restore it from a backup", err)
 	}
-	return &keystorage.KeyStorageKeyModel{}
+	switch {
+	case file.Version > keystorage.FileVersion:
+		return nil, fmt.Errorf("its format (version %d) is newer than this oracle reads (%d)", file.Version, keystorage.FileVersion)
+	case file.Version == keystorage.FileVersion:
+		for _, key := range file.Key {
+			if !common.IsHexAddress(key.Address) || len(key.Keystore) == 0 {
+				return nil, fmt.Errorf("account %q is incomplete: restore it from a backup", key.Account)
+			}
+		}
+		return &file, nil
+	case len(file.Key) > 0:
+		return nil, ErrLegacyKeystore
+	}
+	return emptyKeystore(), nil
+}
+
+// ParsePrivateKey parses a hex private key, with or without 0x. Its error never includes the input.
+func ParsePrivateKey(hexKey string) (*ecdsa.PrivateKey, error) {
+	privateKey, err := crypto.HexToECDSA(utils.RemoveHexPrefix(hexKey))
+	if err != nil {
+		return nil, errors.New("not a valid private key: expected 64 hex characters")
+	}
+	return privateKey, nil
+}
+
+// Exists reports whether the keystore has any keys.
+func (d *Keystorage) Exists() bool {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	return len(d.file.Key) > 0
 }
 
 func (d *Keystorage) ExistsByUsername(account string) bool {
-	keys := d.KeyStore.GetKey()
-	for _, key := range keys {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	return d.indexOf(account) >= 0
+}
+
+func (d *Keystorage) indexOf(account string) int {
+	for index, key := range d.file.Key {
 		if key.Account == account {
-			return true
+			return index
 		}
 	}
-	d.KeyStore.Key = keys
-	return false
+	return -1
 }
 
-func (d *Keystorage) GeneratePrivate(username string) (string, error) {
-	_, keyGeneratedString, err := walletworker.GeneratePrivate()
+// GenerateToken starts a new keystore with a random passphrase, which encrypts the keys added next and
+// authenticates the HTTP API. It refuses once the keystore has keys: they are encrypted under its passphrase.
+func (d *Keystorage) GenerateToken() (string, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if len(d.file.Key) > 0 {
+		return "", errors.New("the keystore already has keys, encrypted under its existing key")
+	}
+	random := make([]byte, 32)
+	if _, err := rand.Read(random); err != nil {
+		return "", err
+	}
+	d.passphrase = hex.EncodeToString(random)
+	return d.passphrase, nil
+}
+
+// GeneratePrivate adds a new random key for account and returns its address.
+func (d *Keystorage) GeneratePrivate(account string) (string, error) {
+	privateKey, err := crypto.GenerateKey()
 	if err != nil {
 		return "", err
 	}
-	cipherPrivate, err := Encrypt(keyGeneratedString, d.KeyStore.Token)
-	if err != nil {
-		return "", err
-	}
-	var newKey = append(d.KeyStore.Key, &keystorage.KeyStorageKeyModel{
-		Account: func() string {
-			if username == "" {
-				return "autogenerated"
-			}
-			return username
-		}(),
-		CipherPrivate: cipherPrivate,
-		Private:       keyGeneratedString,
-	})
-	d.KeyStore.Key = newKey
-	err = d.save()
-	return keyGeneratedString, err
+	return d.add(account, privateKey)
 }
 
-func (d *Keystorage) AddExisting(username string, privateKey string) (err error) {
-	privkeyHex := utils.AddHexPrefix(privateKey)
-	//privkeyRaw, err := hex.DecodeString(string(privkeyHex[:len(privkeyHex)-1]))
-	//privateKeyECDSA, err := crypto.ToECDSA(privkey)
-
-	cipherPrivate, err := Encrypt(privkeyHex, d.KeyStore.Token)
+// AddExisting adds a hex private key for account.
+func (d *Keystorage) AddExisting(account string, privateKey string) error {
+	key, err := ParsePrivateKey(privateKey)
 	if err != nil {
 		return err
 	}
-	var newKey = append(d.KeyStore.Key, &keystorage.KeyStorageKeyModel{
-		Account: func() string {
-			if username == "" {
-				return "autogenerated"
-			}
-			return username
-		}(),
-		CipherPrivate: cipherPrivate,
-		Private:       privkeyHex,
-	})
-	d.KeyStore.Key = newKey
-	err = d.save()
-	return
+	_, err = d.add(account, key)
+	return err
 }
 
-func (d *Keystorage) GetByAccount(account string) (*keystorage.KeyStorageKeyModel, error) {
-	var keys = d.KeyStore.GetKey()
-	for _, key := range keys {
-		if key.Account == account {
-			key.Private, _ = Decrypt(key.CipherPrivate, d.KeyStore.Token)
-			return key, nil
-		}
+// add encrypts privateKey under the keystore passphrase and saves it as account, returning its address.
+func (d *Keystorage) add(account string, privateKey *ecdsa.PrivateKey) (string, error) {
+	if account == "" {
+		account = "autogenerated"
 	}
-	return &keystorage.KeyStorageKeyModel{}, fmt.Errorf("Can't find user, sorry.")
+	d.mu.Lock()
+	passphrase := d.passphrase
+	d.mu.Unlock()
+	if passphrase == "" {
+		return "", errors.New("the keystore is locked")
+	}
+
+	// scrypt takes about a second: don't hold the lock (and stall the poller's block saves) meanwhile
+	blob, address, err := encryptV3(privateKey, passphrase)
+	if err != nil {
+		return "", err
+	}
+
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if d.indexOf(account) >= 0 {
+		return "", fmt.Errorf("account %q is already in the keystore", account)
+	}
+	d.file.Key = append(d.file.Key, &keystorage.KeyStorageKeyModel{Account: account, Address: address.Hex(), Keystore: blob})
+	return address.Hex(), d.saveLocked()
 }
 
-func (d *Keystorage) SetRegistered(privateKey string) (err error) {
-	keys := d.KeyStore.GetKey()
-
-	for index, key := range keys {
-		if decryptedPrivate, _ := Decrypt(key.CipherPrivate, d.KeyStore.Token); decryptedPrivate == privateKey {
-			d.KeyStore.Key[index].Registered = true
-			err = d.save()
-			return
-		}
+// Unlock decrypts account's key with passphrase and makes it the key the oracle signs with; an account that
+// isn't in the keystore falls back to the first key. The passphrase also becomes the HTTP API key.
+func (d *Keystorage) Unlock(account, passphrase string) error {
+	d.mu.Lock()
+	if len(d.file.Key) == 0 {
+		d.mu.Unlock()
+		return errors.New("the keystore has no keys")
 	}
-	return
+	index := d.indexOf(account)
+	if index < 0 {
+		index = 0
+	}
+	key := *d.file.Key[index]
+	d.mu.Unlock()
+
+	privateKey, err := decryptV3(key.Keystore, passphrase, common.HexToAddress(key.Address))
+	if err != nil {
+		return fmt.Errorf("account %q: %w", key.Account, err)
+	}
+
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.passphrase = passphrase
+	d.selected = index
+	d.privateKey = hexutil.Encode(crypto.FromECDSA(privateKey))
+	return nil
 }
 
-func (d *Keystorage) SetBlockNumber(blockNumber int64) (err error) {
-	keys := d.KeyStore.GetKey()
-
-	for index, key := range keys {
-		if decryptedPrivate, _ := Decrypt(key.CipherPrivate, d.KeyStore.Token); decryptedPrivate == d.KeyStore.PrivateKey {
-			d.KeyStore.Key[index].BlockNumber = blockNumber
-			err = d.save()
-			return
-		}
-	}
-	return
+// GetSelectedPrivateKey returns the unlocked key as 0x-prefixed hex, or "" while the keystore is locked.
+func (d *Keystorage) GetSelectedPrivateKey() string {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	return d.privateKey
 }
 
-func (d *Keystorage) GetBlockNumber() (blockNumber int64, err error) {
-	keys := d.KeyStore.GetKey()
-
-	for index, key := range keys {
-		if decryptedPrivate, _ := Decrypt(key.CipherPrivate, d.KeyStore.Token); decryptedPrivate == d.KeyStore.PrivateKey {
-			blockNumber = d.KeyStore.Key[index].BlockNumber
-			return
-		}
-	}
-	return
+// IsAPIKey reports, in constant time, whether key is the HTTP API key (the keystore passphrase).
+func (d *Keystorage) IsAPIKey(key string) bool {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	return d.passphrase != "" && subtle.ConstantTimeCompare([]byte(key), []byte(d.passphrase)) == 1
 }
 
-func (d *Keystorage) IsRegisteredByPrivate(privateKey string) (registered bool) {
-	keys := d.KeyStore.GetKey()
-	for _, key := range keys {
-		if decryptedPrivate, _ := Decrypt(key.CipherPrivate, d.KeyStore.Token); decryptedPrivate == privateKey {
-			return key.GetRegistered()
-		}
-	}
-
-	return false
+// IsRegistered reports whether the unlocked key is registered with the VOR coordinator.
+func (d *Keystorage) IsRegistered() bool {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	key, err := d.selectedKey()
+	return err == nil && key.Registered
 }
 
-func (d *Keystorage) Exists() bool {
-	if len((d.KeyStore.GetKey())) > 0 {
-		return true
+// SetRegistered records that the unlocked key is registered with the VOR coordinator.
+func (d *Keystorage) SetRegistered() error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	key, err := d.selectedKey()
+	if err != nil {
+		return err
 	}
+	key.Registered = true
+	return d.saveLocked()
+}
 
-	return false
+// SetBlockNumber records the block the unlocked key's next poll starts from.
+func (d *Keystorage) SetBlockNumber(blockNumber int64) error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	key, err := d.selectedKey()
+	if err != nil {
+		return err
+	}
+	key.BlockNumber = blockNumber
+	return d.saveLocked()
+}
+
+// GetBlockNumber returns the block the unlocked key's next poll starts from.
+func (d *Keystorage) GetBlockNumber() (int64, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	key, err := d.selectedKey()
+	if err != nil {
+		return 0, err
+	}
+	return key.BlockNumber, nil
+}
+
+func (d *Keystorage) selectedKey() (*keystorage.KeyStorageKeyModel, error) {
+	if d.selected < 0 {
+		return nil, errors.New("the keystore is locked")
+	}
+	return d.file.Key[d.selected], nil
 }
 
 func (d *Keystorage) save() error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	jsonByte, err := json.Marshal(d.KeyStore)
+	return d.saveLocked()
+}
+
+func (d *Keystorage) saveLocked() error {
+	data, err := json.Marshal(d.file)
 	if err != nil {
 		return err
 	}
-	return utils.WriteFileWithMaxPerms(d.path, jsonByte, keystoreFileMode)
-}
-
-func (d *Keystorage) GenerateToken() (string, error) {
-	rand.Seed(time.Now().Unix())
-	d.KeyStore.Token = GenerateRandomBytes(32)
-	err := d.tokenEncryptAndSave()
-	return d.KeyStore.Token, err
-}
-
-func (d *Keystorage) CheckToken(token string) (err error) {
-	err = bcrypt.CompareHashAndPassword([]byte(d.KeyStore.Hash), []byte(token))
-	if err == nil {
-		d.KeyStore.Token = token
-	}
-	return
-}
-
-// SelectPrivateKey selects the named account's key, falling back to the first key in the keystore.
-func (d *Keystorage) SelectPrivateKey(account string) error {
-	if pKey, err := d.GetByAccount(account); err == nil {
-		d.KeyStore.PrivateKey = pKey.GetPrivate()
-		return nil
-	}
-	first := d.GetFirst()
-	if first == nil {
-		return errors.New("the keystore has no keys")
-	}
-	d.KeyStore.PrivateKey = first.GetPrivate()
-	return nil
-}
-
-func (d *Keystorage) GetSelectedPrivateKey() string {
-	return d.KeyStore.GetPrivateKey()
-}
-
-func (d *Keystorage) tokenEncryptAndSave() (err error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(d.KeyStore.Token), 8)
-	if err != nil {
-		return
-	}
-	d.KeyStore.Hash = string(hash)
-	err = d.save()
-	return
-}
-
-// Takes two strings, cryptoText and keyString.
-// cryptoText is the text to be decrypted and the keyString is the key to use for the decryption.
-// The function will output the resulting plain text string with an error variable.
-func Decrypt(cryptoText string, keyString string) (plainTextString string, err error) {
-
-	encrypted, err := base64.URLEncoding.DecodeString(cryptoText)
-	if err != nil {
-		return "", err
-	}
-	if len(encrypted) < aes.BlockSize {
-		return "", fmt.Errorf("cipherText too short. It decodes to %v bytes but the minimum length is 16", len(encrypted))
-	}
-
-	decrypted, err := decryptAES(hashTo32Bytes(keyString), encrypted)
-	if err != nil {
-		return "", err
-	}
-
-	return string(decrypted), nil
-}
-
-func decryptAES(key, data []byte) ([]byte, error) {
-	// split the input up in to the IV seed and then the actual encrypted data.
-	iv := data[:aes.BlockSize]
-	data = data[aes.BlockSize:]
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-	stream := cipher.NewCFBDecrypter(block, iv)
-
-	stream.XORKeyStream(data, data)
-	return data, nil
-}
-
-// Takes two string, plainText and keyString.
-// plainText is the text that needs to be encrypted by keyString.
-// The function will output the resulting crypto text and an error variable.
-func Encrypt(plainText string, keyString string) (cipherTextString string, err error) {
-
-	key := hashTo32Bytes(keyString)
-	encrypted, err := encryptAES(key, []byte(plainText))
-	if err != nil {
-		return "", err
-	}
-
-	return base64.URLEncoding.EncodeToString(encrypted), nil
-}
-
-func encryptAES(key, data []byte) ([]byte, error) {
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-
-	// create two 'windows' in to the output slice.
-	output := make([]byte, aes.BlockSize+len(data))
-	iv := output[:aes.BlockSize]
-	encrypted := output[aes.BlockSize:]
-
-	// populate the IV slice with random data.
-	if _, err = io.ReadFull(cryptoRand.Reader, iv); err != nil {
-		return nil, err
-	}
-
-	stream := cipher.NewCFBEncrypter(block, iv)
-
-	// note that encrypted is still a window in to the output slice
-	stream.XORKeyStream(encrypted, data)
-	return output, nil
-}
-
-// hashTo32Bytes will compute a cryptographically useful hash of the input string.
-func hashTo32Bytes(input string) []byte {
-
-	data := sha256.Sum256([]byte(input))
-	return data[0:]
-
-}
-
-// GenerateRandomBytes returns securely generated random bytes.
-// It will return an error if the system's secure random
-// number generator fails to function correctly, in which
-// case the caller should not continue.
-func GenerateRandomBytes(strSize int) string {
-
-	var dictionary = "0123456789abcdefghijklmnopqrstuvwxyz"
-
-	var bytes = make([]byte, strSize)
-	rand.Read(bytes)
-	for k, v := range bytes {
-		bytes[k] = dictionary[v%byte(len(dictionary))]
-	}
-	return string(bytes)
+	return utils.WriteFileWithMaxPerms(d.path, data, keystoreFileMode)
 }

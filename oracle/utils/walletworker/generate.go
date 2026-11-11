@@ -7,11 +7,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-func GeneratePrivate() (*ecdsa.PrivateKey, string, error) {
-	privateKey, err := crypto.GenerateKey()
-	return privateKey, hexutil.Encode(crypto.FromECDSA(privateKey)), err
-}
-
 func StringToPrivate(bytePrivateKey string) (*ecdsa.PrivateKey, error) {
 	privateKey, err := crypto.HexToECDSA(bytePrivateKey)
 	return privateKey, err

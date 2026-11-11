@@ -7,14 +7,16 @@ import (
 	"strconv"
 )
 
-func noKeyFound(keystorage *keystorage.Keystorage) (fee int64, err error) {
+// noKeyFound creates the oracle's first key, under a new random key that it prints: the only copy of the key
+// that unlocks the keystore and the HTTP API.
+func noKeyFound(keystore *keystorage.Keystorage) (fee int64, token string, err error) {
 	fmt.Println("")
 	fmt.Println("Let's create a new account")
 	username, err := promptUntil("Username: ", func(name string) error {
 		if name == "" {
 			return errors.New("please enter an account username")
 		}
-		if keystorage.ExistsByUsername(name) {
+		if keystore.ExistsByUsername(name) {
 			return errors.New("this account name is already used")
 		}
 		return nil
@@ -39,27 +41,30 @@ func noKeyFound(keystorage *keystorage.Keystorage) (fee int64, err error) {
 		return
 	}
 
-	token, err := keystorage.GenerateToken()
-	if err != nil {
+	if token, err = keystore.GenerateToken(); err != nil {
 		return
 	}
 	if choice == "1" {
 		fmt.Println("")
 		var private string
-		if private, err = prompt("Input your private key (NOTE: it has to start with 0x): "); err != nil {
+		private, err = promptSecretUntil("Input your private key (hex; not shown as you type): ", func(key string) error {
+			_, err := keystorage.ParsePrivateKey(key)
+			return err
+		})
+		if err != nil {
 			return
 		}
-		if err = keystorage.AddExisting(username, private); err != nil {
+		if err = keystore.AddExisting(username, private); err != nil {
 			return
 		}
 		fmt.Println("\nSuccessfully added a private key!")
 	} else {
-		var keyPrivate string
-		if keyPrivate, err = keystorage.GeneratePrivate(username); err != nil {
+		var address string
+		if address, err = keystore.GeneratePrivate(username); err != nil {
 			return
 		}
-		fmt.Println("\nSuccessfully generated a private key:")
-		fmt.Println(keyPrivate)
+		fmt.Println("\nSuccessfully generated a private key for address", address)
+		fmt.Println("It exists only in the keystore: back up the keystore file and keep the key below safe.")
 	}
 	fmt.Print("\nYour daemon api key:   ")
 	fmt.Println(token)
@@ -84,10 +89,11 @@ func GetFee() (int64, error) {
 	return strconv.ParseInt(answer, 10, 64)
 }
 
-func FirstRun(keystorage *keystorage.Keystorage) (fee int64, err error) {
+// FirstRun creates the oracle's first key and returns its fee and the key that unlocks the keystore.
+func FirstRun(keystore *keystorage.Keystorage) (fee int64, token string, err error) {
 	if !stdinIsTerminal() {
-		return 0, fmt.Errorf("the keystore has no keys: %w", errNoTerminal)
+		return 0, "", fmt.Errorf("the keystore has no keys: %w", errNoTerminal)
 	}
 	fmt.Println("No private key found")
-	return noKeyFound(keystorage)
+	return noKeyFound(keystore)
 }

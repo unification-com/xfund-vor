@@ -1,183 +1,174 @@
-package keystorage_test
+package keystorage
 
 import (
-	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
-	"oracle/store/keystorage"
+	"crypto/ecdsa"
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"regexp"
 	"testing"
+
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-var Log = logrus.New()
-
-func TestKeystorage_NewKeyStorage(t *testing.T) {
-	dir, _ := os.Getwd()
-	keystoragePath := filepath.Join(dir, "..", "..", "test_data", "keystore_test_keystore.json")
-
-	keystore, err := keystorage.NewKeyStorage(Log, keystoragePath)
-	if err != nil {
-		t.Error(err)
-	}
-	t.Log(keystore.KeyStore.GetKey())
+func newKeystore(t *testing.T) (*Keystorage, string) {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "keystore.json")
+	return open(t, path), path
 }
 
-func TestKeystorage_Exists(t *testing.T) {
-	dir, _ := os.Getwd()
-	keystoragePath := filepath.Join(dir, "..", "..", "test_data", "keystore_test_keystore.json")
+func TestKeystorage_GenerateTokenIsRandomAndOnlyForANewKeystore(t *testing.T) {
+	ks, _ := newKeystore(t)
+	first, err := ks.GenerateToken()
+	require.NoError(t, err)
+	second, err := ks.GenerateToken()
+	require.NoError(t, err)
+	assert.Regexp(t, regexp.MustCompile(`^[0-9a-f]{64}$`), first)
+	assert.NotEqual(t, first, second)
 
-	keystore, err := keystorage.NewKeyStorage(Log, keystoragePath)
-	if err != nil {
-		t.Error(err)
-	}
-	t.Log(keystore.Exists())
+	_, err = ks.GeneratePrivate("oracle")
+	require.NoError(t, err)
+	_, err = ks.GenerateToken()
+	assert.Error(t, err, "a new token would orphan the keys already encrypted under the current one")
 }
 
-func TestKeystorage_AddGenerated(t *testing.T) {
-	dir, _ := os.Getwd()
-	keystoragePath := filepath.Join(dir, "..", "..", "test_data", "keystore_test_keystore.json")
+func TestKeystorage_KeysSurviveAReopenAndUnlockWithThePassphraseOnly(t *testing.T) {
+	ks, path := newKeystore(t)
+	token, err := ks.GenerateToken()
+	require.NoError(t, err)
+	generated, err := ks.GeneratePrivate("oracle")
+	require.NoError(t, err)
+	require.NoError(t, ks.AddExisting("owner", key0))
 
-	keystore, err := keystorage.NewKeyStorage(Log, keystoragePath)
-	if err != nil {
-		t.Error(err)
-	}
-	private, err := keystore.GeneratePrivate("testaccount")
-	if err != nil {
-		t.Error(err)
-	}
-	t.Log(private)
+	reopened := open(t, path)
+	assert.True(t, reopened.Exists())
+	assert.True(t, reopened.ExistsByUsername("owner"))
+	assert.Empty(t, reopened.GetSelectedPrivateKey(), "nothing is decrypted until Unlock")
+	assert.False(t, reopened.IsAPIKey(""), "a locked keystore accepts no API key")
+
+	assert.Error(t, reopened.Unlock("oracle", "the wrong passphrase"))
+	require.NoError(t, reopened.Unlock("oracle", token))
+	assert.Equal(t, generated, crypto.PubkeyToAddress(mustParse(t, reopened.GetSelectedPrivateKey()).PublicKey).Hex())
+	assert.True(t, reopened.IsAPIKey(token))
+	assert.False(t, reopened.IsAPIKey(token[:63]))
+
+	require.NoError(t, reopened.Unlock("owner", token))
+	assert.Equal(t, key0, reopened.GetSelectedPrivateKey())
+
+	// an account that isn't there falls back to the first key, as before
+	require.NoError(t, reopened.Unlock("missing", token))
+	assert.Equal(t, generated, crypto.PubkeyToAddress(mustParse(t, reopened.GetSelectedPrivateKey()).PublicKey).Hex())
 }
 
-// rod0gbc3mhyxdiah2vwialx1q3osk5cw
-func TestKeystorage_Add(t *testing.T) {
-	dir, _ := os.Getwd()
-	keystoragePath := filepath.Join(dir, "..", "..", "test_data", "keystore_test_keystore.json")
-
-	keystore, err := keystorage.NewKeyStorage(Log, keystoragePath)
-	if err != nil {
-		t.Error(err)
-	}
-	err = keystore.CheckToken("dwkxnzn3kl1dlndvtdtvqko9gpaay5vj")
-	if err != nil {
-		t.Error(err)
-	}
-	err = keystore.AddExisting("rootuser", "ba37bd76fa2efb78d29cc55c026786c368e34cd97e64aebe4184f4e822079c74")
-	if err != nil {
-		t.Error(err)
-	}
+func mustParse(t *testing.T, hexKey string) *ecdsa.PrivateKey {
+	t.Helper()
+	key, err := ParsePrivateKey(hexKey)
+	require.NoError(t, err)
+	return key
 }
 
-func TestKeystorage_GenerateAndCheckToken(t *testing.T) {
-	dir, _ := os.Getwd()
-	keystoragePath := filepath.Join(dir, "..", "..", "test_data", "keystore_test_new_token_keystore.json")
+func TestKeystorage_FileHoldsStandardV3KeystoresAndNoSecrets(t *testing.T) {
+	ks, path := newKeystore(t)
+	token, err := ks.GenerateToken()
+	require.NoError(t, err)
+	require.NoError(t, ks.AddExisting("owner", key0))
 
-	assert := assert.New(t)
-	keystore, err := keystorage.NewKeyStorage(Log, keystoragePath)
-	token, err := keystore.GenerateToken()
-	if err != nil {
-		t.Error(err)
+	data, err := os.ReadFile(path)
+	require.NoError(t, err)
+	assert.NotContains(t, string(data), key0[2:])
+	assert.NotContains(t, string(data), token)
+
+	var file struct {
+		Version int `json:"version"`
+		Keys    []struct {
+			Address  string `json:"address"`
+			Keystore struct {
+				Version int `json:"version"`
+				Crypto  struct {
+					KDF string `json:"kdf"`
+				} `json:"crypto"`
+			} `json:"keystore"`
+		} `json:"keys"`
 	}
-	keystore.KeyStore.Token = ""
-	t.Log("token generated: ", token)
-	err = keystore.CheckToken(token)
-	if err != nil {
-		t.Error(err)
-	}
-	assert.Equal(token, keystore.KeyStore.Token)
+	require.NoError(t, json.Unmarshal(data, &file))
+	assert.Equal(t, 2, file.Version)
+	require.Len(t, file.Keys, 1)
+	assert.Equal(t, address0, file.Keys[0].Address)
+	assert.Equal(t, 3, file.Keys[0].Keystore.Version)
+	assert.Equal(t, "scrypt", file.Keys[0].Keystore.Crypto.KDF)
 }
 
-func TestKeystorage_EncryptDecrypt(t *testing.T) {
-	assert := assert.New(t)
+func TestKeystorage_AddRefusesBadInput(t *testing.T) {
+	ks, _ := newKeystore(t)
+	assert.Error(t, ks.AddExisting("owner", key0), "a keystore with no passphrase can't encrypt")
 
-	stringToEncrypt := "0x90fc9ac3c1d46d2bff1c57cc24e1068a03ea933489a17a23708cd3b5c23168d6"
-	key := "jgz9t811see4sie1f5f1ku1vu04"
+	_, err := ks.GenerateToken()
+	require.NoError(t, err)
+	require.NoError(t, ks.AddExisting("owner", key0))
+	assert.Error(t, ks.AddExisting("owner", key1), "account names are unique")
 
-	encryptedString, err := keystorage.Encrypt(stringToEncrypt, key)
-	if err != nil {
-		t.Error(err)
-	}
-	t.Log("encrypted string: ", encryptedString)
-	decryptedString, err := keystorage.Decrypt(encryptedString, key)
-	if err != nil {
-		t.Error(err)
-	}
-	t.Log("decrypted string: ", decryptedString)
-
-	assert.Equal(stringToEncrypt, decryptedString)
+	secret := "0x" + key0[3:] + "zz"
+	err = ks.AddExisting("other", secret)
+	require.Error(t, err)
+	assert.NotContains(t, err.Error(), key0[3:], "errors must not echo the key")
 }
 
-func TestKeystorage_Decrypt(t *testing.T) {
-	assert := assert.New(t)
+// A key whose stored address doesn't match what it decrypts to has been corrupted or tampered with.
+func TestKeystorage_UnlockRejectsAMismatchedAddress(t *testing.T) {
+	ks, path := newKeystore(t)
+	token, err := ks.GenerateToken()
+	require.NoError(t, err)
+	require.NoError(t, ks.AddExisting("owner", key0))
 
-	stringToEncrypt := "90fc9ac3c1d46d2bff1c57cc24e1068a03ea933489a17a23708cd3b5c23168d6"
-	stringToDecrypt := "WRava3YlduujSq8OCmGW6u3MAPQjsTfBUVlaz_Jv90OcG3SbPNmD_S-xmWPW3natOIBEXUicKgI0bGY9X1OVI7sEZZW7T6YKYWs2clLWO8A="
-	key := "jfclqiinxy5ccgrn4am5rbv10mlo3mnf"
+	data, err := os.ReadFile(path)
+	require.NoError(t, err)
+	tampered := regexp.MustCompile(`"address":"0x[0-9a-fA-F]{40}"`).ReplaceAllString(string(data), `"address":"`+address1+`"`)
+	require.NoError(t, os.WriteFile(path, []byte(tampered), 0600))
 
-	t.Log("encrypted string: ", stringToDecrypt)
-	decryptedString, err := keystorage.Decrypt(stringToDecrypt, key)
-	if err != nil {
-		t.Error(err)
-	}
-	t.Log("decrypted string: ", decryptedString)
-
-	assert.Equal(stringToEncrypt, decryptedString)
+	assert.Error(t, open(t, path).Unlock("owner", token))
 }
 
-func TestKeystorage_GetByAccount(t *testing.T) {
-	dir, _ := os.Getwd()
-	keystoragePath := filepath.Join(dir, "..", "..", "test_data", "keystore_test_keystore.json")
+func TestKeystorage_StateBelongsToTheUnlockedKey(t *testing.T) {
+	ks, path := newKeystore(t)
+	token, err := ks.GenerateToken()
+	require.NoError(t, err)
+	require.NoError(t, ks.AddExisting("owner", key0))
+	require.NoError(t, ks.AddExisting("oracle", key1))
 
-	assert := assert.New(t)
-	privateKeyExpected := "0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1"
-	keystore, err := keystorage.NewKeyStorage(Log, keystoragePath)
-	if err != nil {
-		t.Error(err)
-	}
-	err = keystore.CheckToken("dwkxnzn3kl1dlndvtdtvqko9gpaay5vj")
-	if err != nil {
-		t.Error(err)
-	}
-	keyModel := keystore.GetByUsername("test")
-	t.Log(keyModel.Private)
+	_, err = ks.GetBlockNumber()
+	assert.Error(t, err, "a locked keystore has no selected key")
+	assert.Error(t, ks.SetBlockNumber(1))
+	assert.Error(t, ks.SetRegistered())
+	assert.False(t, ks.IsRegistered())
 
-	assert.Equal(keyModel.Private, privateKeyExpected)
+	require.NoError(t, ks.Unlock("oracle", token))
+	require.NoError(t, ks.SetBlockNumber(13452142))
+	require.NoError(t, ks.SetRegistered())
+
+	reopened := open(t, path)
+	require.NoError(t, reopened.Unlock("owner", token))
+	block, err := reopened.GetBlockNumber()
+	require.NoError(t, err)
+	assert.Zero(t, block)
+	assert.False(t, reopened.IsRegistered())
+
+	require.NoError(t, reopened.Unlock("oracle", token))
+	block, err = reopened.GetBlockNumber()
+	require.NoError(t, err)
+	assert.Equal(t, int64(13452142), block)
+	assert.True(t, reopened.IsRegistered())
 }
 
-func TestKeystorage_SetRegistered(t *testing.T) {
-	dir, _ := os.Getwd()
-	keystoragePath := filepath.Join(dir, "..", "..", "test_data", "keystore_test_keystore.json")
+func TestKeystorage_RejectsAnUnknownFormat(t *testing.T) {
+	path := writeKeystore(t, []byte(`{"version":3,"keys":[]}`))
+	_, err := NewKeyStorage(nil, path)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "newer")
 
-	assert := assert.New(t)
-
-	keystore, err := keystorage.NewKeyStorage(Log, keystoragePath)
-	if err != nil {
-		t.Error(err)
-	}
-	err = keystore.CheckToken("dwkxnzn3kl1dlndvtdtvqko9gpaay5vj")
-	if err != nil {
-		t.Error(err)
-	}
-	keyModel := keystore.GetByUsername("test")
-	t.Log(keyModel.Private)
-
-	assert.Equal(false, keyModel.Registered)
-
-	err = keystore.SetRegistered(keyModel.Private)
-	if err != nil {
-		t.Error(err)
-	}
-
-	//keystore2, err := keystorage.NewKeyStorage(Log, keystoragePath)
-	//if err != nil {
-	//	t.Error(err)
-	//}
-	//err = keystore2.CheckToken("dwkxnzn3kl1dlndvtdtvqko9gpaay5vj")
-	//if err != nil {
-	//	t.Error(err)
-	//}
-	//
-	//keyModel2 := keystore2.GetByUsername("test")
-	//t.Log(keyModel.Private)
-
-	assert.Equal(true, keyModel.Registered)
+	path = writeKeystore(t, []byte(`{"version":2,"keys":[{"account":"oracle","address":"0x01"}]}`))
+	_, err = NewKeyStorage(nil, path)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "incomplete")
 }

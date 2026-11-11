@@ -25,6 +25,7 @@ var stop1 = false
 var options struct {
 	Config       string `short:"c" long:"config" description:"Config path" required:"false" default:"./config.json"`
 	PasswordFile string `short:"k" long:"key" description:"Path to file containing decryption key, or the key itself" required:"false"`
+	NewKeyFile   string `long:"new-key" description:"migrate-keystore: path to a file containing the new key (asked for when omitted)" required:"false"`
 	Version      bool   `short:"v" long:"version" description:"Show version information and exit" required:"false"`
 }
 
@@ -81,6 +82,8 @@ func main() {
 			"function": "main",
 		}).Info(vers.StringLine())
 		err = start()
+	case "migrate-keystore":
+		err = migrateKeystore()
 	default:
 		log.WithFields(logrus.Fields{
 			"package":  "main",
@@ -90,6 +93,10 @@ func main() {
 	}
 
 	if err != nil {
-		panic(err)
+		log.WithFields(logrus.Fields{
+			"package":  "main",
+			"function": "main",
+		}).Error(err.Error())
+		os.Exit(1)
 	}
 }

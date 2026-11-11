@@ -32,7 +32,9 @@ func Init(configAddress string, pass string) (err error) {
 	if err != nil {
 		return err
 	}
-	Keystore.CheckToken(pass)
+	if err = Keystore.Unlock(Config.Keystorage.Account, pass); err != nil {
+		return err
+	}
 	VORCoordinator, err = chaincall.NewVORCoordinatorCaller(VORCoordinatorCallerTestValues())
 	VORD20Caller, err = chaincall.NewVORD20Caller(VORD20CallerTestValues())
 	MockERC20Caller, err = chaincall.NewMockERC20Caller(MockERC20CallerTestValues())
@@ -40,15 +42,15 @@ func Init(configAddress string, pass string) (err error) {
 }
 
 func VORCoordinatorCallerTestValues() (string, string, string, *big.Int, []byte) {
-	return Config.VORCoordinatorContractAddress, Config.BlockHashStoreContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetByUsername(Config.Keystorage.Account).Private)
+	return Config.VORCoordinatorContractAddress, Config.BlockHashStoreContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetSelectedPrivateKey())
 }
 
 func MockERC20CallerTestValues() (string, string, *big.Int, []byte) {
-	return Config.MockContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetByUsername(Config.Keystorage.Account).Private)
+	return Config.MockContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetSelectedPrivateKey())
 }
 
 func VORD20CallerTestValues() (string, string, *big.Int, []byte) {
-	return Config.ContractCallerAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetByUsername(Config.Keystorage.Account).Private)
+	return Config.ContractCallerAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetSelectedPrivateKey())
 }
 
 func TestVORCoordinatorCaller_HashOfKey(t *testing.T) {

@@ -14,6 +14,7 @@ import (
 	"oracle/service"
 	store2 "oracle/store"
 	"oracle/store/keystorage"
+	"runtime/debug"
 )
 
 var e = echo.New()
@@ -21,6 +22,7 @@ var e = echo.New()
 func start() (err error) {
 	var ctx = context.Background()
 	var fee int64
+	var passphrase string
 
 	keystore, err := keystorage.NewKeyStorage(log, config.Conf.Keystorage.File)
 	if err != nil {
@@ -44,7 +46,7 @@ func start() (err error) {
 	}
 
 	if !keystore.Exists() {
-		fee, err = FirstRun(keystore)
+		fee, passphrase, err = FirstRun(keystore)
 		if err != nil {
 			log.WithFields(logrus.Fields{
 				"package":  "main",
@@ -66,27 +68,19 @@ func start() (err error) {
 		return err
 	}
 
-	decryptPassword := ""
-	if options.PasswordFile != "" {
-		decryptPassword = getPasswordFromFileOrFlag(options.PasswordFile)
+	if passphrase == "" && options.PasswordFile != "" {
+		passphrase = getPasswordFromFileOrFlag(options.PasswordFile)
 	}
-
-	if decryptPassword == "" || (keystore.CheckToken(decryptPassword) != nil) {
-		err = auth(keystore)
-		if err != nil {
-			log.WithFields(logrus.Fields{
-				"package":  "main",
-				"function": "start",
-				"action":   "check keystore token",
-			}).Error(err.Error())
-			return err
-		}
-	}
-
-	err = keystore.SelectPrivateKey(config.Conf.Keystorage.Account)
-	if err != nil {
+	if err = unlock(keystore, config.Conf.Keystorage.Account, passphrase); err != nil {
+		log.WithFields(logrus.Fields{
+			"package":  "main",
+			"function": "start",
+			"action":   "unlock keystore",
+		}).Error(err.Error())
 		return err
 	}
+	// scrypt needed ~256 MB to unlock the key: hand it back now, as the oracle shares its host
+	debug.FreeOSMemory()
 
 	oracleService, err := service.NewService(ctx, store)
 	if err != nil {
@@ -97,10 +91,10 @@ func start() (err error) {
 		}).Error(err.Error())
 		return err
 	}
-	if !keystore.IsRegisteredByPrivate(keystore.KeyStore.PrivateKey) {
+	if !keystore.IsRegistered() {
 		tx, err := oracleService.VORCoordinatorCaller.RegisterProvingKey(big.NewInt(fee))
 		if tx != nil || err == nil {
-			keystore.SetRegistered(keystore.KeyStore.PrivateKey)
+			keystore.SetRegistered()
 		}
 	}
 
@@ -111,7 +105,7 @@ func start() (err error) {
 	// Middleware
 	e.Use(middleware.Recover())
 	e.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
-		return key == keystore.KeyStore.Token, nil
+		return keystore.IsAPIKey(key), nil
 	}))
 
 	e.POST("/withdraw", oracleController.Withdraw)

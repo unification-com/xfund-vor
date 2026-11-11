@@ -1,30 +1,26 @@
-package keystorage_test
+package keystorage
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"oracle/store/keystorage"
 )
 
 func TestKeystorage_NewKeyStorageCreatesPrivateFile(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "keystore.json")
 
-	ks, err := keystorage.NewKeyStorage(Log, path)
-	require.NoError(t, err)
+	ks := open(t, path)
 	assert.False(t, ks.Exists())
 
 	info, err := os.Stat(path)
 	require.NoError(t, err)
 	assert.Equal(t, os.FileMode(0600), info.Mode().Perm())
 
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	require.NoError(t, err)
 	assert.True(t, json.Valid(data), "new keystore must be valid JSON: %s", data)
 }
@@ -40,9 +36,9 @@ func TestKeystorage_NewKeyStorageRejectsCorruptFile(t *testing.T) {
 	for name, content := range cases {
 		t.Run(name, func(t *testing.T) {
 			path := filepath.Join(t.TempDir(), "keystore.json")
-			require.NoError(t, ioutil.WriteFile(path, []byte(content), 0600))
+			require.NoError(t, os.WriteFile(path, []byte(content), 0600))
 
-			ks, err := keystorage.NewKeyStorage(Log, path)
+			ks, err := NewKeyStorage(nil, path)
 			assert.Error(t, err)
 			assert.Nil(t, ks)
 		})
@@ -51,11 +47,10 @@ func TestKeystorage_NewKeyStorageRejectsCorruptFile(t *testing.T) {
 
 func TestKeystorage_NewKeyStorageTightensPermissions(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "keystore.json")
-	require.NoError(t, ioutil.WriteFile(path, []byte(`{"keys":[]}`), 0664))
+	require.NoError(t, os.WriteFile(path, []byte(`{"keys":[]}`), 0664))
 	require.NoError(t, os.Chmod(path, 0664))
 
-	_, err := keystorage.NewKeyStorage(Log, path)
-	require.NoError(t, err)
+	open(t, path)
 
 	info, err := os.Stat(path)
 	require.NoError(t, err)
@@ -66,34 +61,28 @@ func TestKeystorage_NewKeyStorageTightensPermissions(t *testing.T) {
 // truncating, leaving the tail of the longer version behind.
 func TestKeystorage_SaveAfterShrinkingLeavesValidJSON(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "keystore.json")
-	ks, err := keystorage.NewKeyStorage(Log, path)
-	require.NoError(t, err)
-
-	_, err = ks.GenerateToken()
+	ks := open(t, path)
+	token, err := ks.GenerateToken()
 	require.NoError(t, err)
 	_, err = ks.GeneratePrivate("oracle")
 	require.NoError(t, err)
-	require.NoError(t, ks.SelectPrivateKey("oracle"))
+	require.NoError(t, ks.Unlock("oracle", token))
 	require.NoError(t, ks.SetBlockNumber(12345678901))
 	require.NoError(t, ks.SetBlockNumber(1))
 
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	require.NoError(t, err)
 	assert.True(t, json.Valid(data), "keystore must be valid JSON after shrinking: %s", data)
 
-	reopened, err := keystorage.NewKeyStorage(Log, path)
-	require.NoError(t, err)
-	assert.True(t, reopened.Exists())
+	assert.True(t, open(t, path).Exists())
 
 	leftovers, err := filepath.Glob(filepath.Join(filepath.Dir(path), ".keystore.json.tmp-*"))
 	require.NoError(t, err)
 	assert.Empty(t, leftovers, "no temporary files may be left behind")
 }
 
-func TestKeystorage_EmptyKeystoreHasNoFirstKey(t *testing.T) {
-	ks, err := keystorage.NewKeyStorage(Log, filepath.Join(t.TempDir(), "keystore.json"))
-	require.NoError(t, err)
-
-	assert.Nil(t, ks.GetFirst())
-	assert.Error(t, ks.SelectPrivateKey("missing"))
+func TestKeystorage_EmptyKeystoreCannotUnlock(t *testing.T) {
+	ks, _ := newKeystore(t)
+	assert.Error(t, ks.Unlock("missing", "any passphrase"))
+	assert.Empty(t, ks.GetSelectedPrivateKey())
 }

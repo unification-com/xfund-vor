@@ -32,16 +32,43 @@ func prompt(label string) (string, error) {
 	fmt.Print(label)
 	line, err := input.ReadString('\n')
 	if err != nil && !(err == io.EOF && line != "") {
-		return "", fmt.Errorf("no answer to %q: %w", strings.TrimSpace(label), err)
+		return "", noAnswer(label, err)
 	}
 	return strings.TrimSpace(line), nil
+}
+
+// promptSecret is prompt for a key or passphrase: on a terminal, what is typed isn't echoed.
+func promptSecret(label string) (string, error) {
+	if !stdinIsTerminal() {
+		return prompt(label)
+	}
+	fmt.Print(label)
+	secret, err := term.ReadPassword(int(os.Stdin.Fd()))
+	fmt.Println()
+	if err != nil {
+		return "", noAnswer(label, err)
+	}
+	return strings.TrimSpace(string(secret)), nil
+}
+
+func noAnswer(label string, err error) error {
+	return fmt.Errorf("no answer to %q: %w", strings.TrimSpace(label), err)
 }
 
 // promptUntil asks label until accept returns nil for the answer, at most maxPromptAttempts times, printing why
 // each refused answer was refused.
 func promptUntil(label string, accept func(answer string) error) (string, error) {
-	for attempt := 0; attempt < maxPromptAttempts; attempt++ {
-		answer, err := prompt(label)
+	return askUntil(prompt, label, accept)
+}
+
+// promptSecretUntil is promptUntil without echo.
+func promptSecretUntil(label string, accept func(answer string) error) (string, error) {
+	return askUntil(promptSecret, label, accept)
+}
+
+func askUntil(ask func(label string) (string, error), label string, accept func(answer string) error) (string, error) {
+	for range maxPromptAttempts {
+		answer, err := ask(label)
 		if err != nil {
 			return "", err
 		}

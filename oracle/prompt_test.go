@@ -48,6 +48,6 @@ func TestFirstRunRefusesWithoutTerminal(t *testing.T) {
 	if stdinIsTerminal() {
 		t.Skip("stdin is a terminal")
 	}
-	_, err := FirstRun(nil)
+	_, _, err := FirstRun(nil)
 	assert.ErrorIs(t, err, errNoTerminal)
 }

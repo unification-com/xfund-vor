@@ -18,7 +18,7 @@ func InitCaller() (err error) {
 }
 
 func VORCoordinatorCallerTestValues() (string, string, *big.Int, []byte) {
-	return Config.VORCoordinatorContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetByUsername(Config.Keystorage.Account).Private)
+	return Config.VORCoordinatorContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetSelectedPrivateKey())
 }
 
 func Init(configAddres string, pass string) (err error) {

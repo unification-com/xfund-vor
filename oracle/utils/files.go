@@ -57,7 +57,7 @@ func EnsureDirAndMaxPerms(path string, perms os.FileMode) error {
 // the data goes to a temporary file in the same directory, which is synced and then renamed over `path`,
 // so a crash leaves the old file intact and a shorter rewrite can never leave a stale tail behind.
 func WriteFileWithMaxPerms(path string, data []byte, perms os.FileMode) error {
-	tmp, err := ioutil.TempFile(filepath.Dir(path), "."+filepath.Base(path)+".tmp-*")
+	tmp, err := os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+".tmp-*")
 	if err != nil {
 		return err
 	}
@@ -74,7 +74,20 @@ func WriteFileWithMaxPerms(path string, data []byte, perms os.FileMode) error {
 	if err != nil {
 		return err
 	}
-	return os.Rename(tmp.Name(), path)
+	return RenameDurably(tmp.Name(), path)
+}
+
+// RenameDurably renames from to to and syncs the directory, so the rename survives a crash or power cut.
+func RenameDurably(from, to string) error {
+	if err := os.Rename(from, to); err != nil {
+		return err
+	}
+	dir, err := os.Open(filepath.Dir(to))
+	if err != nil {
+		return err
+	}
+	defer dir.Close()
+	return dir.Sync()
 }
 
 // Copies the file at `srcPath` to `dstPath` and ensures that it has

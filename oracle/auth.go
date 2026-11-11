@@ -1,28 +1,34 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"io/ioutil"
-	"oracle/store/keystorage"
 	"os"
 	"strings"
+
+	"oracle/store/keystorage"
 )
 
-// auth asks the operator for the keystore key when the password file is missing or holds the wrong key.
-func auth(keystore *keystorage.Keystorage) error {
+// unlock decrypts account's key with passphrase (from -k), or with a key the operator types when that is
+// missing or wrong.
+func unlock(keystore *keystorage.Keystorage, account, passphrase string) error {
+	var err error
+	if passphrase != "" {
+		if err = keystore.Unlock(account, passphrase); err == nil {
+			return nil
+		}
+	}
 	if !stdinIsTerminal() {
-		return fmt.Errorf("the keystore password (-k) is missing or wrong: %w", errNoTerminal)
+		if err == nil {
+			return fmt.Errorf("the keystore key (-k) is missing: %w", errNoTerminal)
+		}
+		return fmt.Errorf("the keystore key (-k) does not unlock the keystore (%v): %w", err, errNoTerminal)
 	}
 	fmt.Println("")
 	fmt.Println("Let's verify it's you =)")
 	fmt.Println("")
 	fmt.Println("Please enter the cli/HTTP key, which was provided to you by Oracle")
-	_, err := promptUntil("Key: ", func(key string) error {
-		if keystore.CheckToken(key) != nil {
-			return errors.New("I'm not sure I can decrypt your keystore with this key")
-		}
-		return nil
+	_, err = promptSecretUntil("Key: ", func(key string) error {
+		return keystore.Unlock(account, key)
 	})
 	if err == nil {
 		fmt.Println("Okay, let's continue...")
@@ -30,19 +36,11 @@ func auth(keystore *keystorage.Keystorage) error {
 	return err
 }
 
+// getPasswordFromFileOrFlag reads the key from the file flagValue names, or takes flagValue itself as the key
+// when no such file can be opened.
 func getPasswordFromFileOrFlag(flagValue string) string {
-	file, err := os.Open(flagValue)
-	password := ""
-	if err != nil {
-		password = flagValue
+	if data, err := os.ReadFile(flagValue); err == nil {
+		return strings.TrimSpace(string(data))
 	}
-
-	defer file.Close()
-
-	data, err := ioutil.ReadAll(file)
-	if err == nil {
-		password = string(data)
-	}
-
-	return strings.TrimSpace(password)
+	return strings.TrimSpace(flagValue)
 }
