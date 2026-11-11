@@ -29,7 +29,6 @@ type Database struct {
 
 var Conf = &Config{
 	FirstBlockNumber:  1,
-	GasLimit:          500000,
 	MaxGasPrice:       150,
 	WaitConfirmations: 10,
 	Serve: &Serve{
@@ -58,9 +57,9 @@ type Config struct {
 	CheckDuration                 int32       `json:"check_duration"`
 	Serve                         *Serve      `json:"serve"`
 	LogLevel                      string      `json:"log_level"`
-	GasLimit                      int64       `json:"gas_limit"`
 	MaxGasPrice                   int64       `json:"max_gas_price"`
 	WaitConfirmations             uint64      `json:"wait_confirmations"`
+	EventScanBatchBlocks          uint64      `json:"event_scan_batch_blocks"` // most blocks per eth_getLogs call (default 2,000)
 	Keystorage                    *Keystorage `json:"keystorage"`
 	Database                      *Database   `json:"database"`
 }

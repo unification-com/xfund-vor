@@ -126,7 +126,6 @@ func TestStartEverything(t *testing.T) {
 	t.Log(tx)
 
 	//	set VORD20 keyHash
-	rootVORD20Owner.RenewTransactOpts()
 	tx, err = rootVORD20Owner.SetKeyHash(oracleKeyHash)
 	if err != nil {
 		t.Error(err)
@@ -134,7 +133,6 @@ func TestStartEverything(t *testing.T) {
 	t.Log(tx)
 
 	//	set VORD20 fee
-	rootVORD20Owner.RenewTransactOpts()
 	tx, err = rootVORD20Owner.SetFee(big.NewInt(200))
 	if err != nil {
 		t.Error(err)
@@ -142,11 +140,6 @@ func TestStartEverything(t *testing.T) {
 	t.Log(tx)
 
 	//	create requestRandomness for oracle
-	err = rootVORD20Owner.RenewTransactOpts()
-	if err != nil {
-		t.Error(err)
-	}
-
 	tx, err = rootVORD20Owner.RollDice(big.NewInt(24), "0xf408f04F9b7691f7174FA2bb73ad6d45fD5d3CBe")
 	if err != nil {
 		t.Error(err)

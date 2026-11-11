@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
+	"oracle/chaincall"
 	"oracle/contracts/vor_coordinator"
 	"oracle/contracts/vor_randomness_request_mock"
 	"oracle/models/database"
@@ -29,7 +30,7 @@ type VORRandomnessRequestMockListener struct {
 }
 
 func NewVORRandomnessRequestMockListener(contractHexAddress string, ethHostAddress string, service *service.Service, ctx context.Context) (*VORRandomnessRequestMockListener, error) {
-	client, err := ethclient.Dial(ethHostAddress)
+	client, err := chaincall.Dial(ethHostAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -40,6 +41,9 @@ func NewVORRandomnessRequestMockListener(contractHexAddress string, ethHostAddre
 	}
 
 	lastBlock, err := startBlock(service)
+	if err != nil {
+		return nil, err
+	}
 
 	return &VORRandomnessRequestMockListener{
 		client:          client,
@@ -48,7 +52,7 @@ func NewVORRandomnessRequestMockListener(contractHexAddress string, ethHostAddre
 		service:         service,
 		context:         ctx,
 		query: ethereum.FilterQuery{
-			FromBlock: lastBlock,
+			FromBlock: new(big.Int).SetUint64(lastBlock),
 			//ToBlock:   big.NewInt(23),
 			Addresses: []common.Address{contractAddress},
 		},

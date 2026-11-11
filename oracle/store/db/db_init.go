@@ -54,3 +54,8 @@ func (d DB) Migrate() (err error) {
 	err = d.AutoMigrate(&database.RandomnessRequest{}, &database.FailedFulfilment{}, &database.BlocksStored{})
 	return
 }
+
+// IsNotFound reports whether err means the record looked up doesn't exist, as opposed to the lookup failing.
+func IsNotFound(err error) bool {
+	return errors.Is(err, gorm.ErrRecordNotFound)
+}

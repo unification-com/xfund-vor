@@ -1,12 +1,24 @@
 package chainlisten
 
-import "testing"
+import (
+	"testing"
 
-// A zero block number (e.g. from a misbehaving RPC) must be ignored: blockNumber - 1 used to wrap round to the
-// maximum uint64 and be saved in the keystore as -1, breaking the next start.
-func TestSetLastBlockNumberIgnoresZero(t *testing.T) {
-	var listener VORCoordinatorListener // no service: saving anything would panic
-	if err := listener.SetLastBlockNumber(0); err != nil {
-		t.Fatalf("SetLastBlockNumber(0) = %v, want nil", err)
-	}
+	"github.com/stretchr/testify/assert"
+)
+
+// Range-limited RPCs reject wide eth_getLogs ranges (QL1's caps at 4,000 blocks), so a backlog is scanned in
+// batches, and one poll's catch-up is bounded.
+func TestScanRanges(t *testing.T) {
+	assert.Empty(t, scanRanges(101, 100, 2000, 100), "nothing new since the last scan")
+	assert.Equal(t, []blockRange{{100, 100}}, scanRanges(100, 100, 2000, 100))
+	assert.Equal(t, []blockRange{{1, 2000}, {2001, 4000}, {4001, 4500}}, scanRanges(1, 4500, 2000, 100))
+	assert.Equal(t, []blockRange{{1, 10}, {11, 20}}, scanRanges(1, 1000, 10, 2), "at most maxBatches per poll")
+}
+
+// A lagging RPC node can report a head behind a block it has already served: that must not wrap round to a
+// huge age (which would fail the request as too old).
+func TestBlocksSince(t *testing.T) {
+	assert.Equal(t, uint64(5), blocksSince(105, 100))
+	assert.Equal(t, uint64(0), blocksSince(100, 100))
+	assert.Equal(t, uint64(0), blocksSince(99, 100))
 }
