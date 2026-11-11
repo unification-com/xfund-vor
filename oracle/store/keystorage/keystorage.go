@@ -150,7 +150,7 @@ func (d *Keystorage) AddExisting(username string, privateKey string) (err error)
 	return
 }
 
-func (d Keystorage) GetByAccount(account string) (*keystorage.KeyStorageKeyModel, error) {
+func (d *Keystorage) GetByAccount(account string) (*keystorage.KeyStorageKeyModel, error) {
 	var keys = d.KeyStore.GetKey()
 	for _, key := range keys {
 		if key.Account == account {
@@ -210,7 +210,7 @@ func (d *Keystorage) IsRegisteredByPrivate(privateKey string) (registered bool) 
 	return false
 }
 
-func (d Keystorage) Exists() bool {
+func (d *Keystorage) Exists() bool {
 	if len((d.KeyStore.GetKey())) > 0 {
 		return true
 	}

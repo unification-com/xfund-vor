@@ -1,3 +1,7 @@
+# GO_VERSION comes from oracle/go.mod (see the Makefile)
+ARG GO_VERSION
+FROM golang:${GO_VERSION} AS go
+
 FROM ubuntu:bionic
 
 RUN \
@@ -15,9 +19,8 @@ RUN curl -sL https://raw.githubusercontent.com/creationix/nvm/v0.35.3/install.sh
   nvm install $NODE_VERSION && \
   npm install --global yarn
 
-# install Go
-RUN curl -sL https://golang.org/dl/go1.16.3.linux-amd64.tar.gz -o /root/go1.16.3.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf /root/go1.16.3.linux-amd64.tar.gz
+# install Go: the official image tracks the latest patch of the release in oracle/go.mod
+COPY --from=go /usr/local/go /usr/local/go
 
 RUN mkdir -p /root/xfund-vor
 WORKDIR /root/xfund-vor

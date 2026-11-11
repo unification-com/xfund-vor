@@ -61,13 +61,16 @@ lint:
 
 # Tests
 
+# the Go release the Docker images build with: the go directive in oracle/go.mod
+GO_VERSION := $(shell sed -n 's/^go //p' oracle/go.mod)
+
 test-oracle:
-	docker build -t oracle_test -f docker/test.Dockerfile .
+	docker build --build-arg GO_VERSION=$(GO_VERSION) -t oracle_test -f docker/test.Dockerfile .
 	docker run -it oracle_test
 
 # Dev environment
 dev-env:
-	docker build -t vor_dev_env -f docker/dev.Dockerfile .
+	docker build --build-arg GO_VERSION=$(GO_VERSION) -t vor_dev_env -f docker/dev.Dockerfile .
 	docker run -it -p 8545:8545 -p 8445:8445 vor_dev_env
 
 .PHONY: test-oracle dev-env
