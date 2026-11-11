@@ -72,21 +72,24 @@ func (d *DB) UpdateFulfilmentSent(requestId string, status int, txHash string, b
 	return err
 }
 
+// PageAndLimit normalises pagination: pages count from 1, and a page holds 1-100 records (default 10).
+func PageAndLimit(page, pageSize int) (int, int) {
+	if page < 1 {
+		page = 1
+	}
+	switch {
+	case pageSize > 100:
+		pageSize = 100
+	case pageSize <= 0:
+		pageSize = 10
+	}
+	return page, pageSize
+}
+
 func Paginate(page, pageSize int) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		if page == 0 {
-			page = 1
-		}
-
-		switch {
-		case pageSize > 100:
-			pageSize = 100
-		case pageSize <= 0:
-			pageSize = 10
-		}
-
-		offset := (page - 1) * pageSize
-		return db.Offset(offset).Limit(pageSize)
+		page, pageSize := PageAndLimit(page, pageSize)
+		return db.Offset((page - 1) * pageSize).Limit(pageSize)
 	}
 }
 

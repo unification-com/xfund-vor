@@ -26,6 +26,7 @@ var options struct {
 	Config       string `short:"c" long:"config" description:"Config path" required:"false" default:"./config.json"`
 	PasswordFile string `short:"k" long:"key" description:"Path to file containing decryption key, or the key itself" required:"false"`
 	NewKeyFile   string `long:"new-key" description:"migrate-keystore: path to a file containing the new key (asked for when omitted)" required:"false"`
+	APIKeyOut    string `long:"out" description:"api-key: path of a new file to write the API key to (printed when omitted)" required:"false"`
 	Version      bool   `short:"v" long:"version" description:"Show version information and exit" required:"false"`
 }
 
@@ -84,6 +85,8 @@ func main() {
 		err = start()
 	case "migrate-keystore":
 		err = migrateKeystore()
+	case "api-key":
+		err = newAPIKey()
 	default:
 		log.WithFields(logrus.Fields{
 			"package":  "main",

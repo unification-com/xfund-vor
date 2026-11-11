@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 	"math/big"
 	"net/http"
+	"oracle/chaincall"
 	"oracle/config"
 	controller "oracle/controller/api"
 	"oracle/controller/chainlisten"
@@ -81,6 +83,10 @@ func start() (err error) {
 	}
 	// scrypt needed ~256 MB to unlock the key: hand it back now, as the oracle shares its host
 	debug.FreeOSMemory()
+	if !keystore.HasAPIKey() {
+		log.WithFields(logrus.Fields{"package": "main", "function": "start"}).
+			Warn("no API key is set, so the HTTP API refuses every request: issue one with `oracle api-key`")
+	}
 
 	oracleService, err := service.NewService(ctx, store)
 	if err != nil {
@@ -91,15 +97,28 @@ func start() (err error) {
 		}).Error(err.Error())
 		return err
 	}
-	if !keystore.IsRegistered() {
-		tx, err := oracleService.VORCoordinatorCaller.RegisterProvingKey(big.NewInt(fee))
-		if tx != nil || err == nil {
-			keystore.SetRegistered()
-		}
+	if err = ensureRegistered(oracleService.VORCoordinatorCaller, keystore, fee); err != nil {
+		log.WithFields(logrus.Fields{
+			"package":  "main",
+			"function": "start",
+			"action":   "register proving key",
+		}).Error(err.Error())
+		return err
 	}
 
 	oracleController, err := controller.NewOracle(ctx, log, oracleService)
+	if err != nil {
+		return err
+	}
 	oracleListener, err = chainlisten.NewVORCoordinatorListener(config.Conf.VORCoordinatorContractAddress, config.Conf.EthHTTPHost, oracleService, log, ctx)
+	if err != nil {
+		log.WithFields(logrus.Fields{
+			"package":  "main",
+			"function": "start",
+			"action":   "init listener",
+		}).Error(err.Error())
+		return err
+	}
 	go oracleListener.StartPoll()
 
 	// Middleware
@@ -130,4 +149,29 @@ func start() (err error) {
 	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", config.Conf.Serve.Host, config.Conf.Serve.Port)))
 
 	return err
+}
+
+// ensureRegistered makes sure the coordinator holds the oracle's proving key: the chain, not the keystore's
+// flag, is the authority. An unregistered key is registered at fee, waiting for the transaction to succeed;
+// fee is only known on the first run.
+func ensureRegistered(caller *chaincall.VORCoordinatorCaller, keystore *keystorage.Keystorage, fee int64) error {
+	provider, err := caller.ProvingKeyProvider()
+	if err != nil {
+		return fmt.Errorf("checking the proving key's registration: %w", err)
+	}
+	entry := log.WithFields(logrus.Fields{"package": "main", "function": "ensureRegistered"})
+	if provider == (common.Address{}) {
+		if fee <= 0 {
+			// carry on: the API still works, and a restart loop would help nobody
+			entry.Error("the proving key isn't registered with the coordinator, so the oracle can't fulfil requests")
+			return nil
+		}
+		if err = caller.RegisterProvingKeyAndWait(big.NewInt(fee)); err != nil {
+			return err
+		}
+		entry.Info("registered the proving key")
+	} else if provider != caller.OracleAddress() {
+		entry.WithField("provider", provider.Hex()).Warn("the proving key is registered to another provider address, which its fees are paid to")
+	}
+	return keystore.SetRegistered()
 }

@@ -3,6 +3,7 @@ package keystorage
 import (
 	"crypto/ecdsa"
 	"crypto/rand"
+	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
@@ -23,16 +24,15 @@ import (
 // keystoreFileMode: the keystore holds the oracle's private keys, so only its owner may read it.
 const keystoreFileMode = 0600
 
-// MinPassphraseLength: the keystore passphrase also authenticates the HTTP API, so it must resist guessing on
-// its own.
+// MinPassphraseLength: should the keystore file leak, scrypt alone doesn't protect a guessable passphrase.
 const MinPassphraseLength = 16
 
 // ErrLegacyKeystore: the keystore was written by v0.1.x, whose encryption is too weak to keep using.
 var ErrLegacyKeystore = errors.New("its keys use the v0.1.x encryption: convert it with `oracle migrate-keystore`")
 
 // Keystorage is the oracle's keystore: its accounts, each a private key encrypted as a go-ethereum v3 keystore
-// under one passphrase, plus each account's registration state and last polled block. Unlock decrypts the one
-// key the oracle signs with; no other key is ever decrypted.
+// under one passphrase, plus each account's registration state and last polled block, and the hash of the
+// HTTP API key. Unlock decrypts the one key the oracle signs with; no other key is ever decrypted.
 type Keystorage struct {
 	log  *logrus.Logger
 	path string
@@ -131,20 +131,29 @@ func (d *Keystorage) indexOf(account string) int {
 	return -1
 }
 
-// GenerateToken starts a new keystore with a random passphrase, which encrypts the keys added next and
-// authenticates the HTTP API. It refuses once the keystore has keys: they are encrypted under its passphrase.
+// RandomKey returns 32 random bytes as hex: a passphrase or API key nobody can guess.
+func RandomKey() (string, error) {
+	random := make([]byte, 32)
+	if _, err := rand.Read(random); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(random), nil
+}
+
+// GenerateToken starts a new keystore with a random passphrase, which encrypts the keys added next. It refuses
+// once the keystore has keys: they are encrypted under its passphrase.
 func (d *Keystorage) GenerateToken() (string, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	if len(d.file.Key) > 0 {
 		return "", errors.New("the keystore already has keys, encrypted under its existing key")
 	}
-	random := make([]byte, 32)
-	if _, err := rand.Read(random); err != nil {
+	passphrase, err := RandomKey()
+	if err != nil {
 		return "", err
 	}
-	d.passphrase = hex.EncodeToString(random)
-	return d.passphrase, nil
+	d.passphrase = passphrase
+	return passphrase, nil
 }
 
 // GeneratePrivate adds a new random key for account and returns its address.
@@ -194,7 +203,7 @@ func (d *Keystorage) add(account string, privateKey *ecdsa.PrivateKey) (string, 
 }
 
 // Unlock decrypts account's key with passphrase and makes it the key the oracle signs with; an account that
-// isn't in the keystore falls back to the first key. The passphrase also becomes the HTTP API key.
+// isn't in the keystore falls back to the first key.
 func (d *Keystorage) Unlock(account, passphrase string) error {
 	d.mu.Lock()
 	if len(d.file.Key) == 0 {
@@ -228,11 +237,34 @@ func (d *Keystorage) GetSelectedPrivateKey() string {
 	return d.privateKey
 }
 
-// IsAPIKey reports, in constant time, whether key is the HTTP API key (the keystore passphrase).
+// SetAPIKey makes key the HTTP API key, keeping only its hash.
+func (d *Keystorage) SetAPIKey(key string) error {
+	if len(key) < MinPassphraseLength {
+		return fmt.Errorf("the API key must be at least %d characters", MinPassphraseLength)
+	}
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.file.APIKeySHA256 = sha256Hex(key)
+	return d.saveLocked()
+}
+
+// HasAPIKey reports whether an HTTP API key is set: without one, the API refuses every request.
+func (d *Keystorage) HasAPIKey() bool {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	return d.file.APIKeySHA256 != ""
+}
+
+// IsAPIKey reports, in constant time, whether key is the HTTP API key.
 func (d *Keystorage) IsAPIKey(key string) bool {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	return d.passphrase != "" && subtle.ConstantTimeCompare([]byte(key), []byte(d.passphrase)) == 1
+	return d.file.APIKeySHA256 != "" && subtle.ConstantTimeCompare([]byte(sha256Hex(key)), []byte(d.file.APIKeySHA256)) == 1
+}
+
+func sha256Hex(s string) string {
+	hash := sha256.Sum256([]byte(s))
+	return hex.EncodeToString(hash[:])
 }
 
 // IsRegistered reports whether the unlocked key is registered with the VOR coordinator.

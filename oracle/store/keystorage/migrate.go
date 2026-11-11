@@ -77,8 +77,8 @@ func MigrateFile(path, token, newPassphrase string) ([]MigratedKey, error) {
 	return keys, nil
 }
 
-// CheckNewPassphrase vets a new keystore passphrase: long enough to resist guessing, as it also authenticates
-// the HTTP API, and not the v0.1.x token it replaces, which came from a guessable random source.
+// CheckNewPassphrase vets a new keystore passphrase: long enough to resist guessing, and not the v0.1.x token
+// it replaces, which came from a guessable random source (and doubled as the API key).
 func CheckNewPassphrase(newPassphrase, token string) error {
 	if len(newPassphrase) < MinPassphraseLength {
 		return fmt.Errorf("the new key must be at least %d characters", MinPassphraseLength)

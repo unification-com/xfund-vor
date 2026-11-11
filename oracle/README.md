@@ -10,8 +10,8 @@ Oracle key store: `keystorage.file` in the configuration.
 
 Each account's private key is a standard go-ethereum v3 keystore (scrypt), so `.keys[n].keystore` can be
 extracted and used with any Ethereum tool. Every key is encrypted under one key, which the oracle reads from
-`-k` (a file, or the key itself) and which also authenticates the HTTP API. Only the account selected by
-`keystorage.account` (else the first) is ever decrypted.
+`-k` (a file, or the key itself). Only the account selected by `keystorage.account` (else the first) is ever
+decrypted. `api_key_sha256` is the hash of the HTTP API key (see below).
 
 ```json
 {
@@ -24,9 +24,22 @@ extracted and used with any Ethereum tool. Every key is encrypted under one key,
       "registered": true,
       "block_number": 13452142
     }
-  ]
+  ],
+  "api_key_sha256": "..."
 }
 ```
+
+### HTTP API key
+
+The HTTP API (used by `oracle-cli`) has its own random key, separate from the keystore key; the keystore keeps
+only its hash. With the oracle stopped, issue one with:
+
+```bash
+oracle api-key -c config.json [--out FILE]
+```
+
+It is written to `--out` (a new file) or printed, then goes in `oracle-cli settings`. Until a key is set, the
+API refuses every request.
 
 ### Migrating a v0.1.x keystore
 
@@ -41,7 +54,9 @@ oracle migrate-keystore -c config.json -k password --new-key password.new && mv 
 
 Without `--new-key` the new key is asked for, twice, on the terminal. Every key is converted and verified from
 disk before the old file is overwritten and replaced. Afterwards, update the key in `oracle-cli settings`, and
-delete the backup once the oracle runs: the old keystore and its key together expose the private keys.
+delete the backup once the oracle runs: the old keystore and its key together expose the private keys. The old
+key also opened the HTTP API, which now has its own key: issue one (above). Both commands refuse to run while
+the oracle is running, as it would overwrite their changes.
 
 ## Configuration
 
@@ -61,12 +76,18 @@ Oracle settings
   },
   "log_file": "./log.out",
   "log_level": "DEBUG",
+  "max_gas_price": 150,
+  "event_scan_batch_blocks": 2000,
   "keystorage": {
     "file": "./keystore.json",
     "account": "username"
   }
 }
 ```
+
+`max_gas_price` caps the gas price in gwei (0: uncapped); gas limits are always estimated. Events are read
+with `eth_getLogs` in ranges of at most `event_scan_batch_blocks` blocks (default 2,000), as range-limited
+RPCs reject wider ones.
 
 ## Run tests
 

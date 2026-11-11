@@ -46,13 +46,11 @@ func TestKeystorage_KeysSurviveAReopenAndUnlockWithThePassphraseOnly(t *testing.
 	assert.True(t, reopened.Exists())
 	assert.True(t, reopened.ExistsByUsername("owner"))
 	assert.Empty(t, reopened.GetSelectedPrivateKey(), "nothing is decrypted until Unlock")
-	assert.False(t, reopened.IsAPIKey(""), "a locked keystore accepts no API key")
 
 	assert.Error(t, reopened.Unlock("oracle", "the wrong passphrase"))
 	require.NoError(t, reopened.Unlock("oracle", token))
 	assert.Equal(t, generated, crypto.PubkeyToAddress(mustParse(t, reopened.GetSelectedPrivateKey()).PublicKey).Hex())
-	assert.True(t, reopened.IsAPIKey(token))
-	assert.False(t, reopened.IsAPIKey(token[:63]))
+	assert.False(t, reopened.IsAPIKey(token), "the keystore key doesn't open the API")
 
 	require.NoError(t, reopened.Unlock("owner", token))
 	assert.Equal(t, key0, reopened.GetSelectedPrivateKey())
@@ -171,4 +169,29 @@ func TestKeystorage_RejectsAnUnknownFormat(t *testing.T) {
 	_, err = NewKeyStorage(nil, path)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "incomplete")
+}
+
+// The API key is separate from the keystore key, and only its hash is stored.
+func TestKeystorage_APIKey(t *testing.T) {
+	ks, path := newKeystore(t)
+	token, err := ks.GenerateToken()
+	require.NoError(t, err)
+	require.NoError(t, ks.AddExisting("owner", key0))
+	assert.False(t, ks.HasAPIKey())
+	assert.False(t, ks.IsAPIKey(""), "no API key set: nothing is accepted")
+	assert.Error(t, ks.SetAPIKey("short"))
+
+	apiKey, err := RandomKey()
+	require.NoError(t, err)
+	require.NoError(t, ks.SetAPIKey(apiKey))
+
+	reopened := open(t, path)
+	assert.True(t, reopened.HasAPIKey())
+	assert.True(t, reopened.IsAPIKey(apiKey))
+	assert.False(t, reopened.IsAPIKey(apiKey[:63]))
+	assert.False(t, reopened.IsAPIKey(token))
+
+	data, err := os.ReadFile(path)
+	require.NoError(t, err)
+	assert.NotContains(t, string(data), apiKey)
 }

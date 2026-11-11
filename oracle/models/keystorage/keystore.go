@@ -11,6 +11,8 @@ const FileVersion = 2
 type KeyStorageModel struct {
 	Version int                   `json:"version"`
 	Key     []*KeyStorageKeyModel `json:"keys"`
+	// APIKeySHA256 is the hex SHA-256 of the HTTP API key: the key itself is never stored.
+	APIKeySHA256 string `json:"api_key_sha256,omitempty"`
 }
 
 // KeyStorageKeyModel is one account in the keystore.

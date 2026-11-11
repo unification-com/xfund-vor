@@ -11,10 +11,14 @@ import (
 )
 
 // migrateKeystore converts a v0.1.x keystore to the current format: every key re-encrypted as a go-ethereum v3
-// (scrypt) keystore under a new key, which replaces the old one for -k and the HTTP API.
+// (scrypt) keystore under a new key, which replaces the old one for -k. The old key also opened the HTTP API;
+// the API now has its own key (`oracle api-key`).
 //
 //	oracle migrate-keystore -c config.json -k password [--new-key password.new]
 func migrateKeystore() error {
+	if err := ensureOracleStopped(); err != nil {
+		return err
+	}
 	path := config.Conf.Keystorage.File
 	current := ""
 	if options.PasswordFile != "" {
@@ -25,7 +29,7 @@ func migrateKeystore() error {
 			return fmt.Errorf("the current key (-k) is missing: %w", errNoTerminal)
 		}
 		var err error
-		if current, err = promptSecret("Current cli/HTTP key: "); err != nil {
+		if current, err = promptSecret("Current keystore key: "); err != nil {
 			return err
 		}
 	}
@@ -48,8 +52,9 @@ func migrateKeystore() error {
 		fmt.Printf("  %s  %s\n", key.Address, key.Account)
 	}
 	fmt.Println("The old key no longer unlocks anything. Next:")
-	fmt.Println("  1. put the new key where -k reads it (and in oracle-cli settings, for the HTTP API)")
-	fmt.Println("  2. delete any copy of the old keystore and its key, including backups: together they expose the keys")
+	fmt.Println("  1. put the new key where -k reads it")
+	fmt.Println("  2. issue an API key for oracle-cli: oracle api-key -c <config>")
+	fmt.Println("  3. delete any copy of the old keystore and its key, including backups: together they expose the keys")
 	return nil
 }
 

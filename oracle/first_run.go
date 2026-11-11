@@ -7,8 +7,8 @@ import (
 	"strconv"
 )
 
-// noKeyFound creates the oracle's first key, under a new random key that it prints: the only copy of the key
-// that unlocks the keystore and the HTTP API.
+// noKeyFound creates the oracle's first key, under a new random keystore key, and an HTTP API key: it prints
+// both, the only copies.
 func noKeyFound(keystore *keystorage.Keystorage) (fee int64, token string, err error) {
 	fmt.Println("")
 	fmt.Println("Let's create a new account")
@@ -66,10 +66,16 @@ func noKeyFound(keystore *keystorage.Keystorage) (fee int64, token string, err e
 		fmt.Println("\nSuccessfully generated a private key for address", address)
 		fmt.Println("It exists only in the keystore: back up the keystore file and keep the key below safe.")
 	}
-	fmt.Print("\nYour daemon api key:   ")
+	var apiKey string
+	if apiKey, err = issueAPIKey(keystore, ""); err != nil {
+		return
+	}
+	fmt.Print("\nYour keystore key:   ")
 	fmt.Println(token)
-	fmt.Println("\nUse this key to login via cli/HTTP (command: oracle-cli settings)")
-	fmt.Println("KEEP THIS KEY SAFE! YOU WILL LOSE YOUR KEYSTORAGE DATA WITHOUT IT!")
+	fmt.Println("Start the oracle with it (-k). KEEP THIS KEY SAFE! YOU WILL LOSE YOUR KEYSTORAGE DATA WITHOUT IT!")
+	fmt.Print("\nYour API key:   ")
+	fmt.Println(apiKey)
+	fmt.Println("Use this key to log in via cli/HTTP (command: oracle-cli settings)")
 	fmt.Println("")
 	return
 }

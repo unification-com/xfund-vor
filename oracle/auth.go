@@ -26,7 +26,7 @@ func unlock(keystore *keystorage.Keystorage, account, passphrase string) error {
 	fmt.Println("")
 	fmt.Println("Let's verify it's you =)")
 	fmt.Println("")
-	fmt.Println("Please enter the cli/HTTP key, which was provided to you by Oracle")
+	fmt.Println("Please enter the keystore key, which was provided to you by Oracle")
 	_, err = promptSecretUntil("Key: ", func(key string) error {
 		return keystore.Unlock(account, key)
 	})
