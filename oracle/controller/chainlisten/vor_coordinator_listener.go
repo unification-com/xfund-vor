@@ -34,9 +34,6 @@ var (
 )
 
 const (
-	// defaultEventScanBatchBlocks is the eth_getLogs range used when event_scan_batch_blocks is unset: wide
-	// ranges are rejected by range-limited RPCs (QL1's caps at 4,000 blocks).
-	defaultEventScanBatchBlocks = 2000
 	// maxScanBatchesPerPoll bounds one poll's catch-up, so a long backlog doesn't hold up the job queue.
 	maxScanBatchesPerPoll = 100
 
@@ -51,6 +48,7 @@ const (
 )
 
 type VORCoordinatorListener struct {
+	chain           config.ChainConfig
 	contractAddress common.Address
 	client          *ethclient.Client
 	contractAbi     abi.ABI
@@ -62,9 +60,9 @@ type VORCoordinatorListener struct {
 	logger          *logrus.Logger
 }
 
-func NewVORCoordinatorListener(contractHexAddress string, ethHostAddress string,
-	service *service.Service, logger *logrus.Logger, ctx context.Context) (*VORCoordinatorListener, error) {
-	client, err := chaincall.Dial(ethHostAddress)
+// NewVORCoordinatorListener listens for the service's chain's requests.
+func NewVORCoordinatorListener(service *service.Service, logger *logrus.Logger, ctx context.Context) (*VORCoordinatorListener, error) {
+	client, err := chaincall.Dial(service.Chain.EthHTTPHost)
 	if err != nil {
 		return nil, err
 	}
@@ -85,8 +83,9 @@ func NewVORCoordinatorListener(contractHexAddress string, ethHostAddress string,
 		return nil, errors.New("the coordinator returned an empty hash for the proving key")
 	}
 	return &VORCoordinatorListener{
+		chain:           service.Chain,
 		client:          client,
-		contractAddress: common.HexToAddress(contractHexAddress),
+		contractAddress: common.HexToAddress(service.Chain.VORCoordinatorContractAddress),
 		contractAbi:     contractAbi,
 		fromBlock:       fromBlock,
 		service:         service,
@@ -109,10 +108,7 @@ func (d *VORCoordinatorListener) StartPoll() (err error) {
 	// time.Sleep(rand.Int31n(base)) which returns [0,base) - frequently 0 - so a stuck job (e.g. a permanently
 	// reverting under-fee request) re-ran the loop with no delay, pegging a core and churning the heap (the
 	// 2026-06 CPU/RAM runaway). It also discarded every iteration error and never honoured ctx cancellation.
-	base := int32(30)
-	if config.Conf.CheckDuration > 0 {
-		base = config.Conf.CheckDuration
-	}
+	base := d.chain.CheckDuration
 	for {
 		if d.context.Err() != nil {
 			d.log("StartPoll").WithField("action", "context cancelled - stopping poller").Info()
@@ -165,8 +161,8 @@ func startBlock(service *service.Service) (uint64, error) {
 	if block := lastRequest.GetRequestBlockNumber(); block != 0 {
 		return block, nil
 	}
-	if config.Conf.FirstBlockNumber != 0 {
-		return config.Conf.FirstBlockNumber, nil
+	if first := service.Chain.FirstBlockNumber; first != 0 {
+		return first, nil
 	}
 	return 1, nil
 }
@@ -202,11 +198,7 @@ func (d *VORCoordinatorListener) ProcessIncommingEvents() error {
 	if err != nil {
 		return fmt.Errorf("getting the head block: %w", err)
 	}
-	batch := config.Conf.EventScanBatchBlocks
-	if batch == 0 {
-		batch = defaultEventScanBatchBlocks
-	}
-	ranges := scanRanges(d.fromBlock, head, batch, maxScanBatchesPerPoll)
+	ranges := scanRanges(d.fromBlock, head, d.chain.EventScanBatchBlocks, maxScanBatchesPerPoll)
 	for _, r := range ranges {
 		logs, err := d.client.FilterLogs(d.context, ethereum.FilterQuery{
 			FromBlock: new(big.Int).SetUint64(r.from),
@@ -531,8 +523,8 @@ func (d *VORCoordinatorListener) preProcessJob(request database.RandomnessReques
 	switch request.GetStatus() {
 	case database.REQUEST_STATUS_INITIALISED:
 		requestBlockDiff := blocksSince(currentBlockNum, requestTxReceipt.BlockNumber.Uint64())
-		if requestBlockDiff < config.Conf.WaitConfirmations {
-			entry.WithFields(logrus.Fields{"block_diff": requestBlockDiff, "wait_config": config.Conf.WaitConfirmations}).
+		if requestBlockDiff < d.chain.WaitConfirmations {
+			entry.WithFields(logrus.Fields{"block_diff": requestBlockDiff, "wait_config": d.chain.WaitConfirmations}).
 				Info("not enough block confirmations to fulfill request")
 			return nil
 		}

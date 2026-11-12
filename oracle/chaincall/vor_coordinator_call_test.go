@@ -35,14 +35,10 @@ func Init(configAddress string, pass string) (err error) {
 	if err = Keystore.Unlock(Config.Keystorage.Account, pass); err != nil {
 		return err
 	}
-	VORCoordinator, err = chaincall.NewVORCoordinatorCaller(VORCoordinatorCallerTestValues())
+	VORCoordinator, err = chaincall.NewVORCoordinatorCaller(Config.ChainList()[0], []byte(Keystore.GetSelectedPrivateKey()))
 	VORD20Caller, err = chaincall.NewVORD20Caller(VORD20CallerTestValues())
 	MockERC20Caller, err = chaincall.NewMockERC20Caller(MockERC20CallerTestValues())
 	return err
-}
-
-func VORCoordinatorCallerTestValues() (string, string, string, *big.Int, []byte) {
-	return Config.VORCoordinatorContractAddress, Config.BlockHashStoreContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetSelectedPrivateKey())
 }
 
 func MockERC20CallerTestValues() (string, string, *big.Int, []byte) {

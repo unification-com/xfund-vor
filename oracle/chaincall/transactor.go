@@ -48,29 +48,36 @@ func Dial(url string) (*ethclient.Client, error) {
 type transactor struct {
 	client  *ethclient.Client
 	ctx     context.Context
+	chain   config.ChainConfig
 	key     *ecdsa.PrivateKey
 	address common.Address
-	chainID *big.Int
 	mu      sync.Mutex
 }
 
-// connect dials ethHost and returns a transactor for the hex private key (with or without 0x).
-func connect(ethHost string, privateKey []byte, chainID *big.Int) (*transactor, error) {
+// connect dials the chain and returns a transactor for the hex private key (with or without 0x).
+func connect(chain config.ChainConfig, privateKey []byte) (*transactor, error) {
 	key, err := crypto.HexToECDSA(utils.RemoveHexPrefix(string(privateKey)))
 	if err != nil {
 		return nil, errors.New("not a valid private key")
 	}
-	client, err := Dial(ethHost)
+	client, err := Dial(chain.EthHTTPHost)
 	if err != nil {
 		return nil, err
 	}
 	return &transactor{
 		client:  client,
 		ctx:     context.Background(),
+		chain:   chain,
 		key:     key,
 		address: crypto.PubkeyToAddress(key.PublicKey),
-		chainID: chainID,
 	}, nil
+}
+
+// testChain is a chain config for the integration-test callers, which are given a host and chain id.
+func testChain(ethHost string, chainID *big.Int) config.ChainConfig {
+	chain := config.DefaultChain()
+	chain.EthHTTPHost, chain.NetworkID = ethHost, chainID.Int64()
+	return chain
 }
 
 // send builds fresh options and passes them to tx, which sends one transaction with them.
@@ -78,7 +85,7 @@ func (t *transactor) send(tx func(opts *bind.TransactOpts) (*types.Transaction, 
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	opts, err := bind.NewKeyedTransactorWithChainID(t.key, t.chainID)
+	opts, err := bind.NewKeyedTransactorWithChainID(t.key, big.NewInt(t.chain.NetworkID))
 	if err != nil {
 		return nil, err
 	}
@@ -116,8 +123,8 @@ const feeCapBaseFeeMultiplier = 2
 // suggestFees prices a transaction with EIP-1559 fees where the chain has a base fee (unless legacy_gas is set),
 // else with a legacy gas price; max_gas_price caps either.
 func (t *transactor) suggestFees() (gasFees, error) {
-	maxGwei := config.Conf.MaxGasPrice
-	if !config.Conf.LegacyGas {
+	maxGwei := t.chain.MaxGasPrice
+	if !t.chain.LegacyGas {
 		head, err := t.client.HeaderByNumber(t.ctx, nil)
 		if err != nil {
 			return gasFees{}, fmt.Errorf("getting the head block: %w", err)

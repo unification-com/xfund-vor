@@ -99,10 +99,12 @@ func rootCommand() *cobra.Command {
 
 // withConfig reads the config named by -c before running.
 func withConfig(run func(cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {
-	return func(cmd *cobra.Command, args []string) (err error) {
-		if config.Conf, err = config.NewConfig(options.Config); err != nil {
+	return func(cmd *cobra.Command, args []string) error {
+		conf, err := config.NewConfig(options.Config)
+		if err != nil {
 			return fmt.Errorf("reading the config %s: %w", options.Config, err)
 		}
+		config.Conf = conf
 		return run(cmd, args)
 	}
 }

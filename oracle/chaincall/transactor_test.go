@@ -18,8 +18,6 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"oracle/config"
 )
 
 // fakeNode is a JSON-RPC endpoint with just enough of eth_ to send transactions: its pending nonce rises with
@@ -83,7 +81,7 @@ func TestTransactorSendsSerialise(t *testing.T) {
 	server := httptest.NewServer(node)
 	defer server.Close()
 
-	tr, err := connect(server.URL, []byte("0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d"), big.NewInt(1337))
+	tr, err := connect(testChain(server.URL, big.NewInt(1337)), []byte("0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d"))
 	require.NoError(t, err)
 
 	const senders = 10
@@ -125,9 +123,6 @@ func gwei(n int64) *big.Int { return new(big.Int).Mul(big.NewInt(n), big.NewInt(
 // Where the chain has a base fee, transactions are EIP-1559: tip as suggested, fee cap twice the base fee plus
 // the tip, both within max_gas_price; elsewhere, or with legacy_gas, a legacy gas price.
 func TestTransactorFees(t *testing.T) {
-	maxGasPrice, legacyGas := config.Conf.MaxGasPrice, config.Conf.LegacyGas
-	t.Cleanup(func() { config.Conf.MaxGasPrice, config.Conf.LegacyGas = maxGasPrice, legacyGas })
-
 	cases := []struct {
 		name            string
 		baseFee         *big.Int
@@ -143,10 +138,11 @@ func TestTransactorFees(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			config.Conf.MaxGasPrice, config.Conf.LegacyGas = c.maxGwei, c.legacy
 			server := httptest.NewServer(&fakeNode{baseFee: c.baseFee})
 			defer server.Close()
-			tr, err := connect(server.URL, []byte("4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d"), big.NewInt(1337))
+			chain := testChain(server.URL, big.NewInt(1337))
+			chain.MaxGasPrice, chain.LegacyGas = c.maxGwei, c.legacy
+			tr, err := connect(chain, []byte("4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d"))
 			require.NoError(t, err)
 
 			_, err = tr.send(func(opts *bind.TransactOpts) (*types.Transaction, error) {
@@ -167,7 +163,7 @@ func TestCapToMaxGwei(t *testing.T) {
 }
 
 func TestConnectRejectsABadKey(t *testing.T) {
-	_, err := connect("http://127.0.0.1:1", []byte("0xnotakey"), big.NewInt(1))
+	_, err := connect(testChain("http://127.0.0.1:1", big.NewInt(1)), []byte("0xnotakey"))
 	require.Error(t, err)
 	assert.NotContains(t, err.Error(), "notakey", "errors must not echo the key")
 }

@@ -17,7 +17,7 @@ type VORRandomnessRequestMockCaller struct {
 }
 
 func NewVORRandomnessRequestMockCaller(contractStringAddress string, ethHostAddress string, chainID *big.Int, oraclePrivateKey []byte) (*VORRandomnessRequestMockCaller, error) {
-	t, err := connect(ethHostAddress, oraclePrivateKey, chainID)
+	t, err := connect(testChain(ethHostAddress, chainID), oraclePrivateKey)
 	if err != nil {
 		return nil, err
 	}

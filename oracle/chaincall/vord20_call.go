@@ -17,7 +17,7 @@ type VORD20Caller struct {
 }
 
 func NewVORD20Caller(contractStringAddress string, ethHostAddress string, chainID *big.Int, oraclePrivateKey []byte) (*VORD20Caller, error) {
-	t, err := connect(ethHostAddress, oraclePrivateKey, chainID)
+	t, err := connect(testChain(ethHostAddress, chainID), oraclePrivateKey)
 	if err != nil {
 		return nil, err
 	}

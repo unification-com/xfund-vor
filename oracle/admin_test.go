@@ -15,6 +15,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// testChain is the chain settings a valid config needs.
+const testChain = `"network_id":1337,"eth_http_host":"http://127.0.0.1:1","contract_address":"0xCeB679DE5fEF4F7c2a0e4cB6A4a0C6e6d5A50ED8"`
+
 type apiCall struct {
 	method, path, query, auth string
 	body                      map[string]interface{}
@@ -43,7 +46,7 @@ func TestAdminCommands(t *testing.T) {
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "config.json")
 	portNum, _ := strconv.Atoi(port)
-	require.NoError(t, os.WriteFile(configPath, []byte(`{"serve":{"host":"`+host+`","port":`+strconv.Itoa(portNum)+`}}`), 0600))
+	require.NoError(t, os.WriteFile(configPath, []byte(`{`+testChain+`,"serve":{"host":"`+host+`","port":`+strconv.Itoa(portNum)+`}}`), 0600))
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "api_key"), []byte("the-api-key\n"), 0600))
 
 	run := func(args ...string) error {
@@ -74,7 +77,7 @@ func TestAdminCommands(t *testing.T) {
 func TestAdminCommandsNeedTheAPIKey(t *testing.T) {
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "config.json")
-	require.NoError(t, os.WriteFile(configPath, []byte(`{"serve":{"host":"0.0.0.0","port":1}}`), 0600))
+	require.NoError(t, os.WriteFile(configPath, []byte(`{`+testChain+`,"serve":{"host":"0.0.0.0","port":1}}`), 0600))
 	root := rootCommand()
 	root.SetArgs([]string{"status", "-c", configPath})
 	err := root.Execute()

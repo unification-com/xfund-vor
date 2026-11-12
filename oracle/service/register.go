@@ -5,7 +5,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"oracle/chaincall"
-	"oracle/config"
 )
 
 func (d *Service) Register(account string, privateKey string, fee int64) (tx *types.Transaction, err error) {
@@ -13,7 +12,7 @@ func (d *Service) Register(account string, privateKey string, fee int64) (tx *ty
 		return nil, fmt.Errorf("This account name is already used")
 	}
 
-	VORCoordinatorCallerNew, err := chaincall.NewVORCoordinatorCaller(config.Conf.VORCoordinatorContractAddress, config.Conf.BlockHashStoreContractAddress, config.Conf.EthHTTPHost, big.NewInt(config.Conf.NetworkID), []byte(privateKey))
+	VORCoordinatorCallerNew, err := chaincall.NewVORCoordinatorCaller(d.Chain, []byte(privateKey))
 	if err != nil {
 		return
 	}

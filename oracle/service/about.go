@@ -52,10 +52,10 @@ Address:                %s
 Withdrawable Tokens:    %s
 ETH Balance:            %s
 `,
-		config.Conf.VORCoordinatorContractAddress,
+		d.Chain.VORCoordinatorContractAddress,
 		config.Conf.Serve.Host,
 		config.Conf.Serve.Port,
-		config.Conf.NetworkID,
+		d.Chain.NetworkID,
 		config.Conf.Keystorage.Account,
 		publicKey,
 		common.BytesToHash([]byte(keyhash[:])),

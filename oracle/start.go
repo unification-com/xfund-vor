@@ -88,7 +88,12 @@ func start() (err error) {
 			Warn("no API key is set, so the HTTP API refuses every request: issue one with `oracle api-key`")
 	}
 
-	oracleService, err := service.NewService(ctx, store)
+	// one chain per process until the supervisor runs a worker per chain
+	chains := config.Conf.ChainList()
+	if len(chains) != 1 {
+		return fmt.Errorf("this version runs one chain per process, and the config lists %d", len(chains))
+	}
+	oracleService, err := service.NewService(ctx, store, chains[0])
 	if err != nil {
 		log.WithFields(logrus.Fields{
 			"package":  "main",
@@ -110,7 +115,7 @@ func start() (err error) {
 	if err != nil {
 		return err
 	}
-	oracleListener, err = chainlisten.NewVORCoordinatorListener(config.Conf.VORCoordinatorContractAddress, config.Conf.EthHTTPHost, oracleService, log, ctx)
+	oracleListener, err = chainlisten.NewVORCoordinatorListener(oracleService, log, ctx)
 	if err != nil {
 		log.WithFields(logrus.Fields{
 			"package":  "main",

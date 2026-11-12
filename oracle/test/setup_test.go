@@ -79,12 +79,12 @@ func TestStartEverything(t *testing.T) {
 		t.Error(err)
 	}
 
-	oracleService, err := service.NewServiceFromPassedConfig(context.Background(), Store, Config)
+	oracleService, err := service.NewService(context.Background(), Store, Config.ChainList()[0])
 	if err != nil || oracleService == nil {
 		t.Error(err)
 	}
 
-	oracleVORCoordinatorListener, err := chainlisten.NewVORCoordinatorListener(Config.VORCoordinatorContractAddress, Config.EthHTTPHost, oracleService, Log, context.Background())
+	oracleVORCoordinatorListener, err := chainlisten.NewVORCoordinatorListener(oracleService, Log, context.Background())
 	if err != nil || oracleVORCoordinatorListener == nil {
 		t.Error(err)
 	}

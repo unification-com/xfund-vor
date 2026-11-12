@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 
+	"oracle/config"
 	"oracle/contracts/block_hash_store"
 	"oracle/contracts/vor_coordinator"
 )
@@ -24,20 +25,16 @@ type VORCoordinatorCaller struct {
 	publicProvingKey       [2]*big.Int
 }
 
-func NewVORCoordinatorCaller(vorCoordinatorStringAddress string,
-	blockHashStoreStringAddress string,
-	ethHostAddress string,
-	chainID *big.Int,
-	oraclePrivateKey []byte) (*VORCoordinatorCaller, error) {
-	t, err := connect(ethHostAddress, oraclePrivateKey, chainID)
+func NewVORCoordinatorCaller(chain config.ChainConfig, oraclePrivateKey []byte) (*VORCoordinatorCaller, error) {
+	t, err := connect(chain, oraclePrivateKey)
 	if err != nil {
 		return nil, err
 	}
-	vorCoordinatorInstance, err := vor_coordinator.NewVorCoordinator(common.HexToAddress(vorCoordinatorStringAddress), t.client)
+	vorCoordinatorInstance, err := vor_coordinator.NewVorCoordinator(common.HexToAddress(chain.VORCoordinatorContractAddress), t.client)
 	if err != nil {
 		return nil, err
 	}
-	blockHashStoreInstance, err := block_hash_store.NewBlockHashStore(common.HexToAddress(blockHashStoreStringAddress), t.client)
+	blockHashStoreInstance, err := block_hash_store.NewBlockHashStore(common.HexToAddress(chain.BlockHashStoreContractAddress), t.client)
 	if err != nil {
 		return nil, err
 	}

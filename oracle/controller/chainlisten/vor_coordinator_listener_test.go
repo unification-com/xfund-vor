@@ -13,7 +13,7 @@ import (
 
 func InitCaller() (err error) {
 	ctx := context.Background()
-	Service, err = service.NewServiceFromPassedConfig(ctx, TestStore, Config)
+	Service, err = service.NewService(ctx, TestStore, Config.ChainList()[0])
 	return err
 }
 
@@ -42,8 +42,8 @@ func Init(configAddres string, pass string) (err error) {
 	return err
 }
 
-func VORCoordinatorListenerTestValues() (string, string, *service.Service, *logrus.Logger, context.Context) {
-	return Config.VORCoordinatorContractAddress, Config.EthHTTPHost, Service, logrus.New(), context.Background()
+func VORCoordinatorListenerTestValues() (*service.Service, *logrus.Logger, context.Context) {
+	return Service, logrus.New(), context.Background()
 }
 
 func TestVORCoordinatorListener_Request(t *testing.T) {

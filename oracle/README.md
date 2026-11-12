@@ -85,6 +85,13 @@ Oracle settings
 }
 ```
 
+A config may list several chains under `"chains"`, each with the chain settings shown above (`network_id`,
+`eth_http_host`, `contract_address`, `blockhash_store_address`, `first_block`, `check_duration`, `max_gas_price`,
+`legacy_gas`, `wait_confirmations`, `event_scan_batch_blocks`) and an optional `name` (default: the network id);
+a config for one chain may instead keep them at the top level, as above. A setting a chain leaves out takes its
+default (`first_block` 1, `check_duration` 15 s, `max_gas_price` 150 gwei, `wait_confirmations` 10,
+`event_scan_batch_blocks` 2,000); one it sets to 0 stays 0. `serve` defaults to `127.0.0.1:8445`.
+
 Transactions are EIP-1559 where the chain's blocks have a base fee (tip as the node suggests, fee cap twice the
 base fee plus the tip), else legacy-priced; `"legacy_gas": true` forces legacy pricing. `max_gas_price` caps the
 gas price or fee cap in gwei (0: uncapped), so it must stay above the chain's base fee. Gas limits are always
