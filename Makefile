@@ -54,16 +54,19 @@ lint:
 
 # Tests
 
-# the Go release the Docker images build with: the go directive in oracle/go.mod
+# the Go release the Docker image builds with: the go directive in oracle/go.mod
 GO_VERSION := $(shell sed -n 's/^go //p' oracle/go.mod)
 
-test-oracle:
-	docker build --build-arg GO_VERSION=$(GO_VERSION) -t oracle_test -f docker/test.Dockerfile .
-	docker run -it oracle_test
+# Go, anvil and cast, with the oracle built from this tree
+docker-image:
+	docker build --build-arg GO_VERSION=$(GO_VERSION) -t vor_oracle -f docker/Dockerfile .
 
-# Dev environment
-dev-env:
-	docker build --build-arg GO_VERSION=$(GO_VERSION) -t vor_dev_env -f docker/dev.Dockerfile .
-	docker run -it -p 8545:8545 -p 8445:8445 vor_dev_env
+# unit and integration tests, then the end-to-end flow, on local chains
+test-oracle: docker-image
+	docker run --rm vor_oracle docker/scripts/test.sh
 
-.PHONY: test-oracle dev-env
+# a local chain with the contracts deployed, and an oracle serving it
+dev-env: docker-image
+	docker run -it --rm -p 8545:8545 -p 8445:8445 vor_oracle
+
+.PHONY: docker-image test-oracle dev-env

@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"math/big"
 	"oracle/chaincall"
 	"oracle/config"
@@ -75,7 +76,7 @@ func TestVORCoordinatorCaller_Withdraw(t *testing.T) {
 	}
 
 	TransactOut, err := VORCoordinator.Withdraw("0x04FBC34DCf60c88e701a8B3161154451e33Eef75", big.NewInt(1))
-	assert.Equal(t, "VM Exception while processing transaction: revert can't withdraw more than balance", err.Error())
+	assertReverts(t, err, "can't withdraw more than balance")
 	t.Log(TransactOut)
 }
 
@@ -127,7 +128,7 @@ func TestVORCoordinatorCaller_RandomnessRequest(t *testing.T) {
 	TransactOut, err := VORCoordinator.RandomnessRequest(keyHash, big.NewInt(10), fee)
 	//debug.PrintStack()
 	t.Log(TransactOut)
-	assert.Equal(t, "VM Exception while processing transaction: revert request can only be made by a contract", err.Error())
+	assertReverts(t, err, "request can only be made by a contract")
 	transactJson, err := json.Marshal(TransactOut)
 	fmt.Println(string(transactJson))
 }
@@ -143,5 +144,13 @@ func TestVORCoordinatorCaller_FulfillRandomnessRequest(t *testing.T) {
 	TransactOut, err := VORCoordinator.FulfillRandomnessRequest([]byte("hfdjkhgldfjk"))
 	//debug.PrintStack()
 	t.Log(TransactOut)
-	assert.Equal(t, "VM Exception while processing transaction: revert wrong proof length", err.Error())
+	assertReverts(t, err, "wrong proof length")
+}
+
+// assertReverts checks err is a revert for reason: nodes word reverts differently (ganache "VM Exception while
+// processing transaction: revert <reason>", anvil and geth "execution reverted: <reason>").
+func assertReverts(t *testing.T, err error, reason string) {
+	t.Helper()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), reason)
 }
