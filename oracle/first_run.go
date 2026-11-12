@@ -7,8 +7,8 @@ import (
 	"strconv"
 )
 
-// noKeyFound creates the oracle's first key, under a new random keystore key, and an HTTP API key: it prints
-// both, the only copies.
+// noKeyFound creates the oracle's first key under a new random keystore key, which it prints (the only copy),
+// and an HTTP API key, which it writes where the admin commands read it.
 func noKeyFound(keystore *keystorage.Keystorage) (fee int64, token string, err error) {
 	fmt.Println("")
 	fmt.Println("Let's create a new account")
@@ -66,16 +66,13 @@ func noKeyFound(keystore *keystorage.Keystorage) (fee int64, token string, err e
 		fmt.Println("\nSuccessfully generated a private key for address", address)
 		fmt.Println("It exists only in the keystore: back up the keystore file and keep the key below safe.")
 	}
-	var apiKey string
-	if apiKey, err = issueAPIKey(keystore, ""); err != nil {
+	if err = issueAPIKey(keystore, defaultAPIKeyFile()); err != nil {
 		return
 	}
 	fmt.Print("\nYour keystore key:   ")
 	fmt.Println(token)
 	fmt.Println("Start the oracle with it (-k). KEEP THIS KEY SAFE! YOU WILL LOSE YOUR KEYSTORAGE DATA WITHOUT IT!")
-	fmt.Print("\nYour API key:   ")
-	fmt.Println(apiKey)
-	fmt.Println("Use this key to log in via cli/HTTP (command: oracle-cli settings)")
+	fmt.Println("\nThe admin commands' API key is in", defaultAPIKeyFile())
 	fmt.Println("")
 	return
 }

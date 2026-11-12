@@ -124,4 +124,3 @@ build
 
 # binaries from `go build` run inside a module
 /oracle/oracle
-/oracle-cli/oracle-cli

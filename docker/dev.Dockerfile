@@ -42,7 +42,6 @@ RUN cd /root/xfund-vor/oracle && go mod download -x
 # finally, copy the oracle source. Unless go.mod is changed, only this
 # layer will need to be run in future when code changes are made to the oracle.
 COPY ./oracle ./oracle/
-COPY ./oracle-cli ./oracle-cli/
 RUN cd /root/xfund-vor && make build
 
 COPY ./docker/assets ./oracle/build/

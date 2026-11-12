@@ -31,15 +31,16 @@ decrypted. `api_key_sha256` is the hash of the HTTP API key (see below).
 
 ### HTTP API key
 
-The HTTP API (used by `oracle-cli`) has its own random key, separate from the keystore key; the keystore keeps
-only its hash. With the oracle stopped, issue one with:
+The HTTP API (used by the admin commands: `oracle about`, `oracle withdraw`, ...) has its own random key,
+separate from the keystore key; the keystore keeps only its hash. With the oracle stopped, issue one with:
 
 ```bash
 oracle api-key -c config.json [--out FILE]
 ```
 
-It is written to `--out` (a new file) or printed, then goes in `oracle-cli settings`. Until a key is set, the
-API refuses every request.
+It is written to `api_key` beside the config (or `--out`), at 0600, replacing any older key; the admin commands
+read it from there (or `--api-key FILE`). First run issues one. Until a key is set, the API refuses every
+request.
 
 ### Migrating a v0.1.x keystore
 
@@ -53,8 +54,7 @@ oracle migrate-keystore -c config.json -k password --new-key password.new && mv 
 ```
 
 Without `--new-key` the new key is asked for, twice, on the terminal. Every key is converted and verified from
-disk before the old file is overwritten and replaced. Afterwards, update the key in `oracle-cli settings`, and
-delete the backup once the oracle runs: the old keystore and its key together expose the private keys. The old
+disk before the old file is overwritten and replaced. Afterwards, delete the backup once the oracle runs: the old keystore and its key together expose the private keys. The old
 key also opened the HTTP API, which now has its own key: issue one (above). Both commands refuse to run while
 the oracle is running, as it would overwrite their changes.
 

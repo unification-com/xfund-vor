@@ -11,9 +11,7 @@ VERSION=$(DEFAULT_VERSION)
 endif
 
 ldflags = -X oracle/version.Version=$(VERSION) \
-		  -X oracle/version.Commit=$(COMMIT) \
-          -X oraclecli/version.Version=$(VERSION) \
-          -X oraclecli/version.Commit=$(COMMIT)
+		  -X oracle/version.Commit=$(COMMIT)
 
 BUILD_FLAGS := -ldflags '$(ldflags)'
 
@@ -30,18 +28,12 @@ abigen:
 build-oracle:
 	cd oracle && rm -f build/oracle && go build -mod=readonly $(BUILD_FLAGS) -o ./build/oracle
 
-build-oracle-cli:
-	cd oracle-cli && rm -f build/oraclecli && go build -mod=readonly $(BUILD_FLAGS) -o ./build/oraclecli
-
-build: build-oracle build-oracle-cli
+build: build-oracle
 
 install-oracle:
 	cd oracle && go install -mod=readonly $(BUILD_FLAGS)
 
-install-oracle-cli:
-	cd oracle-cli && go install -mod=readonly $(BUILD_FLAGS)
-
-install: install-oracle install-oracle-cli
+install: install-oracle
 
 # 1. Create a new release tag on Github, e.g. v0.1.5
 # 2. 'git checkout main && git pull' to get tag in local repo
@@ -50,7 +42,6 @@ build-release: build
 	rm -rf "dist/vor-oracle_v${VERSION}"
 	mkdir -p "dist/vor-oracle_v${VERSION}"
 	cp oracle/build/oracle "dist/vor-oracle_v${VERSION}/oracle"
-	cp oracle-cli/build/oraclecli "dist/vor-oracle_v${VERSION}/oraclecli"
 	cp docs/guide/oracle.md "dist/vor-oracle_v${VERSION}/README.md"
 	cd dist && tar -cpzf "vor-oracle_linux_v${VERSION}.tar.gz" "vor-oracle_v${VERSION}"
 	cd dist && sha256sum "vor-oracle_linux_v${VERSION}.tar.gz" > "checksum_v${VERSION}.txt"
@@ -58,9 +49,8 @@ build-release: build
 
 lint:
 	@cd oracle && find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" | xargs gofmt -w -s
-	@cd oracle-cli && find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" | xargs gofmt -w -s
 
-.PHONY: abigen build-oracle build-oracle-cli build install-oracle install-oracle-cli install build-release lint
+.PHONY: abigen build-oracle build install-oracle install build-release lint
 
 # Tests
 

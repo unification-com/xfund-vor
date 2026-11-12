@@ -53,7 +53,7 @@ func migrateKeystore() error {
 	}
 	fmt.Println("The old key no longer unlocks anything. Next:")
 	fmt.Println("  1. put the new key where -k reads it")
-	fmt.Println("  2. issue an API key for oracle-cli: oracle api-key -c <config>")
+	fmt.Println("  2. issue an API key for the admin commands: oracle api-key -c <config>")
 	fmt.Println("  3. delete any copy of the old keystore and its key, including backups: together they expose the keys")
 	return nil
 }

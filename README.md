@@ -94,8 +94,8 @@ The environment will:
 The container exposes port `8545` allowing the Ganache chain to be accessible
 via http://127.0.0.1:8545
 
-Additionally, port `8445` is exposed, allowing the oracle to be accessed using the `oracle-cli`
-tool.
+Additionally, port `8445` is exposed, so the oracle's admin commands (`oracle about`, `oracle withdraw`, ...)
+can reach it.
 
 #### Dev environment configuration
 
@@ -108,22 +108,14 @@ tool.
 - VOR Oracle KeyHash: `0x1a7a24165e904cb38eb8344affcf8fdee72ac11b5c542428b35eef5769c409f0`
 - VOR Oracle API key: `0pear3uoznba36fwzoaspwrvc164bkjd`
 
-### `oraclecli` in the Dev environment
+### Admin commands in the Dev environment
 
-You will need to build the tool:
-
-```bash
-make build-oracle-cli
-```
-
-The `oracle-cli` commands should now be available when the dev environment is running, for example:
+Build the oracle (`make build-oracle`); with the dev environment running, its admin commands reach it using the
+dev config and API key, for example:
 
 ```bash
-./oracle-cli/build/oraclecli about -c ./docker/assets/oracle-cli_settings.json
+./oracle/build/oracle about -c ./docker/assets/config.json --api-key ./docker/assets/pass
 ```
-
-**Note**: you will need to pass the `-c ./docker/assets/oracle-cli_settings.json` flag
-with each command in order to use the correct connection settings.
 
 ### Unit Testing
 

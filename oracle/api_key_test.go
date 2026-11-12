@@ -20,20 +20,25 @@ func TestIssueAPIKey(t *testing.T) {
 	require.NoError(t, err)
 
 	out := filepath.Join(dir, "api_key")
-	key, err := issueAPIKey(ks, out)
-	require.NoError(t, err)
-	assert.True(t, ks.IsAPIKey(key))
-	written, err := os.ReadFile(out)
-	require.NoError(t, err)
-	assert.Equal(t, key, strings.TrimSpace(string(written)))
+	written := func() string {
+		data, err := os.ReadFile(out)
+		require.NoError(t, err)
+		return strings.TrimSpace(string(data))
+	}
+	require.NoError(t, issueAPIKey(ks, out))
+	first := written()
+	assert.True(t, ks.IsAPIKey(first))
 	info, err := os.Stat(out)
 	require.NoError(t, err)
 	assert.Equal(t, os.FileMode(0600), info.Mode().Perm())
 
-	// an existing file is never overwritten, and the key in use stays as it was
-	_, err = issueAPIKey(ks, out)
-	assert.Error(t, err)
-	assert.True(t, ks.IsAPIKey(key))
+	// re-issuing replaces the key: the old one stops working
+	require.NoError(t, issueAPIKey(ks, out))
+	assert.NotEqual(t, first, written())
+	assert.True(t, ks.IsAPIKey(written()))
+	assert.False(t, ks.IsAPIKey(first))
+	_, err = os.Stat(out + ".new")
+	assert.True(t, os.IsNotExist(err), "no staging file left behind")
 }
 
 // Rewriting the keystore under a running oracle would be undone by its next save.

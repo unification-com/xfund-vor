@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
 
 	"oracle/config"
 	"oracle/store/keystorage"
+	"oracle/utils"
 )
 
-// newAPIKey replaces the HTTP API key (what oracle-cli settings calls the oracle key). The new key is written
-// to --out, or printed when there is none; the keystore keeps only its hash.
+// newAPIKey replaces the HTTP API key, writing it to --out, or to api_key beside the config where the admin
+// commands read it; the keystore keeps only its hash.
 //
 //	oracle api-key -c config.json [--out FILE]
 func newAPIKey() error {
@@ -21,47 +23,42 @@ func newAPIKey() error {
 	if err != nil {
 		return err
 	}
-	key, err := issueAPIKey(keystore, options.APIKeyOut)
-	if err != nil {
+	out := options.APIKeyOut
+	if out == "" {
+		out = defaultAPIKeyFile()
+	}
+	if err = issueAPIKey(keystore, out); err != nil {
 		return err
 	}
-	if options.APIKeyOut != "" {
-		fmt.Println("New API key written to", options.APIKeyOut)
-		return nil
-	}
-	fmt.Println("New API key (put it in oracle-cli settings; it isn't shown again):")
-	fmt.Println(key)
+	fmt.Println("New API key written to", out)
 	return nil
 }
 
-// issueAPIKey makes a random API key and sets it, writing it to out first when out is given (a new file, at
-// 0600), so a key is never set that nobody has a copy of.
-func issueAPIKey(keystore *keystorage.Keystorage, out string) (string, error) {
+// defaultAPIKeyFile is where the API key is kept for the admin commands: api_key beside the config.
+func defaultAPIKeyFile() string {
+	return filepath.Join(filepath.Dir(options.Config), "api_key")
+}
+
+// issueAPIKey makes a random API key, sets it, and writes it to out (0600, replacing any older key). The key
+// is staged beside out first and only moved into place once set, so out never holds a key the oracle doesn't
+// accept, and a failure leaves the old key working.
+func issueAPIKey(keystore *keystorage.Keystorage, out string) error {
 	key, err := keystorage.RandomKey()
 	if err != nil {
-		return "", err
+		return err
 	}
-	if out != "" {
-		f, err := os.OpenFile(out, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
-		if err != nil {
-			return "", fmt.Errorf("writing the API key: %w", err)
-		}
-		_, err = fmt.Fprintln(f, key)
-		if closeErr := f.Close(); err == nil {
-			err = closeErr
-		}
-		if err != nil {
-			_ = os.Remove(out)
-			return "", fmt.Errorf("writing the API key: %w", err)
-		}
+	staging := out + ".new"
+	if err = os.WriteFile(staging, []byte(key+"\n"), 0600); err != nil {
+		return fmt.Errorf("writing the API key: %w", err)
 	}
 	if err = keystore.SetAPIKey(key); err != nil {
-		if out != "" {
-			_ = os.Remove(out)
-		}
-		return "", err
+		_ = os.Remove(staging)
+		return err
 	}
-	return key, nil
+	if err = utils.RenameDurably(staging, out); err != nil {
+		return fmt.Errorf("the new API key is set but is in %s, not %s (move it there): %w", staging, out, err)
+	}
+	return nil
 }
 
 // ensureOracleStopped refuses to rewrite the keystore while the oracle runs: it holds the keystore in memory
