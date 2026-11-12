@@ -141,8 +141,8 @@ func start() (err error) {
 }
 
 // ensureRegistered makes sure the coordinator holds the oracle's proving key: the chain, not the keystore's
-// flag, is the authority. An unregistered key is registered at fee, waiting for the transaction to succeed;
-// fee is only known on the first run.
+// flag, is the authority. An unregistered key is registered at fee (the chain's `fee`, or the first run's),
+// waiting for the transaction to succeed.
 func ensureRegistered(caller *chaincall.VORCoordinatorCaller, keystore *keystorage.Keystorage, fee int64) error {
 	provider, err := caller.ProvingKeyProvider()
 	if err != nil {
@@ -152,7 +152,7 @@ func ensureRegistered(caller *chaincall.VORCoordinatorCaller, keystore *keystora
 	if provider == (common.Address{}) {
 		if fee <= 0 {
 			// carry on: the API still works, and a restart loop would help nobody
-			entry.Error("the proving key isn't registered with the coordinator, so the oracle can't fulfil requests")
+			entry.Error("the proving key isn't registered with the coordinator, so the oracle can't fulfil requests: set the chain's fee to register it")
 			return nil
 		}
 		if err = caller.RegisterProvingKeyAndWait(big.NewInt(fee)); err != nil {

@@ -44,6 +44,8 @@ type ChainConfig struct {
 	LegacyGas                     bool   `json:"legacy_gas"`              // legacy-priced txs even where EIP-1559 is available
 	WaitConfirmations             uint64 `json:"wait_confirmations"`      // blocks before a request is fulfilled
 	EventScanBatchBlocks          uint64 `json:"event_scan_batch_blocks"` // most blocks per eth_getLogs call
+	// Fee registers the proving key on this chain, if it isn't registered yet (xFUND's smallest unit)
+	Fee int64 `json:"fee"`
 }
 
 // Config is the oracle's config: the chains it serves, and process-wide settings.
@@ -206,6 +208,9 @@ func (c ChainConfig) validate() error {
 	}
 	if c.CheckDuration <= 0 {
 		errs = append(errs, errors.New("check_duration must be above zero"))
+	}
+	if c.Fee < 0 {
+		errs = append(errs, errors.New("fee must not be negative"))
 	}
 	return errors.Join(errs...)
 }

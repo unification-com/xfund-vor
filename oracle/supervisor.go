@@ -25,7 +25,7 @@ type supervisor struct {
 	ctx      context.Context
 	store    *store2.Store
 	keystore *keystorage.Keystorage
-	fee      int64 // registers an unregistered proving key: only known on the first run
+	fee      int64 // the fee entered on the first run: registers the proving key where a chain sets none
 
 	mu       sync.Mutex
 	services map[int64]*service.Service // running chains, by network id
@@ -70,7 +70,11 @@ func (s *supervisor) startChain(chain config.ChainConfig) (*service.Service, *ch
 	if err != nil {
 		return nil, nil, err
 	}
-	if err = ensureRegistered(svc.VORCoordinatorCaller, s.keystore, s.fee); err != nil {
+	fee := chain.Fee
+	if fee == 0 {
+		fee = s.fee
+	}
+	if err = ensureRegistered(svc.VORCoordinatorCaller, s.keystore, fee); err != nil {
 		return nil, nil, err
 	}
 	listener, err := chainlisten.NewVORCoordinatorListener(svc, log, s.ctx)
