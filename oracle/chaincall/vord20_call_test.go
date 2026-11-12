@@ -1,7 +1,6 @@
 package chaincall_test
 
 import (
-	"github.com/stretchr/testify/assert"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -81,7 +80,7 @@ func TestVORD20Caller_House(t *testing.T) {
 
 	tx, err := VORD20Caller.House("0xF0D5BC18421fa04D0a2A2ef540ba5A9f04014BE3")
 	if err != nil {
-		assert.Equal(t, "VM Exception while processing transaction: revert Roll in progress", err.Error())
+		assertReverts(t, err, "Roll in progress")
 	}
 	t.Log(tx)
 }

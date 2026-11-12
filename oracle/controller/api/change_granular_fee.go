@@ -1,30 +1,25 @@
 package api
 
 import (
-	"encoding/json"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/labstack/echo/v4"
+	"errors"
 	"net/http"
+	"oracle/service"
+
+	"github.com/labstack/echo/v4"
+
 	"oracle/models/api"
-	"regexp"
 )
 
-func (d *Oracle) ChangeGranularFee(c echo.Context) error {
+func (d *Oracle) ChangeGranularFee(c echo.Context, svc *service.Service) error {
 	var requestModel api.OracleChangeGranularFeeRequestModel
-	json.NewDecoder(c.Request().Body).Decode(&requestModel)
-
-	re := regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
-	if !re.MatchString(requestModel.Consumer) {
-		return c.String(http.StatusInternalServerError, "not an address")
+	if err := decodeBody(c, &requestModel); err != nil {
+		return badRequest(c, err)
 	}
-
-	if !common.IsHexAddress(requestModel.Consumer) {
-		return c.String(http.StatusInternalServerError, "not a hex address")
+	consumer, consumerErr := parseAddress("consumer", requestModel.Consumer)
+	if err := errors.Join(consumerErr, positive("amount", requestModel.Amount)); err != nil {
+		return badRequest(c, err)
 	}
-
-	address := common.HexToAddress(requestModel.Consumer)
-
-	transactionInfo, err := d.service.ChangeGranularFee(address, requestModel.Amount)
+	transactionInfo, err := svc.ChangeGranularFee(consumer, requestModel.Amount)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}

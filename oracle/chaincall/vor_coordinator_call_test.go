@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"math/big"
 	"oracle/chaincall"
 	"oracle/config"
@@ -32,23 +33,21 @@ func Init(configAddress string, pass string) (err error) {
 	if err != nil {
 		return err
 	}
-	Keystore.CheckToken(pass)
-	VORCoordinator, err = chaincall.NewVORCoordinatorCaller(VORCoordinatorCallerTestValues())
+	if err = Keystore.Unlock(Config.Keystorage.Account, pass); err != nil {
+		return err
+	}
+	VORCoordinator, err = chaincall.NewVORCoordinatorCaller(Config.ChainList()[0], []byte(Keystore.GetSelectedPrivateKey()))
 	VORD20Caller, err = chaincall.NewVORD20Caller(VORD20CallerTestValues())
 	MockERC20Caller, err = chaincall.NewMockERC20Caller(MockERC20CallerTestValues())
 	return err
 }
 
-func VORCoordinatorCallerTestValues() (string, string, string, *big.Int, []byte) {
-	return Config.VORCoordinatorContractAddress, Config.BlockHashStoreContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetByUsername(Config.Keystorage.Account).Private)
-}
-
 func MockERC20CallerTestValues() (string, string, *big.Int, []byte) {
-	return Config.MockContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetByUsername(Config.Keystorage.Account).Private)
+	return Config.MockContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetSelectedPrivateKey())
 }
 
 func VORD20CallerTestValues() (string, string, *big.Int, []byte) {
-	return Config.ContractCallerAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetByUsername(Config.Keystorage.Account).Private)
+	return Config.ContractCallerAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetSelectedPrivateKey())
 }
 
 func TestVORCoordinatorCaller_HashOfKey(t *testing.T) {
@@ -77,7 +76,7 @@ func TestVORCoordinatorCaller_Withdraw(t *testing.T) {
 	}
 
 	TransactOut, err := VORCoordinator.Withdraw("0x04FBC34DCf60c88e701a8B3161154451e33Eef75", big.NewInt(1))
-	assert.Equal(t, "VM Exception while processing transaction: revert can't withdraw more than balance", err.Error())
+	assertReverts(t, err, "can't withdraw more than balance")
 	t.Log(TransactOut)
 }
 
@@ -129,7 +128,7 @@ func TestVORCoordinatorCaller_RandomnessRequest(t *testing.T) {
 	TransactOut, err := VORCoordinator.RandomnessRequest(keyHash, big.NewInt(10), fee)
 	//debug.PrintStack()
 	t.Log(TransactOut)
-	assert.Equal(t, "VM Exception while processing transaction: revert request can only be made by a contract", err.Error())
+	assertReverts(t, err, "request can only be made by a contract")
 	transactJson, err := json.Marshal(TransactOut)
 	fmt.Println(string(transactJson))
 }
@@ -145,5 +144,13 @@ func TestVORCoordinatorCaller_FulfillRandomnessRequest(t *testing.T) {
 	TransactOut, err := VORCoordinator.FulfillRandomnessRequest([]byte("hfdjkhgldfjk"))
 	//debug.PrintStack()
 	t.Log(TransactOut)
-	assert.Equal(t, "VM Exception while processing transaction: revert wrong proof length", err.Error())
+	assertReverts(t, err, "wrong proof length")
+}
+
+// assertReverts checks err is a revert for reason: nodes word reverts differently (ganache "VM Exception while
+// processing transaction: revert <reason>", anvil and geth "execution reverted: <reason>").
+func assertReverts(t *testing.T, err error, reason string) {
+	t.Helper()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), reason)
 }

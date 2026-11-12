@@ -1,111 +1,35 @@
 package chaincall
 
 import (
-	"context"
-	"crypto/ecdsa"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"log"
-	"math/big"
-	"oracle/config"
+
 	"oracle/contracts/mock_erc20"
-	"oracle/utils/walletworker"
 )
 
+// MockERC20Caller drives the mock xFUND token in the integration tests.
 type MockERC20Caller struct {
-	contractAddress  common.Address
-	client           *ethclient.Client
-	instance         *mock_erc20.MockErc20
-	transactOpts     *bind.TransactOpts
-	callOpts         *bind.CallOpts
-	context          context.Context
-	oraclePrivateKey string
-	oraclePublicKey  string
-	oracleAddress    string
+	*transactor
+	instance *mock_erc20.MockErc20
 }
 
 func NewMockERC20Caller(contractStringAddress string, ethHostAddress string, chainID *big.Int, oraclePrivateKey []byte) (*MockERC20Caller, error) {
-	client, err := ethclient.Dial(ethHostAddress)
-	ctx := context.Background()
+	t, err := connect(testChain(ethHostAddress, chainID), oraclePrivateKey)
 	if err != nil {
 		return nil, err
 	}
-	contractAddress := common.HexToAddress(contractStringAddress)
-	instance, err := mock_erc20.NewMockErc20(contractAddress, client)
+	instance, err := mock_erc20.NewMockErc20(common.HexToAddress(contractStringAddress), t.client)
 	if err != nil {
 		return nil, err
 	}
-	oraclePrivateKeyECDSA, err := crypto.HexToECDSA(string(oraclePrivateKey[2:]))
-	if err != nil {
-		return nil, err
-	}
-
-	oraclePublicKey := oraclePrivateKeyECDSA.Public()
-
-	ECDSAoraclePublicKey, err := crypto.UnmarshalPubkey(crypto.FromECDSAPub(oraclePublicKey.(*ecdsa.PublicKey)))
-	if err != nil || ECDSAoraclePublicKey == nil {
-		log.Print(err)
-		log.Print(ECDSAoraclePublicKey)
-		return nil, err
-	}
-
-	oracleAddressObj, oracleAddress := walletworker.GenerateAddress(ECDSAoraclePublicKey)
-
-	transactOpts, err := bind.NewKeyedTransactorWithChainID(oraclePrivateKeyECDSA, chainID)
-	if err != nil {
-		return nil, err
-	}
-
-	gasPrice, err := client.SuggestGasPrice(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	nonce, err := client.PendingNonceAt(context.Background(), common.HexToAddress(oracleAddress))
-	if err != nil {
-		return nil, err
-	}
-	transactOpts.Nonce = big.NewInt(int64(nonce))
-	transactOpts.GasPrice = gasPrice
-	transactOpts.GasLimit = uint64(config.Conf.GasLimit) // in units
-	//transactOpts.Value = big.NewInt(1000000000000000000)
-	//transactOpts.Value.Mul(transactOpts.Value, big.NewInt(10))
-	transactOpts.Context = context.Background()
-	transactOpts.From = oracleAddressObj
-
-	return &MockERC20Caller{
-		client:           client,
-		contractAddress:  contractAddress,
-		instance:         instance,
-		transactOpts:     transactOpts,
-		context:          ctx,
-		callOpts:         &bind.CallOpts{From: oracleAddressObj},
-		oraclePrivateKey: string(oraclePrivateKey),
-		oraclePublicKey:  hexutil.Encode(crypto.FromECDSAPub(oraclePublicKey.(*ecdsa.PublicKey))),
-		oracleAddress:    oracleAddress,
-	}, err
-}
-
-func (d *MockERC20Caller) RenewTransactOpts() (err error) {
-	gasPrice, err := d.client.SuggestGasPrice(d.context)
-	if err != nil {
-		return
-	}
-	nonce, err := d.client.PendingNonceAt(d.context, common.HexToAddress(d.oracleAddress))
-	if err != nil {
-		return
-	}
-	d.transactOpts.Nonce = big.NewInt(int64(nonce))
-	d.transactOpts.GasPrice = gasPrice
-	d.transactOpts.GasLimit = uint64(config.Conf.GasLimit) // in units
-
-	return
+	return &MockERC20Caller{transactor: t, instance: instance}, nil
 }
 
 func (d *MockERC20Caller) Transfer(recipientAddress string, amount *big.Int) (*types.Transaction, error) {
-	defer d.RenewTransactOpts()
-	return d.instance.Transfer(d.transactOpts, common.HexToAddress(recipientAddress), amount)
+	return d.send(func(opts *bind.TransactOpts) (*types.Transaction, error) {
+		return d.instance.Transfer(opts, common.HexToAddress(recipientAddress), amount)
+	})
 }

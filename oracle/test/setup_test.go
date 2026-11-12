@@ -29,15 +29,24 @@ func InitConfig(configAddres string) (err error) {
 	return err
 }
 
+const (
+	// setupToken unlocks test_data/setup_test_keystore.json
+	setupToken = "fq516b1boc8vrm7nasnb8fy7u5rb6zhh"
+	// ownerKey is ganache's deterministic account 0
+	ownerKey = "4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d"
+)
+
 func InitKeystore() (err error) {
 	Keystore, err = keystorage.NewKeyStorage(Log, Config.Keystorage.File)
-	Keystore.CheckToken("rod0gbc3mhyxdiah2vwialx1q3osk5cw")
-	return err
+	if err != nil {
+		return err
+	}
+	return Keystore.Unlock(Config.Keystorage.Account, setupToken)
 }
 
 func InitStore() (err error) {
 	Store, err = store2.NewStore(context.Background(), Keystore)
-	err = Store.Db.Migrate()
+	err = Store.Migrate([]int64{Config.ChainList()[0].NetworkID})
 	return
 }
 
@@ -54,11 +63,7 @@ func TestStartEverything(t *testing.T) {
 	err := Init(configPath)
 	config.Conf = Config
 
-	err = Keystore.CheckToken("fq516b1boc8vrm7nasnb8fy7u5rb6zhh")
-	if err != nil {
-		t.Error(err)
-	}
-	err = Keystore.AddExisting("owner", "4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d")
+	err = Keystore.AddExisting("owner", ownerKey)
 	if err != nil {
 		t.Error(err)
 	}
@@ -70,14 +75,16 @@ func TestStartEverything(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	Keystore.SelectPrivateKey(Config.Keystorage.Account)
+	if err = Keystore.Unlock(Config.Keystorage.Account, setupToken); err != nil {
+		t.Error(err)
+	}
 
-	oracleService, err := service.NewServiceFromPassedConfig(context.Background(), Store, Config)
+	oracleService, err := service.NewService(context.Background(), Store, Config.ChainList()[0])
 	if err != nil || oracleService == nil {
 		t.Error(err)
 	}
 
-	oracleVORCoordinatorListener, err := chainlisten.NewVORCoordinatorListener(Config.VORCoordinatorContractAddress, Config.EthHTTPHost, oracleService, Log, context.Background())
+	oracleVORCoordinatorListener, err := chainlisten.NewVORCoordinatorListener(oracleService, Log, context.Background())
 	if err != nil || oracleVORCoordinatorListener == nil {
 		t.Error(err)
 	}
@@ -100,12 +107,12 @@ func TestStartEverything(t *testing.T) {
 	oracleKeyHash, err := oracleService.VORCoordinatorCaller.HashOfKey()
 
 	//	create requestRandomness
-	rootVORD20Owner, err := chaincall.NewVORD20Caller(Config.ContractCallerAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetByUsername("owner").Private))
+	rootVORD20Owner, err := chaincall.NewVORD20Caller(Config.ContractCallerAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(ownerKey))
 	if err != nil || rootVORD20Owner == nil {
 		t.Error(err)
 	}
 
-	rootMockERC20, err := chaincall.NewMockERC20Caller(Config.MockContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetByUsername("owner").Private))
+	rootMockERC20, err := chaincall.NewMockERC20Caller(Config.MockContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(ownerKey))
 	if err != nil {
 		t.Error(err)
 	}
@@ -119,7 +126,6 @@ func TestStartEverything(t *testing.T) {
 	t.Log(tx)
 
 	//	set VORD20 keyHash
-	rootVORD20Owner.RenewTransactOpts()
 	tx, err = rootVORD20Owner.SetKeyHash(oracleKeyHash)
 	if err != nil {
 		t.Error(err)
@@ -127,7 +133,6 @@ func TestStartEverything(t *testing.T) {
 	t.Log(tx)
 
 	//	set VORD20 fee
-	rootVORD20Owner.RenewTransactOpts()
 	tx, err = rootVORD20Owner.SetFee(big.NewInt(200))
 	if err != nil {
 		t.Error(err)
@@ -135,11 +140,6 @@ func TestStartEverything(t *testing.T) {
 	t.Log(tx)
 
 	//	create requestRandomness for oracle
-	err = rootVORD20Owner.RenewTransactOpts()
-	if err != nil {
-		t.Error(err)
-	}
-
 	tx, err = rootVORD20Owner.RollDice(big.NewInt(24), "0xf408f04F9b7691f7174FA2bb73ad6d45fD5d3CBe")
 	if err != nil {
 		t.Error(err)

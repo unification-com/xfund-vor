@@ -1,16 +1,25 @@
 package api
 
 import (
-	"encoding/json"
-	"github.com/labstack/echo/v4"
+	"errors"
 	"net/http"
+	"oracle/service"
+
+	"github.com/labstack/echo/v4"
+
 	"oracle/models/api"
 )
 
-func (d *Oracle) Withdraw(c echo.Context) error {
+func (d *Oracle) Withdraw(c echo.Context, svc *service.Service) error {
 	var requestModel api.OracleWithdrawRequestModel
-	json.NewDecoder(c.Request().Body).Decode(&requestModel)
-	transactionInfo, err := d.service.Withdraw(requestModel.Address, requestModel.Amount)
+	if err := decodeBody(c, &requestModel); err != nil {
+		return badRequest(c, err)
+	}
+	_, addressErr := parseAddress("address", requestModel.Address)
+	if err := errors.Join(addressErr, positive("amount", requestModel.Amount)); err != nil {
+		return badRequest(c, err)
+	}
+	transactionInfo, err := svc.Withdraw(requestModel.Address, requestModel.Amount)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}

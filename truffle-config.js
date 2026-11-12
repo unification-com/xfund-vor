@@ -74,6 +74,26 @@ module.exports = {
             network_id: "80001",
             gasPrice: 3000000000,
         },
+        shibarium: {
+            provider: () =>
+                new HDWalletProvider({
+                    privateKeys: [ETH_PKEY_MAINNET],
+                    providerOrUrl: 'https://rpc.shibarium.shib.io',
+                }),
+            network_id: "109",
+            gasPrice: 10000000000, // 10 gwei
+            skipDryRun: true,
+        },
+        qom: {
+            provider: () =>
+                new HDWalletProvider({
+                    privateKeys: [ETH_PKEY_MAINNET],
+                    providerOrUrl: 'https://evm-rpc-ql1.foxxone.one',
+                }),
+            network_id: "766",
+            gasPrice: 1000000000, // 1 gwei
+            skipDryRun: true,
+        },
     },
     plugins: ["truffle-plugin-verify", "solidity-coverage", "@chainsafe/truffle-plugin-abigen"],
     api_keys: {

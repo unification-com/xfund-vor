@@ -4,6 +4,7 @@ import "gorm.io/gorm"
 
 type FailedFulfilment struct {
 	gorm.Model
+	ChainId    int64  `gorm:"not null;default:0;index"`
 	RequestId  string `gorm:"index"`
 	TxHash     string `gorm:"index"`
 	GasUsed    uint64

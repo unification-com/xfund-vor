@@ -2,50 +2,45 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"oracle/store/keystorage"
 	"os"
 	"strings"
+
+	"oracle/store/keystorage"
 )
 
-func inputKey(keystore *keystorage.Keystorage) (err error) {
-	fmt.Println("")
-	fmt.Println("Please enter the cli/HTTP key, which was provided to you by Oracle")
-	fmt.Print("Key: ")
-	var key string
-	fmt.Scanf("%s\n", &key)
-	err = keystore.CheckToken(key)
-	if err == nil {
-		fmt.Println("Okay, let's continue...")
-		return
-	} else {
-		fmt.Println("I'm not sure I can decrypt your keystore with this key.")
-		err = inputKey(keystore)
-		return
+// unlock decrypts account's key with passphrase (from -k), or with a key the operator types when that is
+// missing or wrong.
+func unlock(keystore *keystorage.Keystorage, account, passphrase string) error {
+	var err error
+	if passphrase != "" {
+		if err = keystore.Unlock(account, passphrase); err == nil {
+			return nil
+		}
 	}
-	return
-}
-
-func auth(keystore *keystorage.Keystorage) (err error) {
+	if !stdinIsTerminal() {
+		if err == nil {
+			return fmt.Errorf("the keystore key (-k) is missing: %w", errNoTerminal)
+		}
+		return fmt.Errorf("the keystore key (-k) does not unlock the keystore (%v): %w", err, errNoTerminal)
+	}
 	fmt.Println("")
 	fmt.Println("Let's verify it's you =)")
-	err = inputKey(keystore)
-	return
+	fmt.Println("")
+	fmt.Println("Please enter the keystore key, which was provided to you by Oracle")
+	_, err = promptSecretUntil("Key: ", func(key string) error {
+		return keystore.Unlock(account, key)
+	})
+	if err == nil {
+		fmt.Println("Okay, let's continue...")
+	}
+	return err
 }
 
+// getPasswordFromFileOrFlag reads the key from the file flagValue names, or takes flagValue itself as the key
+// when no such file can be opened.
 func getPasswordFromFileOrFlag(flagValue string) string {
-	file, err := os.Open(flagValue)
-	password := ""
-	if err != nil {
-		password = flagValue
+	if data, err := os.ReadFile(flagValue); err == nil {
+		return strings.TrimSpace(string(data))
 	}
-
-	defer file.Close()
-
-	data, err := ioutil.ReadAll(file)
-	if err == nil {
-		password = string(data)
-	}
-
-	return strings.TrimSpace(password)
+	return strings.TrimSpace(flagValue)
 }

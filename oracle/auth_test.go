@@ -25,14 +25,15 @@ func InitConfig(configAddres string) (err error) {
 
 func InitKeystore() (err error) {
 	Keystore, err = keystorage.NewKeyStorage(Log, Config.Keystorage.File)
-	err = Keystore.CheckToken("dwkxnzn3kl1dlndvtdtvqko9gpaay5vj")
-	err = Keystore.SelectPrivateKey(Config.Keystorage.Account)
-	return err
+	if err != nil {
+		return err
+	}
+	return Keystore.Unlock(Config.Keystorage.Account, "dwkxnzn3kl1dlndvtdtvqko9gpaay5vj")
 }
 
 func InitStore() (err error) {
 	Store, err := store2.NewStore(context.Background(), Keystore)
-	err = Store.Db.Migrate()
+	err = Store.Migrate([]int64{Config.ChainList()[0].NetworkID})
 	return
 }
 

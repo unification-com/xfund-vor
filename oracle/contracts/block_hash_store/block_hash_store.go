@@ -4,8 +4,11 @@
 package block_hash_store
 
 import (
+	"context"
+	"errors"
 	"math/big"
 	"strings"
+	"time"
 
 	ethereum "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -17,6 +20,7 @@ import (
 
 // Reference imports to suppress errors if they are not otherwise used.
 var (
+	_ = errors.New
 	_ = big.NewInt
 	_ = strings.NewReader
 	_ = ethereum.NotFound
@@ -24,10 +28,19 @@ var (
 	_ = common.Big1
 	_ = types.BloomLookup
 	_ = event.NewSubscription
+	_ = abi.ConvertType
+	_ = time.Tick
+	_ = context.Background
 )
 
+// BlockHashStoreMetaData contains all meta data concerning the BlockHashStore contract.
+var BlockHashStoreMetaData = &bind.MetaData{
+	ABI: "[{\"inputs\":[],\"name\":\"storeEarliest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"n\",\"type\":\"uint256\"}],\"name\":\"getBlockhash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"n\",\"type\":\"uint256\"}],\"name\":\"store\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"n\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"header\",\"type\":\"bytes\"}],\"name\":\"storeVerifyHeader\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+}
+
 // BlockHashStoreABI is the input ABI used to generate the binding from.
-const BlockHashStoreABI = "[{\"inputs\":[],\"name\":\"storeEarliest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"n\",\"type\":\"uint256\"}],\"name\":\"getBlockhash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\",\"constant\":true},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"n\",\"type\":\"uint256\"}],\"name\":\"store\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"n\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"header\",\"type\":\"bytes\"}],\"name\":\"storeVerifyHeader\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+// Deprecated: Use BlockHashStoreMetaData.ABI instead.
+var BlockHashStoreABI = BlockHashStoreMetaData.ABI
 
 // BlockHashStore is an auto generated Go binding around an Ethereum contract.
 type BlockHashStore struct {
@@ -126,11 +139,11 @@ func NewBlockHashStoreFilterer(address common.Address, filterer bind.ContractFil
 
 // bindBlockHashStore binds a generic wrapper to an already deployed contract.
 func bindBlockHashStore(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := abi.JSON(strings.NewReader(BlockHashStoreABI))
+	parsed, err := BlockHashStoreMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
-	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
+	return bind.NewBoundContract(address, *parsed, caller, transactor, filterer), nil
 }
 
 // Call invokes the (constant) contract method with params as input values and

@@ -19,8 +19,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/jpillora/backoff"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
@@ -132,17 +130,6 @@ func RemoveHexPrefix(str string) string {
 // HasHexPrefix returns true if the string starts with 0x.
 func HasHexPrefix(str string) bool {
 	return len(str) >= 2 && str[0] == '0' && (str[1] == 'x' || str[1] == 'X')
-}
-
-// DecodeEthereumTx takes an RLP hex encoded Ethereum transaction and
-// returns a Transaction struct with all the fields accessible.
-func DecodeEthereumTx(hex string) (types.Transaction, error) {
-	var tx types.Transaction
-	b, err := hexutil.Decode(hex)
-	if err != nil {
-		return tx, err
-	}
-	return tx, rlp.DecodeBytes(b, &tx)
 }
 
 // IsEmptyAddress checks that the address is empty, synonymous with the zero
@@ -687,11 +674,11 @@ func (q *BoundedPriorityQueue) Empty() bool {
 // WrapIfError decorates an error with the given message.  It is intended to
 // be used with `defer` statements, like so:
 //
-// func SomeFunction() (err error) {
-//     defer WrapIfError(&err, "error in SomeFunction:")
+//	func SomeFunction() (err error) {
+//	    defer WrapIfError(&err, "error in SomeFunction:")
 //
-//     ...
-// }
+//	    ...
+//	}
 func WrapIfError(err *error, msg string) {
 	if *err != nil {
 		*err = errors.Wrap(*err, msg)

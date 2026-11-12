@@ -77,53 +77,40 @@ The development environment can be run using:
 make dev-env
 ```
 
-Alternatively, run the docker commands as follows:
+The image (`docker/Dockerfile`) holds Go, Foundry's `anvil` and `cast`, and the oracle built from this tree.
+The environment (`docker/scripts/dev-env.sh`) will:
 
-```bash
-docker build -t vor_dev_env -f docker/dev.Dockerfile .
-docker run -it -p 8545:8545 -p 8445:8445 vor_dev_env
-```
+1. Start an `anvil` chain mining a block a second, with 20 accounts from the mnemonic below
+2. Deploy the VOR contracts from the compiled bytecode in `abigenBindings/bin`, at the addresses below
+3. Send test xFUND to accounts 2-19
+4. Run the `oracle`, which registers its proving key
 
-The environment will:
-
-1. Spawn a deterministic `ganache-cli` development chain with 20 accounts funded with 100 ETH
-2. Compile and deploy the necessary VOR smart contracts
-3. Initialise the test accounts, send test tokens and register the Oracle's proving key
-4. Run the `oracle` application
-
-The container exposes port `8545` allowing the Ganache chain to be accessible
+The container exposes port `8545` allowing the chain to be accessible
 via http://127.0.0.1:8545
 
-Additionally, port `8445` is exposed, allowing the oracle to be accessed using the `oracle-cli`
-tool.
+Additionally, port `8445` is exposed, so the oracle's admin commands (`oracle about`, `oracle withdraw`, ...)
+can reach it.
 
 #### Dev environment configuration
 
-- Ganache CLI wallet mnemonic: `myth like bonus scare over problem client lizard pioneer submit female collect`
-- Ganache CLI URL: `http://127.0.0.1:8545`
-- Ganache CLI Network/Chain ID: `696969`
+- Wallet mnemonic: `myth like bonus scare over problem client lizard pioneer submit female collect` (ganache's
+  deterministic one, so the accounts and contract addresses are the ones ganache gave)
+- Chain URL: `http://127.0.0.1:8545`
+- Network/Chain ID: `696969`
 - VORCoordinator Contract address: `0xCfEB869F69431e42cdB54A4F4f105C19C080A601`
 - BlockHashStore contract address: `0x5b1869D9A4C187F2EAa108f3062412ecf0526b24`
 - VOR Oracle Wallet Address: `0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0`
 - VOR Oracle KeyHash: `0x1a7a24165e904cb38eb8344affcf8fdee72ac11b5c542428b35eef5769c409f0`
 - VOR Oracle API key: `0pear3uoznba36fwzoaspwrvc164bkjd`
 
-### `oraclecli` in the Dev environment
+### Admin commands in the Dev environment
 
-You will need to build the tool:
-
-```bash
-make build-oracle-cli
-```
-
-The `oracle-cli` commands should now be available when the dev environment is running, for example:
+Build the oracle (`make build-oracle`); with the dev environment running, its admin commands reach it using the
+dev config and API key, for example:
 
 ```bash
-./oracle-cli/build/oraclecli about -c ./docker/assets/oracle-cli_settings.json
+./oracle/build/oracle about -c ./docker/assets/config.json --api-key ./docker/assets/pass
 ```
-
-**Note**: you will need to pass the `-c ./docker/assets/oracle-cli_settings.json` flag
-with each command in order to use the correct connection settings.
 
 ### Unit Testing
 
@@ -139,8 +126,10 @@ Run `oracle` tests:
 make test-oracle
 ```
 
-This will run the `go` tests in a self-contained, dockerised environment. A Ganache
-network will be run within the container for the tests to run against.
+This runs, in the same image, the `go` unit and integration tests against a local `anvil` chain with the test
+contracts, then the end-to-end flow (`docker/scripts/e2e.sh`): on two local chains, the oracle registers its
+proving key, fulfils dice rolls on `VORD20` with EIP-1559 and legacy transactions, and has a second chain added
+to it.
 
 ### Polygon Mumbai
 

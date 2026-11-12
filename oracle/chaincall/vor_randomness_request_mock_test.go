@@ -18,7 +18,7 @@ func InitVORRandomnessRequestMockCaller() (err error) {
 }
 
 func VORRandomnessRequestMockCallerTestValues() (string, string, *big.Int, []byte) {
-	return Config.MockContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetFirst().Private)
+	return Config.MockContractAddress, Config.EthHTTPHost, big.NewInt(Config.NetworkID), []byte(Keystore.GetSelectedPrivateKey())
 }
 
 func TestVORRandomnessRequestMockCaller_RandomnessRequest(t *testing.T) {

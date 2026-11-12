@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"oracle/controller/chainlisten"
 	"time"
 )
 
-var oracleListener *chainlisten.VORCoordinatorListener
+// stopWorkers stops every chain's worker.
+var stopWorkers context.CancelFunc = func() {}
 
 func Stop() (err error) {
 	if stop1 {
@@ -36,6 +36,6 @@ func Stop() (err error) {
 		}).Error()
 		err = e.Close()
 	}
-	oracleListener.Shutdown()
+	stopWorkers()
 	return err
 }

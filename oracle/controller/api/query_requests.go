@@ -5,14 +5,20 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"oracle/models/api"
+	"oracle/service"
+	"oracle/store/db"
 	"strconv"
 )
 
-func (d *Oracle) QueryRequests(c echo.Context) error {
+func (d *Oracle) QueryRequests(c echo.Context, svc *service.Service) error {
 	requestId, _ := strconv.Atoi(c.QueryParam("id"))
 	page, _ := strconv.Atoi(c.QueryParam("page"))
 	limit, _ := strconv.Atoi(c.QueryParam("limit"))
-	status, _ := strconv.Atoi(c.QueryParam("status"))
+	page, limit = db.PageAndLimit(page, limit)
+	status, err := strconv.Atoi(c.QueryParam("status"))
+	if err != nil {
+		status = -1 // any status
+	}
 	order := c.QueryParam("order")
 
 	if order != "asc" && order != "desc" {
@@ -21,7 +27,10 @@ func (d *Oracle) QueryRequests(c echo.Context) error {
 
 	requests := &api.RequestResponse{}
 
-	dbRequests, count, err := d.service.Requests(requestId, page, limit, status, order)
+	dbRequests, count, err := svc.Requests(requestId, page, limit, status, order)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
 
 	numPages := count / int64(limit)
 	if count%int64(limit) > 0 {
@@ -29,7 +38,10 @@ func (d *Oracle) QueryRequests(c echo.Context) error {
 	}
 
 	for _, reqRow := range dbRequests {
-		seedBig, _ := hexutil.DecodeBig(reqRow.Seed)
+		var seed uint64 // no seed until the request's fulfilment starts
+		if seedBig, err := hexutil.DecodeBig(reqRow.Seed); err == nil {
+			seed = seedBig.Uint64()
+		}
 
 		res := api.RandomnessRequestModel{
 			ID:                 reqRow.ID,
@@ -43,7 +55,7 @@ func (d *Oracle) QueryRequests(c echo.Context) error {
 			RequestGasUsed:     reqRow.RequestGasUsed,
 			RequestGasPrice:    reqRow.RequestGasPrice,
 			SeedHex:            reqRow.Seed,
-			Seed:               seedBig.Uint64(),
+			Seed:               seed,
 			Fee:                reqRow.Fee,
 			Randomness:         reqRow.Randomness,
 			FulfillBlockNumber: reqRow.FulfillBlockNumber,
@@ -63,8 +75,5 @@ func (d *Oracle) QueryRequests(c echo.Context) error {
 	requests.Pages.NumRecords = uint(count)
 	requests.Pages.Limit = uint(limit)
 
-	if err != nil {
-		return c.JSONPretty(http.StatusInternalServerError, requests, "  ")
-	}
 	return c.JSONPretty(http.StatusOK, requests, "  ")
 }

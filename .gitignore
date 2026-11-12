@@ -116,3 +116,11 @@ build
 .coverage_artifacts
 .coverage_contracts
 
+# Go oracle runtime artefacts — the SQLite DB the daemon/tests generate (not source)
+*.db
+*.sqlite
+*.sqlite3
+
+
+# binaries from `go build` run inside a module
+/oracle/oracle

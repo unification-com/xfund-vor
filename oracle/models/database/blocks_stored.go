@@ -4,6 +4,7 @@ import "gorm.io/gorm"
 
 type BlocksStored struct {
 	gorm.Model
+	ChainId     int64  `gorm:"not null;default:0;index"`
 	BlockHash   string `gorm:"index"`
 	BlockNumber uint64 `gorm:"index"`
 	TxHash      string `gorm:"index"`

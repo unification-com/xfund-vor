@@ -7,10 +7,8 @@ required proof, before sending the data back to `VORCoordinator`.
 Running a VOR Provider Oracle is quick and easy, and this guide will run
 you through getting set up as a VOR Provider.
 
-The software is comprised of two applications:
-
-1. `oracle` - the server application
-2. `oraclecli` - the CLI tool for `oracle` server administration
+The software is a single application, `oracle`: the server, which can serve
+several chains from one process, and the commands that administer it.
 
 ## Prerequisites
 
@@ -39,228 +37,171 @@ vor-oracle_linux_v0.1.1.tar.gz: OK
 ## Compile from source
 
 ::: warning
-You will require **Golang** to compile from source - the latest version can be 
-installed by following the [official instructions](https://golang.org/doc/install).
+You will require **Go 1.27** or later to compile from source - the latest version can be
+installed by following the [official instructions](https://go.dev/doc/install). Build with the
+latest Go patch release (for example `GOTOOLCHAIN=go1.27.4 make build`): it carries the standard
+library's security fixes.
 :::
 
-Clone the repo:
+Clone the repo at the latest release tag, from
+[https://github.com/unification-com/xfund-vor/releases](https://github.com/unification-com/xfund-vor/releases):
 
 ```bash
 git clone -b [latest-release-tag] https://github.com/unification-com/xfund-vor
 ```
 
-E.g.
-
-```bash
-git clone -b v0.1.0 https://github.com/unification-com/xfund-vor
-```
-
-::: tip
-The `[latest-release-tag]` can be found at 
-[https://github.com/unification-com/xfund-vor/releases](https://github.com/unification-com/xfund-vor/releases)
-:::
-
-Then compile the binaries using the `make install` target:
+Then install the `oracle` binary in your `$GOPATH/bin`:
 
 ```bash
 cd xfund-vor
 make install
 ```
 
-This will install the `oracle` and `oraclecli` binaries in your `$GOPATH/bin`
-
-Alternatively, run the `build` target:
-
-```bash
-cd xfund-vor/oracle
-make build
-```
-
-which will compile the binaries to `xfund-vor/oracle/build` and
-`xfund-vor/oracle-cli/build`
+or compile it to `xfund-vor/oracle/build/oracle` with `make build`.
 
 ## Configuration
 
-The `oracle` requires a `config.json` file, which will contain all the
-information it needs to run. By default it will look for `config.json` in 
-the same directory as the `oracle` binary, but the location can be set
-at runtime with the `-c` flag.
-
-Create your `config.json`:
+The `oracle` reads a `config.json` file, `./config.json` by default; set its path with `-c`.
 
 ```bash
 mkdir $HOME/vor
 nano $HOME/vor/config.json
 ```
 
+List each chain the oracle serves under `chains`:
+
 ```json
 {
-  "contract_address": "0x00.....",
-  "blockhash_store_address": "0x123...",
-  "eth_http_host": "http://127.0.0.1:8545",
-  "eth_ws_host": "http://127.0.0.1:8545",
-  "network_id": 696969,
+  "chains": [
+    {
+      "name": "polygon",
+      "network_id": 137,
+      "eth_http_host": "https://polygon-rpc.example",
+      "contract_address": "0x9e84d9DB...",
+      "blockhash_store_address": "0x...",
+      "first_block": 63000000,
+      "max_gas_price": 300
+    },
+    {
+      "name": "mainnet",
+      "network_id": 1,
+      "eth_http_host": "https://eth-rpc.example",
+      "contract_address": "0xCeB679DE...",
+      "blockhash_store_address": "0x...",
+      "first_block": 21000000,
+      "max_gas_price": 120
+    }
+  ],
   "serve": {
-    "host": "0.0.0.0",
-    "port": 8446
+    "host": "127.0.0.1",
+    "port": 8445
   },
-  "first_block": 1,
   "keystorage": {
     "file": "/home/username/vor/keystore.json",
     "account": "oracle"
   },
-  "gas_limit": 1000000,
-  "max_gas_price": 100,
-  "wait_confirmations": 10,
   "database": {
-    "dialect": "sqlite",
-    "storage": "/home/username/vor/oracle.db"
+    "dialect": "postgres",
+    "host": "127.0.0.1",
+    "port": 5432,
+    "user": "vor",
+    "password": "...",
+    "database": "vor"
   }
 }
 ```
 
-The config options are as follows:
+An oracle serving one chain may instead keep that chain's settings at the top level, as configs
+for v0.1 did.
 
-- `contract_address` - the address of the `VORCoordinator` smart contract. See
-[contracts](https://vor.unification.io/contracts.html).
-- `blockhash_store_address` - the address of the `BlockHashStore` smart contract. See
-  [contracts](https://vor.unification.io/contracts.html).
-- `eth_http_host` - HTTP(S) host for your Eth provider. E.g. Infura
-- `eth_ws_host` - WS(S) host for your Eth provider. E.g. Infura
-- `network_id` - Eth network ID, e.g. 1 = mainnet, 4 = Rinkeby etc.
-- `serve.host` - host to serve the `oracle` on. This is used by the `oracle-cli`
-  tool, and should not be publicly exposed. Default `0.0.0.0`
-- `serve.port` - port to serve the `oracle` on. This is used by the `oracle-cli`
-  tool, and should not be publicly exposed. Default `8445`
-- `first_block` - default first block to scan the contract from. Should be 
-  a value near to the block your oracle will do it's first run from. Only used
-  when the oracle first connects. Default `1`
-- `keystorage.file` - path to the `keystore` which will contain your encrypted
-  private key and other runtime info. It will be created on the oracle's first
-  run if one does not exist. Default `./keystore.json`
-- `keystore.account` - account name used to identify the private key. Set on 
-  first run.
-- `gas_limit` - gas units limit for fulfilling a request. Default `500000`
-- `max_gas_price` - max gas price in gwei you are willing to pay to fulfil a request. 
-  Gas price is estimated with each fulfillment Tx, but will be capped at this value. Default `150`
-- `wait_confirmations` - number of block confirmations to wait before fulfilling a request. Default `10`
-- `database.dialect` - `postgres` or `sqlite`. Default `sqlite`
-- `database.storage` - (`sqlite` only) - path to the DB file. It will be created on the oracle's first
-  run if one does not exist. Default `./oracle.db`
-- `database.host` - (`postgres` only) - DB host IP/name
-- `database.port` - (`postgres` only) - DB Port
-- `database.user` - (`postgres` only) - DB username
-- `database.password` - (`postgres` only) - DB password
-- `database.database` - (`postgres` only) - DB name
+Each chain's settings:
+
+- `name` - selects the chain in the admin commands (`--chain`). Default: the network id
+- `network_id` - the chain's id, e.g. 1 = Ethereum, 137 = Polygon
+- `eth_http_host` - HTTP(S) JSON-RPC endpoint for the chain
+- `contract_address` - the `VORCoordinator` contract. See
+  [contracts](https://vor.unification.io/contracts.html)
+- `blockhash_store_address` - the `BlockHashStore` contract: retries of requests older than ~250
+  blocks need it
+- `first_block` - where the oracle first scans the chain from; afterwards it resumes where it
+  stopped. Set it near the current block for a new chain. Default `1`
+- `check_duration` - seconds between polls. Default `15`
+- `max_gas_price` - the most, in gwei, the oracle pays per unit of gas (the gas price, or an EIP-1559
+  transaction's fee cap); `0` for no cap. It must stay above the chain's base fee, or transactions
+  won't be mined. Default `150`
+- `legacy_gas` - `true` to send legacy-priced transactions even where the chain supports EIP-1559.
+  Default `false`: EIP-1559 where the chain's blocks have a base fee
+- `wait_confirmations` - blocks to wait before fulfilling a request. Default `10`
+- `event_scan_batch_blocks` - the most blocks one `eth_getLogs` call asks for: many RPCs refuse wide
+  ranges. Default `2000`
+- `fee` - the fee, in xFUND's smallest unit, to register your proving key at on this chain, if it isn't
+  registered there yet (e.g. a chain added to a running oracle). Ignored once registered: change the
+  fee with `oracle changefee`
+
+A setting a chain leaves out takes its default; one it sets to `0` stays `0`. Gas limits are always
+estimated.
+
+Process-wide settings:
+
+- `serve.host`, `serve.port` - where the oracle's admin API listens. Keep it off public interfaces.
+  Default `127.0.0.1:8445`
+- `keystorage.file` - the keystore, holding your encrypted private key. Created on the first run.
+  Default `./keystore.json`
+- `keystorage.account` - the account in the keystore the oracle signs with (default: the first)
+- `database.dialect` - `postgres` or `sqlite` (dev/testing). Default `sqlite`
+- `database.storage` - (`sqlite` only) the database file. Default `./oracle.db`
+- `database.host`, `.port`, `.user`, `.password`, `.database` - (`postgres` only)
+
+One database and one keystore serve every chain: each record carries its chain's id, and the same
+provider key is used on every chain.
 
 ## First run
 
-The first time `oracle` is run, it will prompt for some input to further 
-configure the environment.
-
-Start the `oracle`, assuming `config.json` has been saved to 
-`$HOME/vor/config.json`:
+The first run asks for some input, so run it in a terminal:
 
 ```bash
 /path/to/oracle start -c $HOME/vor/config.json
 ```
- You will be asked for:
 
-1. Username - this will be used as the account name in `keystore.json`,
-and should be entered as the value for `keystore.account` in `config.json`
-2. Fee - your initial xFUND fee, for example 100000000 will be 0.1 xFUND
-3. Add existing key/Create a new key - you can either import an existing
-Eth private key, or have the `oracle` create a new one for you.
-   
-::: tip
-If you elect to have the `oracle` generate a new private key for you, you
-will need to manually register your key with `VORCOOrdinator`. 
-:::
+You will be asked for:
 
-You need to ensure the wallet address has sufficient Eth to
-send the `registerProvingKey` transaction to `VORCOOrdinator`. If you
-opted for importing an existing key, this process is automatically run
-for you, and your key will be registered on the `oracle`'s first run.
+1. Username - the account name in the keystore; put it in `keystorage.account`
+2. Fee - your initial xFUND fee, for example 100000000 is 0.1 xFUND
+3. Add an existing key or create a new one - import an existing private key (typed without being
+   shown), or have the `oracle` generate one (it prints the new key's address)
 
-Once complete, you should see something along the lines of:
+The `oracle` then prints your **keystore key**, the only copy:
 
 ```bash
-# some info about your config and key...
+Your keystore key:   3f9c...
+Start the oracle with it (-k). KEEP THIS KEY SAFE! YOU WILL LOSE YOUR KEYSTORAGE DATA WITHOUT IT!
 
-Your daemon api key:   rkf.....
-
-Use this key to login via cli/HTTP (command: oracle-cli settings)
-KEEP THIS KEYS SAFE!
+The admin commands' API key is in /home/username/vor/api_key
 ```
 
 ::: tip
-It is important to key the **daemon api key** safe, as this is used to start
-the oracle, and access its api via the `oraclecli`. The `oracle` also uses
-it to encrypt/decrypt your `keystore`.
-
-It is also advisable to backup the `keystore.json` file.
+Save the keystore key in a file only your user can read, for `-k`, and back up `keystore.json`.
+Each private key in it is a standard go-ethereum (v3, scrypt) keystore, usable with any Ethereum
+tool.
 :::
 
-Finally, it will ask you to enter the **api key** previously output in order to start running
-the `oracle`.
-
-The `oracle` can be stopped with <key>CTRL+C</key>, or the safer api method:
-
-```bash
-/path/to/oraclecli stop
-```
-
-which will signal the `oracle` to stop via its API.
-
-::: tip
-`oraclecli` has its own configuration file, which will be covered later
-in this guide.
-:::
+At start-up the `oracle` registers your proving key with `VORCoordinator` on each chain where it
+isn't registered yet, at the chain's `fee` (or the fee entered on the first run), waiting for the
+transaction to succeed, so the account needs gas on every chain.
 
 ## Running the Oracle
 
-Once configured, the `oracle` can be run using:
-
 ```bash
-/path/to/oracle start -c $HOME/vor/config.json
+/path/to/oracle start -c $HOME/vor/config.json -k /path/to/keystore-key-file
 ```
 
-It will prompt for the **api key** which was output for oyu during the first run.
+`-k` takes a file holding the keystore key (or the key itself, for testing only); without it, the
+`oracle` asks for the key in a terminal, and refuses to start without one. A chain whose RPC is
+unreachable at start-up is retried every minute without holding up the others.
 
-Optionally, the key can be passed to the `oracle` using the `-k` flag. It can be
-passed as either the key itself in plaintext (not recommended outside of testing), or
-as a filepath to a file containing the password.
-
-```bash
-/path/to/oracle start -c $HOME/vor/config.json -k /path/to/password/file
-```
-
-which is useful if running the `oracle` as a service using `systemd`.
-
-### Flags
-
-`-v`: Output `oracle` version info and exit:
-```bash
-oracle -v
-```
-
-`-k`: Pass the keystore decryption key as a filepath or plaintext key:
-
-```bash
-oracle start -k /path/to/password/file
-oracle start -k fg1acljv8int8g5hutc3cr2kk24lpg2s
-```
-
-`-c`: Pass the filepath to `config.json`:
-
-```bash
-oracle start -c /home/user/vor/config.json
-```
+`oracle version` (or `--version`) prints the version.
 
 ### Running the oracle as a service
-
-It is recommended to run the `oracle` as a background service, for example using
-`systemd`:
 
 ```bash
 sudo nano /etc/systemd/system/vor_oracle.service
@@ -274,7 +215,9 @@ Description=VOR Provider Oracle
 User=USERNAME
 Group=USERNAME
 WorkingDirectory=/home/USERNAME
-ExecStart=/home/USERNAME/go/bin/oracle start -c /path/to/config.json -k /path/to/decrypt/pass
+ExecStart=/home/USERNAME/go/bin/oracle start -c /path/to/config.json -k /path/to/keystore-key-file
+Restart=on-failure
+RestartSec=30
 
 [Install]
 WantedBy=default.target
@@ -285,193 +228,67 @@ sudo systemctl daemon-reload
 sudo systemctl start vor_oracle
 ```
 
-## oraclecli
+## Keys
 
-The `oraclecli` acts as a client to run administrative tasks on the `oracle` daemon.
-It allows an `oracle` operator to change their fees, withdraw earned fees from 
-`VORCoordinator`, stop the `oracle`, and query your fees and withdrawable xFUND.
+The oracle has two keys:
 
-### help
-
-Outputs a list of commands
+- the **keystore key** (`-k`) decrypts the keystore
+- the **API key** authenticates the admin commands. The keystore holds only its hash; the key
+  itself is in `api_key` beside the config. Issue a new one, with the oracle stopped, with:
 
 ```bash
-oraclecli help
+oracle api-key -c $HOME/vor/config.json [--out FILE]
 ```
 
-### settings
+### Upgrading from v0.1
 
-The `settings` command allows you to set the configuration options for the CLI.
-Configuration is stored in `$HOME/.oracle-cli_settings.json`.
+v0.1 keystores used weak encryption under a guessable key, and the `oracle` refuses to start on
+one. With the oracle stopped, back up its directory, then convert the keystore under a new key and
+issue an API key:
 
 ```bash
-oraclecli settings
+cd $HOME/vor
+openssl rand -hex 32 > password.new && chmod 600 password.new
+oracle migrate-keystore -c config.json -k password --new-key password.new && mv password.new password
+oracle api-key -c config.json
 ```
 
-You can configure the host & port the CLI will use to communicate with a running `oracle`
-and should equate to the values used in your `oracle`'s `config.json`
+Every key is converted and checked from disk before the old keystore is replaced. Once the oracle
+runs, delete the backup: the old keystore and its key together expose your private key.
 
-You can also set the **api key** which the CLI will need to authenticate when
-communicating with the `oracle`. This is the same as you use to start the `oracle`
+The first start also brings a v0.1 database up to date, assigning its records to the chain the
+config names, so start each v0.1 database with a config for its one chain the first time.
 
-### about
+## Administering the oracle
 
-Outputs data about your `oracle`, such as your `keyHash`, wallet address, IP/PORT etc.
+Run on the oracle's host, the admin commands find the oracle from its config (`-c`) and use the API
+key in `api_key` beside it (or `--api-key FILE`). When the oracle serves several chains, name one
+with `--chain <name or network id>`.
 
 ```bash
-oraclecli about
+oracle status -c config.json                              # is it running?
+oracle about -c config.json --chain polygon               # address, key hash, balances, fee
+oracle queryfees -c config.json --chain polygon [consumer]
+oracle changefee -c config.json --chain polygon 100000000 # 0.1 xFUND
+oracle changegranularfee -c config.json --chain polygon 50000000 0xConsumer...
+oracle querywithdrawable -c config.json --chain polygon
+oracle withdraw -c config.json --chain polygon 100000000 0xRecipient...
+oracle queryrequests -c config.json --chain polygon [--page 1] [--limit 10] [--status -1] [--order desc]
+oracle gettx -c config.json --chain polygon 0xTxHash...
+oracle register -c config.json --chain polygon <account> <fee>  # asks for the private key
+oracle stop -c config.json                                # stops the whole oracle
 ```
 
-### changefee
+Amounts and fees are in xFUND's smallest unit (9 decimals).
 
-Allows you to change the base fee for fulfilling requests. The base fee is used
-for all consumers for whom you have not set a granular fee.
-
-Fee should be `amount * 10^9`, for example, if you want a fee of 0.2 xFUND,
-enter 200000000.
+### Analytics
 
 ```bash
-oraclecli changefee
+oracle analytics -c config.json --chain polygon 100
+oracle analytics sim -c config.json --chain polygon 100 --if-gas 150 --if-fees 0.05 [--consumer 0x...]
+oracle analytics consumers -c config.json --chain polygon [consumer]
 ```
 
-### changegranularfee
-
-Allows you to change the fee for fulfilling requests at a granular level for
-a particular consumer contract address. This allows you to set fees dependent on the
-Tx cost for fulfilling requests, and thus higher fees for more expensive consumer contracts.
-
-Fee should be `amount * 10^9`, for example, if you want a fee of 0.2 xFUND,
-enter 200000000.
-
-You will additionally be prompted for the contract address you are
-applying the granular fee to.
-
-```bash
-oraclecli changegranularfee
-```
-
-### queryfees
-
-Query the fees you have currently set. Optionally pass a consumer contract address
-to query fees at a granular level. If you have not set a granular fee for the input
-contract address, or do not input a contract address, the base fee will be returned.
-
-```bash
-oraclecli queryfees
-oraclecli queryfees 0xD833215cBcc3f914bD1C9ece3EE7BF8B14f841bb
-```
-
-### queryrequests
-
-Query all randomness requests in the database, that match optional filters. Returns
-a JSON object.
-
-Status filters:
-The `--status` | `-s` flag accepts the following:
-
-```
--1 = no filter, return all results (default)
-0  = unknown status
-1  = request initialised
-2  = fulfill tx sent
-3  = failed to fulfil
-4  = fulfillment succeeded
-```
-Examples:
-```bash
-oraclecli queryrequests --page=2 --limit=20
-oraclecli queryrequests --status=3
-oraclecli queryrequests --order=asc
-```
-
-### querywithdrawable
-
-Query the amount of fees you have accumulated, and are currently held by the 
-`VORCoordinator`. You can withdraw these at any time.
-
-```bash
-oraclecli querywithdrawable
-```
-
-### register
-
-Register a new proving key with `VORCoordinator`. You will need to run this, for example
-if you change key, or have generated a new key on the `oracle`'s first run.
-
-```bash
-oraclecli register
-```
-
-### stop
-
-Stops the `oracle` daemon.
-
-```bash
-oraclecli stop
-```
-
-### withdraw
-
-Withdraw any accumulated tokens held by the `VORCoordinator` to the selected 
-recipient address. The recipient can be your Oracle's wallet address, or any other 
-beneficiary you choose.
-
-Withdrawal amount should be `amount * 10^9`, for example, if you wish to withdraw
-2 xFUND, enter 2000000000. The amount must not exceed the value output by the
-`querywithdrawable` command.
-
-```bash
-oraclecli withdraw
-```
-
-### version
-
-Output `oraclecli`'s version information
-
-```bash
-oraclecli version
-```
-
-### analytics
-
-Run some basic analytics to return gas, gas price, costs and fee statistics.
-Pass the number of successful requests you want to analyse, for example 100
-to analyse the last 100 successful fulfillments.
-
-```bash
-oraclecli analytics 100
-oraclecli analytics 1000
-```
-
-### analytics sim
-
-Pass simulation values for gas price and fees using the `--if-gas` and `--if-fees`
-flags respectively. These will be applied to the analytics results in place of
-the real values to see what costs/fees would be like with these simulated values.
-
-use the `[num_to_analyse]` arg to limit the number of requests to analyse.
-
-The `--consumer` flag can be used to filter a single consumer contract, which can help
-set granular fees for individual consumers.
-
-Example:
-
-```bash
-oraclecli analytics sim 1000 -g 150 -f 0.05
-oraclecli analytics sim 200 --if-gas=150 --if-fees=0.1
-oraclecli analytics sim 200 --if-gas=100 --if-fees=0.05 --consumer=0x232AbC...
-```
-
-### analytics consumers
-
-Run some analytics to return gas, gas price, costs and fee statistics
-for all contracts served. Results are grouped by each consumer contract.
-
-Optional [consumer_address] can be passed to filter by that address
-
-Example:
-
-```bash
-oraclecli analytics consumers
-oraclecli analytics consumers 0x1234AbcD...
-```
+`analytics` summarises gas, costs and fees over the last fulfilled requests; `sim` recalculates them
+at a simulated gas price and fee; `consumers` breaks them down per consumer contract. Costs use
+xFUND's price from CoinGecko.
