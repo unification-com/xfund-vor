@@ -3,9 +3,15 @@ package db
 import (
 	"errors"
 	"fmt"
+	stdlog "log"
+	"os"
+	"time"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+
 	"oracle/config"
 	"oracle/models/database"
 )
@@ -26,7 +32,7 @@ func NewDb() (*DB, error) {
 }
 
 func NewSqliteDb() (*DB, error) {
-	db, err := gorm.Open(sqlite.Open(config.Conf.Database.Storage), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(config.Conf.Database.Storage), gormConfig())
 	return &DB{
 		db,
 	}, err
@@ -41,7 +47,7 @@ func NewPostgresDb() (*DB, error) {
 	dsn := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=disable",
 		cfg.Database.Host, cfg.Database.Port, cfg.Database.User, cfg.Database.Database, cfg.Database.Password)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), gormConfig())
 
 	if err != nil {
 		return nil, err
@@ -115,4 +121,15 @@ func (d *DB) backfillChainID(chainIDs []int64) error {
 // IsNotFound reports whether err means the record looked up doesn't exist, as opposed to the lookup failing.
 func IsNotFound(err error) bool {
 	return errors.Is(err, gorm.ErrRecordNotFound)
+}
+
+// gormConfig logs slow queries and errors, but not a lookup finding nothing: the oracle expects that answer
+// (a new request, a chain without a saved cursor) and handles it.
+func gormConfig() *gorm.Config {
+	return &gorm.Config{Logger: logger.New(stdlog.New(os.Stdout, "\r\n", stdlog.LstdFlags), logger.Config{
+		SlowThreshold:             200 * time.Millisecond,
+		LogLevel:                  logger.Warn,
+		IgnoreRecordNotFoundError: true,
+		Colorful:                  false,
+	})}
 }

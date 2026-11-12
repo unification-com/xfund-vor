@@ -93,8 +93,9 @@ func NewVORCoordinatorListener(service *service.Service, logger *logrus.Logger, 
 	}, nil
 }
 
+// log starts an entry for function, naming the chain: one process serves several.
 func (d *VORCoordinatorListener) log(function string) *logrus.Entry {
-	return d.logger.WithFields(logrus.Fields{"package": "chainlisten", "function": function})
+	return d.logger.WithFields(logrus.Fields{"package": "chainlisten", "function": function, "chain": d.chain.Name})
 }
 
 // StartPoll polls until its context is cancelled.
