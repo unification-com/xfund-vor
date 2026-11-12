@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"math/rand"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum"
@@ -53,7 +52,6 @@ type VORCoordinatorListener struct {
 	client          *ethclient.Client
 	contractAbi     abi.ABI
 	fromBlock       uint64 // the next block to scan for events
-	wg              *sync.WaitGroup
 	service         *service.Service
 	keyHash         [32]byte
 	context         context.Context
@@ -91,7 +89,6 @@ func NewVORCoordinatorListener(service *service.Service, logger *logrus.Logger, 
 		service:         service,
 		context:         ctx,
 		keyHash:         keyHash,
-		wg:              &sync.WaitGroup{},
 		logger:          logger,
 	}, nil
 }
@@ -100,8 +97,8 @@ func (d *VORCoordinatorListener) log(function string) *logrus.Entry {
 	return d.logger.WithFields(logrus.Fields{"package": "chainlisten", "function": function})
 }
 
+// StartPoll polls until its context is cancelled.
 func (d *VORCoordinatorListener) StartPoll() (err error) {
-	d.wg.Add(1)
 	d.log("StartPoll").WithFields(logrus.Fields{"action": "begin polling", "from_block": d.fromBlock}).Info()
 
 	// Poll cadence: a base interval plus bounded jitter, so the floor is ALWAYS non-zero. The old code slept
@@ -138,12 +135,6 @@ func (d *VORCoordinatorListener) StartPoll() (err error) {
 			return d.context.Err()
 		case <-time.After(time.Duration(wait) * time.Second):
 		}
-	}
-}
-
-func (d *VORCoordinatorListener) Shutdown() {
-	if d != nil {
-		d.wg.Done()
 	}
 }
 

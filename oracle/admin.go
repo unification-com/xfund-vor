@@ -60,6 +60,12 @@ func (c *apiClient) call(method, path string, query url.Values, body interface{}
 		}
 		reader = bytes.NewReader(encoded)
 	}
+	if options.Chain != "" {
+		if query == nil {
+			query = url.Values{}
+		}
+		query.Set("chain", options.Chain)
+	}
 	target := c.base + path
 	if len(query) > 0 {
 		target += "?" + query.Encode()
@@ -107,6 +113,7 @@ func adminCommand(use, short string, args cobra.PositionalArgs, run func(c *apiC
 		}),
 	}
 	cmd.Flags().StringVar(&options.APIKeyFile, "api-key", "", "path to the file holding the API key (default: api_key beside the config)")
+	cmd.Flags().StringVar(&options.Chain, "chain", "", "the chain, by name or network id (needed when the oracle serves several)")
 	return cmd
 }
 

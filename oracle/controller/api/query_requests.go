@@ -5,11 +5,12 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"oracle/models/api"
+	"oracle/service"
 	"oracle/store/db"
 	"strconv"
 )
 
-func (d *Oracle) QueryRequests(c echo.Context) error {
+func (d *Oracle) QueryRequests(c echo.Context, svc *service.Service) error {
 	requestId, _ := strconv.Atoi(c.QueryParam("id"))
 	page, _ := strconv.Atoi(c.QueryParam("page"))
 	limit, _ := strconv.Atoi(c.QueryParam("limit"))
@@ -26,7 +27,7 @@ func (d *Oracle) QueryRequests(c echo.Context) error {
 
 	requests := &api.RequestResponse{}
 
-	dbRequests, count, err := d.service.Requests(requestId, page, limit, status, order)
+	dbRequests, count, err := svc.Requests(requestId, page, limit, status, order)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}

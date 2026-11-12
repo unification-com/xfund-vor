@@ -23,6 +23,7 @@ var options struct {
 	NewKeyFile   string
 	APIKeyOut    string
 	APIKeyFile   string
+	Chain        string
 }
 
 func main() {

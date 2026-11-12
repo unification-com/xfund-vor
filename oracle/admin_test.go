@@ -57,7 +57,7 @@ func TestAdminCommands(t *testing.T) {
 
 	require.NoError(t, run("withdraw", "250", "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"))
 	require.NoError(t, run("queryfees", "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"))
-	require.NoError(t, run("queryrequests", "--limit", "20", "--status", "3"))
+	require.NoError(t, run("queryrequests", "--limit", "20", "--status", "3", "--chain", "polygon"))
 	err = run("changefee", "5")
 	require.Error(t, err, "the oracle's refusal is an error")
 	assert.Contains(t, err.Error(), "fee must be above zero")
@@ -71,7 +71,7 @@ func TestAdminCommands(t *testing.T) {
 		body: map[string]interface{}{"address": "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", "amount": float64(250)}}, calls[0])
 	assert.Equal(t, "/queryfees", calls[1].path)
 	assert.Equal(t, "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", calls[1].body["consumer"])
-	assert.Equal(t, "limit=20&order=desc&page=1&status=3", calls[2].query)
+	assert.Equal(t, "chain=polygon&limit=20&order=desc&page=1&status=3", calls[2].query)
 }
 
 func TestAdminCommandsNeedTheAPIKey(t *testing.T) {

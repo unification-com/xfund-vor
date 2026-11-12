@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/labstack/echo/v4"
@@ -12,8 +13,6 @@ import (
 	"oracle/chaincall"
 	"oracle/config"
 	controller "oracle/controller/api"
-	"oracle/controller/chainlisten"
-	"oracle/service"
 	store2 "oracle/store"
 	"oracle/store/keystorage"
 	"runtime/debug"
@@ -22,7 +21,8 @@ import (
 var e = echo.New()
 
 func start() (err error) {
-	var ctx = context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	stopWorkers = cancel
 	var fee int64
 	var passphrase string
 
@@ -93,45 +93,18 @@ func start() (err error) {
 			Warn("no API key is set, so the HTTP API refuses every request: issue one with `oracle api-key`")
 	}
 
-	// one chain per process until the supervisor runs a worker per chain
-	if len(chains) != 1 {
-		return fmt.Errorf("this version runs one chain per process, and the config lists %d", len(chains))
+	// v0.1 kept a single chain's scan position in the keystore
+	if len(chains) == 1 {
+		if err = seedCursor(store.ForChain(chains[0].NetworkID), keystore); err != nil {
+			return err
+		}
 	}
-	if err = seedCursor(store.ForChain(chains[0].NetworkID), keystore); err != nil {
-		return err
-	}
-	oracleService, err := service.NewService(ctx, store, chains[0])
-	if err != nil {
-		log.WithFields(logrus.Fields{
-			"package":  "main",
-			"function": "start",
-			"action":   "init service",
-		}).Error(err.Error())
-		return err
-	}
-	if err = ensureRegistered(oracleService.VORCoordinatorCaller, keystore, fee); err != nil {
-		log.WithFields(logrus.Fields{
-			"package":  "main",
-			"function": "start",
-			"action":   "register proving key",
-		}).Error(err.Error())
-		return err
-	}
-
-	oracleController, err := controller.NewOracle(ctx, log, oracleService)
+	workers := newSupervisor(ctx, store, keystore, fee)
+	workers.run(chains)
+	oracleController, err := controller.NewOracle(ctx, log, workers.service)
 	if err != nil {
 		return err
 	}
-	oracleListener, err = chainlisten.NewVORCoordinatorListener(oracleService, log, ctx)
-	if err != nil {
-		log.WithFields(logrus.Fields{
-			"package":  "main",
-			"function": "start",
-			"action":   "init listener",
-		}).Error(err.Error())
-		return err
-	}
-	go oracleListener.StartPoll()
 
 	// Middleware
 	e.Use(middleware.Recover())
@@ -139,28 +112,32 @@ func start() (err error) {
 		return keystore.IsAPIKey(key), nil
 	}))
 
-	e.POST("/withdraw", oracleController.Withdraw)
-	e.POST("/register", oracleController.Register)
-	e.POST("/changefee", oracleController.ChangeFee)
-	e.POST("/changegranularfee", oracleController.ChangeGranularFee)
+	chain := oracleController.Chain
+	e.POST("/withdraw", chain(oracleController.Withdraw))
+	e.POST("/register", chain(oracleController.Register))
+	e.POST("/changefee", chain(oracleController.ChangeFee))
+	e.POST("/changegranularfee", chain(oracleController.ChangeGranularFee))
 	e.POST("/stop", func(c echo.Context) error {
-		err = Stop()
-		return err
+		// reply first: the graceful shutdown waits for this response to go out
+		go func() { _ = Stop() }()
+		return c.String(http.StatusOK, "stopping")
 	})
-	e.POST("/queryfees", oracleController.QueryFees)
-	e.GET("/about", oracleController.About)
+	e.POST("/queryfees", chain(oracleController.QueryFees))
+	e.GET("/about", chain(oracleController.About))
 	e.GET("/status", func(c echo.Context) error {
 		return c.String(http.StatusOK, "alive")
 	})
-	e.GET("/querywithdrawable", oracleController.QueryWithdrawableTokens)
-	e.GET("/requests", oracleController.QueryRequests)
-	e.GET("/analytics", oracleController.Analytics)
-	e.GET("/consumers", oracleController.Consumers)
-	e.GET("/tx", oracleController.GetTxInfo)
+	e.GET("/querywithdrawable", chain(oracleController.QueryWithdrawableTokens))
+	e.GET("/requests", chain(oracleController.QueryRequests))
+	e.GET("/analytics", chain(oracleController.Analytics))
+	e.GET("/consumers", chain(oracleController.Consumers))
+	e.GET("/tx", chain(oracleController.GetTxInfo))
 
-	e.Logger.Fatal(e.Start(fmt.Sprintf("%s:%d", config.Conf.Serve.Host, config.Conf.Serve.Port)))
-
-	return err
+	// Stop shuts the server down, which ends Start with ErrServerClosed: a clean exit
+	if err = e.Start(fmt.Sprintf("%s:%d", config.Conf.Serve.Host, config.Conf.Serve.Port)); !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+	return nil
 }
 
 // ensureRegistered makes sure the coordinator holds the oracle's proving key: the chain, not the keystore's

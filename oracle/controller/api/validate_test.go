@@ -9,6 +9,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"oracle/service"
 )
 
 // Bad input must be refused before it reaches the service: the Oracle here has none, so anything that got
@@ -18,7 +20,7 @@ func TestAdminHandlersRefuseBadInput(t *testing.T) {
 	const address = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
 	cases := []struct {
 		name    string
-		handler echo.HandlerFunc
+		handler func(echo.Context, *service.Service) error
 		body    string
 	}{
 		{"withdraw: not JSON", d.Withdraw, `not json`},
@@ -39,7 +41,7 @@ func TestAdminHandlersRefuseBadInput(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			rec := httptest.NewRecorder()
 			ctx := echo.New().NewContext(httptest.NewRequest(http.MethodPost, "/", strings.NewReader(c.body)), rec)
-			require.NoError(t, c.handler(ctx))
+			require.NoError(t, c.handler(ctx, nil))
 			assert.Equal(t, http.StatusBadRequest, rec.Code, rec.Body.String())
 			assert.NotContains(t, rec.Body.String(), "secretish", "errors must not echo a private key")
 		})

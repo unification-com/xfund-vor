@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"net/http"
+	"oracle/service"
 
 	"github.com/labstack/echo/v4"
 
@@ -10,7 +11,7 @@ import (
 	"oracle/store/keystorage"
 )
 
-func (d *Oracle) Register(c echo.Context) error {
+func (d *Oracle) Register(c echo.Context, svc *service.Service) error {
 	var requestModel api.OracleRegisterRequestModel
 	if err := decodeBody(c, &requestModel); err != nil {
 		return badRequest(c, err)
@@ -19,7 +20,7 @@ func (d *Oracle) Register(c echo.Context) error {
 	if err := errors.Join(required("account_name", requestModel.AccountName), keyErr, positive("fee", requestModel.Fee)); err != nil {
 		return badRequest(c, err)
 	}
-	transactionInfo, err := d.service.Register(requestModel.AccountName, requestModel.PrivateKey, requestModel.Fee)
+	transactionInfo, err := svc.Register(requestModel.AccountName, requestModel.PrivateKey, requestModel.Fee)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}

@@ -3,13 +3,14 @@ package api
 import (
 	"errors"
 	"net/http"
+	"oracle/service"
 
 	"github.com/labstack/echo/v4"
 
 	"oracle/models/api"
 )
 
-func (d *Oracle) ChangeGranularFee(c echo.Context) error {
+func (d *Oracle) ChangeGranularFee(c echo.Context, svc *service.Service) error {
 	var requestModel api.OracleChangeGranularFeeRequestModel
 	if err := decodeBody(c, &requestModel); err != nil {
 		return badRequest(c, err)
@@ -18,7 +19,7 @@ func (d *Oracle) ChangeGranularFee(c echo.Context) error {
 	if err := errors.Join(consumerErr, positive("amount", requestModel.Amount)); err != nil {
 		return badRequest(c, err)
 	}
-	transactionInfo, err := d.service.ChangeGranularFee(consumer, requestModel.Amount)
+	transactionInfo, err := svc.ChangeGranularFee(consumer, requestModel.Amount)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
