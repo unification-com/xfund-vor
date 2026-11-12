@@ -287,19 +287,8 @@ func (d *Keystorage) SetRegistered() error {
 	return d.saveLocked()
 }
 
-// SetBlockNumber records the block the unlocked key's next poll starts from.
-func (d *Keystorage) SetBlockNumber(blockNumber int64) error {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-	key, err := d.selectedKey()
-	if err != nil {
-		return err
-	}
-	key.BlockNumber = blockNumber
-	return d.saveLocked()
-}
-
-// GetBlockNumber returns the block the unlocked key's next poll starts from.
+// GetBlockNumber returns the scan position v0.1 saved with the unlocked key, which seeds a single-chain
+// oracle's cursor in the database; the keystore isn't written with it any more.
 func (d *Keystorage) GetBlockNumber() (int64, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()

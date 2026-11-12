@@ -59,7 +59,12 @@ func start() (err error) {
 		}
 	}
 
-	err = store.Db.Migrate()
+	chains := config.Conf.ChainList()
+	chainIDs := make([]int64, len(chains))
+	for i, chain := range chains {
+		chainIDs[i] = chain.NetworkID
+	}
+	err = store.Migrate(chainIDs)
 
 	if err != nil {
 		log.WithFields(logrus.Fields{
@@ -89,9 +94,11 @@ func start() (err error) {
 	}
 
 	// one chain per process until the supervisor runs a worker per chain
-	chains := config.Conf.ChainList()
 	if len(chains) != 1 {
 		return fmt.Errorf("this version runs one chain per process, and the config lists %d", len(chains))
+	}
+	if err = seedCursor(store.ForChain(chains[0].NetworkID), keystore); err != nil {
+		return err
 	}
 	oracleService, err := service.NewService(ctx, store, chains[0])
 	if err != nil {
@@ -179,4 +186,17 @@ func ensureRegistered(caller *chaincall.VORCoordinatorCaller, keystore *keystora
 		entry.WithField("provider", provider.Hex()).Warn("the proving key is registered to another provider address, which its fees are paid to")
 	}
 	return keystore.SetRegistered()
+}
+
+// seedCursor carries a single-chain oracle's scan position from the keystore, where v0.1 kept it, into the
+// chain's cursor in the database, once.
+func seedCursor(chainStore *store2.Store, keystore *keystorage.Keystorage) error {
+	next, err := chainStore.Db.NextBlock()
+	if err != nil || next > 0 {
+		return err
+	}
+	if block, err := keystore.GetBlockNumber(); err == nil && block > 0 {
+		return chainStore.Db.SetNextBlock(uint64(block))
+	}
+	return nil
 }

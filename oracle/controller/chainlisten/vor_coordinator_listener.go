@@ -147,12 +147,15 @@ func (d *VORCoordinatorListener) Shutdown() {
 	}
 }
 
-// startBlock is where polling resumes: the block saved in the keystore, else the last request's block, else
-// the configured first block, else 1. A saved block that isn't positive is ignored: older versions could save
-// -1.
+// startBlock is where polling resumes: the chain's saved cursor, else its last request's block, else its
+// configured first block, else 1.
 func startBlock(service *service.Service) (uint64, error) {
-	if blockNumber, _ := service.Store.Keystorage.GetBlockNumber(); blockNumber > 0 {
-		return uint64(blockNumber), nil
+	next, err := service.Store.Db.NextBlock()
+	if err != nil {
+		return 0, fmt.Errorf("reading the scan cursor: %w", err)
+	}
+	if next > 0 {
+		return next, nil
 	}
 	lastRequest, err := service.Store.Db.GetLast()
 	if err != nil && !db.IsNotFound(err) {
@@ -213,7 +216,7 @@ func (d *VORCoordinatorListener) ProcessIncommingEvents() error {
 				return fmt.Errorf("block %d, log %d: %w", vLog.BlockNumber, vLog.Index, err)
 			}
 		}
-		if err = d.service.Store.Keystorage.SetBlockNumber(int64(r.to + 1)); err != nil {
+		if err = d.service.Store.Db.SetNextBlock(r.to + 1); err != nil {
 			return fmt.Errorf("saving the scan position: %w", err)
 		}
 		d.fromBlock = r.to + 1

@@ -29,7 +29,8 @@ func TestRandomnessRequestStore_Insert(t *testing.T) {
 	if err != nil || thestore == nil {
 		t.Error(err)
 	}
-	err = thestore.Db.Migrate()
+	err = thestore.Migrate([]int64{696969})
+	thestore = thestore.ForChain(696969)
 	if err != nil {
 		t.Error(err)
 	}

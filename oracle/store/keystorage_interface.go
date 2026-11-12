@@ -5,6 +5,4 @@ type IKeystorageStore interface {
 	ExistsByUsername(account string) bool
 	AddExisting(username string, privateKey string) (err error)
 	GetSelectedPrivateKey() string
-	SetBlockNumber(blockNumber int64) (err error)
-	GetBlockNumber() (blockNumber int64, err error)
 }

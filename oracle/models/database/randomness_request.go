@@ -13,10 +13,12 @@ const (
 
 type RandomnessRequest struct {
 	gorm.Model
+	// ChainId is the request's chain's network id: request ids are unique per chain
+	ChainId                    int64 `gorm:"not null;default:0;uniqueIndex:idx_randomness_requests_chain_request,priority:1"`
 	KeyHash                    string
 	Seed                       string
 	Sender                     string `gorm:"index"`
-	RequestId                  string `gorm:"uniqueIndex"`
+	RequestId                  string `gorm:"uniqueIndex:idx_randomness_requests_chain_request,priority:2"`
 	RequestBlockHash           string `gorm:"index"`
 	RequestBlockNumber         uint64 `gorm:"index"`
 	RequestTxHash              string `gorm:"index"`

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -60,21 +61,18 @@ func TestKeystorage_NewKeyStorageTightensPermissions(t *testing.T) {
 // Saving a keystore that has shrunk must leave valid JSON: the old save wrote over the file in place without
 // truncating, leaving the tail of the longer version behind.
 func TestKeystorage_SaveAfterShrinkingLeavesValidJSON(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "keystore.json")
+	// an empty v0.1 keystore with a long hash: read as empty, and saved much shorter in the current format
+	path := writeKeystore(t, []byte(`{"keys":[],"hash":"`+strings.Repeat("x", 4096)+`"}`))
 	ks := open(t, path)
-	token, err := ks.GenerateToken()
+	apiKey, err := RandomKey()
 	require.NoError(t, err)
-	_, err = ks.GeneratePrivate("oracle")
-	require.NoError(t, err)
-	require.NoError(t, ks.Unlock("oracle", token))
-	require.NoError(t, ks.SetBlockNumber(12345678901))
-	require.NoError(t, ks.SetBlockNumber(1))
+	require.NoError(t, ks.SetAPIKey(apiKey))
 
 	data, err := os.ReadFile(path)
 	require.NoError(t, err)
+	assert.Less(t, len(data), 4096)
 	assert.True(t, json.Valid(data), "keystore must be valid JSON after shrinking: %s", data)
-
-	assert.True(t, open(t, path).Exists())
+	assert.True(t, open(t, path).IsAPIKey(apiKey))
 
 	leftovers, err := filepath.Glob(filepath.Join(filepath.Dir(path), ".keystore.json.tmp-*"))
 	require.NoError(t, err)

@@ -6,11 +6,12 @@ import (
 	"oracle/models/database"
 )
 
-func (d *DB) InsertNewRequest(keyHash string,
+func (d *ChainDB) InsertNewRequest(keyHash string,
 	sender string, requestId string, status int,
 	txHash string, gasUsed uint64, gasPrice uint64,
 	fee uint64) (err error) {
 	err = d.Omit("FulfilTx").Create(&database.RandomnessRequest{
+		ChainId:             d.ChainID,
 		KeyHash:             keyHash,
 		Sender:              sender,
 		RequestId:           requestId,
@@ -24,7 +25,7 @@ func (d *DB) InsertNewRequest(keyHash string,
 	return
 }
 
-func (d *DB) UpdateRequestBlockAndSeed(requestId string, blockHash string, seed string, blockNumber uint64) error {
+func (d *ChainDB) UpdateRequestBlockAndSeed(requestId string, blockHash string, seed string, blockNumber uint64) error {
 	req := database.RandomnessRequest{}
 	err := d.Where("request_id = ?", requestId).First(&req).Error
 	if err != nil {
@@ -39,7 +40,7 @@ func (d *DB) UpdateRequestBlockAndSeed(requestId string, blockHash string, seed 
 	return err
 }
 
-func (d *DB) UpdateRequestStatus(requestId string, status int, statusReason string) error {
+func (d *ChainDB) UpdateRequestStatus(requestId string, status int, statusReason string) error {
 	req := database.RandomnessRequest{}
 	err := d.Where("request_id = ?", requestId).First(&req).Error
 	if err != nil {
@@ -57,7 +58,7 @@ func (d *DB) UpdateRequestStatus(requestId string, status int, statusReason stri
 	return err
 }
 
-func (d *DB) UpdateFulfilmentSent(requestId string, status int, txHash string, blockNum uint64) error {
+func (d *ChainDB) UpdateFulfilmentSent(requestId string, status int, txHash string, blockNum uint64) error {
 	req := database.RandomnessRequest{}
 	err := d.Where("request_id = ?", requestId).First(&req).Error
 	if err != nil {
@@ -93,13 +94,13 @@ func Paginate(page, pageSize int) func(db *gorm.DB) *gorm.DB {
 	}
 }
 
-func (d *DB) FindByRequestId(requestId string) (database.RandomnessRequest, error) {
+func (d *ChainDB) FindByRequestId(requestId string) (database.RandomnessRequest, error) {
 	result := database.RandomnessRequest{}
 	err := d.Where("request_id = ?", requestId).First(&result).Error
 	return result, err
 }
 
-func (d *DB) GetPaginatedRequests(page, limit, status int, order string) ([]database.RandomnessRequest, int64, error) {
+func (d *ChainDB) GetPaginatedRequests(page, limit, status int, order string) ([]database.RandomnessRequest, int64, error) {
 	var count int64
 	var err error
 
@@ -116,7 +117,7 @@ func (d *DB) GetPaginatedRequests(page, limit, status int, order string) ([]data
 	return requests, count, err
 }
 
-func (d *DB) UpdateFulfillment(requestId string,
+func (d *ChainDB) UpdateFulfillment(requestId string,
 	status int, randomness string, blockHash string,
 	blockNumber uint64, txHash string, gasUsed uint64, gasPrice uint64) error {
 
@@ -139,7 +140,7 @@ func (d *DB) UpdateFulfillment(requestId string,
 	return err
 }
 
-func (d DB) GetLast() (database.RandomnessRequest, error) {
+func (d *ChainDB) GetLast() (database.RandomnessRequest, error) {
 	request := database.RandomnessRequest{}
 	err := d.Where("status != ?", database.REQUEST_STATUS_SUCCESS).Last(&request).Error
 	if err != nil {
@@ -148,7 +149,7 @@ func (d DB) GetLast() (database.RandomnessRequest, error) {
 	return request, err
 }
 
-func (d DB) GetLastXRequests(limit int, consumer string) ([]database.RandomnessRequest, error) {
+func (d *ChainDB) GetLastXRequests(limit int, consumer string) ([]database.RandomnessRequest, error) {
 	var requests = []database.RandomnessRequest{}
 	var err error
 
@@ -165,43 +166,43 @@ func (d DB) GetLastXRequests(limit int, consumer string) ([]database.RandomnessR
 	return requests, err
 }
 
-func (d DB) GetMostGasUsed() (database.RandomnessRequest, error) {
+func (d *ChainDB) GetMostGasUsed() (database.RandomnessRequest, error) {
 	request := database.RandomnessRequest{}
 	err := d.Where("status = ?", database.REQUEST_STATUS_SUCCESS).Order(fmt.Sprintf("fulfill_gas_used %s", "desc")).Limit(1).First(&request).Error
 	return request, err
 }
 
-func (d DB) GetLeastGasUsed() (database.RandomnessRequest, error) {
+func (d *ChainDB) GetLeastGasUsed() (database.RandomnessRequest, error) {
 	request := database.RandomnessRequest{}
 	err := d.Where("status = ?", database.REQUEST_STATUS_SUCCESS).Order(fmt.Sprintf("fulfill_gas_used %s", "asc")).Limit(1).First(&request).Error
 	return request, err
 }
 
-func (d DB) GetByStatus(status int) ([]database.RandomnessRequest, error) {
+func (d *ChainDB) GetByStatus(status int) ([]database.RandomnessRequest, error) {
 	var requests = []database.RandomnessRequest{}
 	err := d.Where("status = ?", status).Order(fmt.Sprintf("id %s", "asc")).Find(&requests).Error
 	return requests, err
 }
 
-func (d DB) GetInitialisedRequests() ([]database.RandomnessRequest, error) {
+func (d *ChainDB) GetInitialisedRequests() ([]database.RandomnessRequest, error) {
 	var requests = []database.RandomnessRequest{}
 	err := d.Where("status = ?", database.REQUEST_STATUS_INITIALISED).Order(fmt.Sprintf("id %s", "asc")).Find(&requests).Error
 	return requests, err
 }
 
-func (d DB) GetStuckOrFailedTx() ([]database.RandomnessRequest, error) {
+func (d *ChainDB) GetStuckOrFailedTx() ([]database.RandomnessRequest, error) {
 	var requests = []database.RandomnessRequest{}
 	err := d.Where("status = ? OR status = ?", database.REQUEST_STATUS_SENT, database.REQUEST_STATUS_TX_FAILED).Order(fmt.Sprintf("id %s", "asc")).Find(&requests).Error
 	return requests, err
 }
 
-func (d DB) GetJobs() ([]database.RandomnessRequest, error) {
+func (d *ChainDB) GetJobs() ([]database.RandomnessRequest, error) {
 	var requests = []database.RandomnessRequest{}
 	err := d.Where("status = ? OR status = ? OR status = ?", database.REQUEST_STATUS_INITIALISED, database.REQUEST_STATUS_SENT, database.REQUEST_STATUS_TX_FAILED).Order(fmt.Sprintf("id %s", "asc")).Find(&requests).Error
 	return requests, err
 }
 
-func (d DB) GetDistinctConsumers(consumer string) ([]database.RandomnessRequest, error) {
+func (d *ChainDB) GetDistinctConsumers(consumer string) ([]database.RandomnessRequest, error) {
 	var requests = []database.RandomnessRequest{}
 	var err error
 

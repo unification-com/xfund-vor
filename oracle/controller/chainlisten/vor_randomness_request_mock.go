@@ -66,7 +66,7 @@ func (d VORRandomnessRequestMockListener) StartPoll() {
 
 func (d *VORRandomnessRequestMockListener) SetLastBlockNumber(blockNumber uint64) (err error) {
 	d.query.FromBlock = big.NewInt(int64(blockNumber))
-	err = d.service.Store.Keystorage.SetBlockNumber(int64(blockNumber))
+	err = d.service.Store.Db.SetNextBlock(blockNumber)
 	return
 }
 

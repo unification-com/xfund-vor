@@ -46,7 +46,7 @@ func InitKeystore() (err error) {
 
 func InitStore() (err error) {
 	Store, err = store2.NewStore(context.Background(), Keystore)
-	err = Store.Db.Migrate()
+	err = Store.Migrate([]int64{Config.ChainList()[0].NetworkID})
 	return
 }
 

@@ -16,10 +16,11 @@ type Service struct {
 	VORCoordinatorCaller *chaincall.VORCoordinatorCaller
 }
 
+// NewService serves chain, with the store scoped to it.
 func NewService(ctx context.Context, store *store.Store, chain config.ChainConfig) (*Service, error) {
 	VORCoordinatorCaller, err := chaincall.NewVORCoordinatorCaller(chain, []byte(store.Keystorage.GetSelectedPrivateKey()))
 	if err != nil {
 		return nil, err
 	}
-	return &Service{ctx: ctx, Chain: chain, Store: store, VORCoordinatorCaller: VORCoordinatorCaller}, nil
+	return &Service{ctx: ctx, Chain: chain, Store: store.ForChain(chain.NetworkID), VORCoordinatorCaller: VORCoordinatorCaller}, nil
 }

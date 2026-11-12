@@ -128,7 +128,7 @@ func TestKeystorage_UnlockRejectsAMismatchedAddress(t *testing.T) {
 	assert.Error(t, open(t, path).Unlock("owner", token))
 }
 
-func TestKeystorage_StateBelongsToTheUnlockedKey(t *testing.T) {
+func TestKeystorage_RegistrationBelongsToTheUnlockedKey(t *testing.T) {
 	ks, path := newKeystore(t)
 	token, err := ks.GenerateToken()
 	require.NoError(t, err)
@@ -137,25 +137,16 @@ func TestKeystorage_StateBelongsToTheUnlockedKey(t *testing.T) {
 
 	_, err = ks.GetBlockNumber()
 	assert.Error(t, err, "a locked keystore has no selected key")
-	assert.Error(t, ks.SetBlockNumber(1))
 	assert.Error(t, ks.SetRegistered())
 	assert.False(t, ks.IsRegistered())
 
 	require.NoError(t, ks.Unlock("oracle", token))
-	require.NoError(t, ks.SetBlockNumber(13452142))
 	require.NoError(t, ks.SetRegistered())
 
 	reopened := open(t, path)
 	require.NoError(t, reopened.Unlock("owner", token))
-	block, err := reopened.GetBlockNumber()
-	require.NoError(t, err)
-	assert.Zero(t, block)
 	assert.False(t, reopened.IsRegistered())
-
 	require.NoError(t, reopened.Unlock("oracle", token))
-	block, err = reopened.GetBlockNumber()
-	require.NoError(t, err)
-	assert.Equal(t, int64(13452142), block)
 	assert.True(t, reopened.IsRegistered())
 }
 
