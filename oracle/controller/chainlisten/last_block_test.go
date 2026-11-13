@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"oracle/service"
 )
 
 // Range-limited RPCs reject wide eth_getLogs ranges (QL1's caps at 4,000 blocks), so a backlog is scanned in
@@ -21,4 +23,18 @@ func TestBlocksSince(t *testing.T) {
 	assert.Equal(t, uint64(5), blocksSince(105, 100))
 	assert.Equal(t, uint64(0), blocksSince(100, 100))
 	assert.Equal(t, uint64(0), blocksSince(99, 100))
+}
+
+// A scan position is a block, "head" or "head-N", from block 1 to the block after the head.
+func TestScanTarget(t *testing.T) {
+	const head = 1000
+	for target, want := range map[string]uint64{"head": 1000, "head-100": 900, "head-999": 1, "1": 1, "500": 500, "1001": 1001} {
+		got, err := scanTarget(target, head)
+		assert.NoError(t, err, target)
+		assert.Equal(t, want, got, target)
+	}
+	for _, target := range []string{"", "0", "1002", "head-1000", "head-x", "head+1", "-5", "latest"} {
+		_, err := scanTarget(target, head)
+		assert.ErrorIs(t, err, service.ErrInvalidScanTarget, target)
+	}
 }

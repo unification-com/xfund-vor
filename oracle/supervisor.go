@@ -49,6 +49,7 @@ func (s *supervisor) runChain(chain config.ChainConfig) {
 	for {
 		svc, listener, err := s.startChain(chain)
 		if err == nil {
+			svc.Scanner = listener
 			s.mu.Lock()
 			s.services[chain.NetworkID] = svc
 			s.mu.Unlock()

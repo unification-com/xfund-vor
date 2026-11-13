@@ -276,10 +276,22 @@ oracle withdraw -c config.json --chain polygon 100000000 0xRecipient...
 oracle queryrequests -c config.json --chain polygon [--page 1] [--limit 10] [--status -1] [--order desc]
 oracle gettx -c config.json --chain polygon 0xTxHash...
 oracle register -c config.json --chain polygon <account> <fee>  # asks for the private key
+oracle scan-from -c config.json --chain mainnet head-100  # see below
 oracle stop -c config.json                                # stops the whole oracle
 ```
 
 Amounts and fees are in xFUND's smallest unit (9 decimals).
+
+### Moving a chain's scan
+
+Each chain's scan resumes where it stopped. To move it on a running oracle, give `scan-from` a block number,
+`head`, or `head-N`:
+
+- forward, to skip a backlog: for example after an outage longer than the chain's RPC keeps logs for (some
+  public RPCs keep only a day or so), when the chain keeps failing on the same range
+- back, to scan blocks again: requests already recorded aren't recorded twice
+
+The move waits for a scan in progress to finish, and the oracle logs it.
 
 ### Analytics
 

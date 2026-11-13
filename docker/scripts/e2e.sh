@@ -3,6 +3,8 @@
 #  1. chain a (EIP-1559): a fresh oracle registers its proving key, and fulfils a dice roll on VORD20
 #  2. chain b (legacy gas) added to the running set-up: the oracle resumes chain a where it left off, registers
 #     on b, and fulfils a roll on each chain, one of them with the same request id on both
+#  3. scan-from on the running oracle: chain b rescans (nothing recorded twice) and still fulfils, chain a skips
+#     ahead, and an invalid target is refused
 # Needs anvil, cast, jq and the oracle built at oracle/build/oracle. Exits non-zero on the first failure.
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
@@ -146,6 +148,18 @@ wait_fulfilled a 2
 wait_fulfilled b 1
 expect "chain b's request id (the same as chain a's first)" "$(requests b 4 | jq -r '.requests[0].request_id')" "$FIRST_REQUEST"
 expect "chain b's fulfilment transaction type (legacy)" "$(fulfil_tx_type b "$RPC_B")" 0
+
+step "scan-from: chain b rescans from block 1, chain a skips to its head, a bad target is refused"
+admin scan-from 1 --chain b
+wait_for 60 "chain b to rescan from block 1" grep -q 'msg=scanned chain=b from_block=1 ' "$WORK/oracle.log" ||
+	fail "chain b didn't rescan from block 1"
+expect "chain b's requests after the rescan (none recorded twice)" "$(count b)" 1
+roll "$RPC_B" 1003 "$ROLLER2"
+wait_landed b "$RPC_B" "$ROLLER2"
+wait_fulfilled b 2
+admin scan-from head --chain a
+admin scan-from head-999999999 --chain a > /dev/null 2>&1 && fail "an invalid scan target was accepted"
+echo "ok: an invalid scan target is refused"
 
 step "stop"
 stop_oracle

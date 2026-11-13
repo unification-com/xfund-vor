@@ -279,5 +279,17 @@ func adminCommands() []*cobra.Command {
 	})
 	analytics.AddCommand(sim, consumers)
 
-	return []*cobra.Command{status, about, stop, withdraw, changeFee, changeGranularFee, queryFees, queryWithdrawable, getTx, queryRequests, register, analytics}
+	scanFrom := adminCommand("scan-from <block|head|head-N>", "Move where a chain's scan reads next: skip a backlog, or scan blocks again", cobra.ExactArgs(1), func(c *apiClient, args []string) (string, error) {
+		body, err := c.call(http.MethodPost, "/scanfrom", nil, api.OracleScanFromRequestModel{Block: args[0]})
+		if err != nil {
+			return "", err
+		}
+		var moved api.OracleScanFromResponseModel
+		if err = json.Unmarshal(body, &moved); err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("The scan now reads from block %d (it was at %d).", moved.To, moved.From), nil
+	})
+
+	return []*cobra.Command{status, about, stop, withdraw, changeFee, changeGranularFee, queryFees, queryWithdrawable, getTx, queryRequests, register, analytics, scanFrom}
 }
