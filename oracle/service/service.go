@@ -2,11 +2,21 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"oracle/chaincall"
 	"oracle/config"
 	"oracle/store"
 )
+
+// ErrInvalidScanTarget: a scan position that isn't a block, "head" or "head-N" on the chain.
+var ErrInvalidScanTarget = errors.New("give a block number, head or head-N, no later than the block after the chain's head")
+
+// Scanner is a running chain's event scan.
+type Scanner interface {
+	// ScanFrom moves where the scan reads next, returning the old and new positions.
+	ScanFrom(target string) (from, to uint64, err error)
+}
 
 // Service is the oracle's work on one chain.
 type Service struct {
@@ -14,6 +24,7 @@ type Service struct {
 	Chain                config.ChainConfig
 	Store                *store.Store
 	VORCoordinatorCaller *chaincall.VORCoordinatorCaller
+	Scanner              Scanner // set once the chain's worker runs
 }
 
 // NewService serves chain, with the store scoped to it.

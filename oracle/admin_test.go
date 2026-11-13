@@ -37,6 +37,10 @@ func TestAdminCommands(t *testing.T) {
 			http.Error(w, "fee must be above zero", http.StatusBadRequest)
 			return
 		}
+		if r.URL.Path == "/scanfrom" {
+			_, _ = w.Write([]byte(`{"from":5,"to":900}`))
+			return
+		}
 		_, _ = w.Write([]byte("1500000000"))
 	}))
 	defer server.Close()
@@ -63,7 +67,11 @@ func TestAdminCommands(t *testing.T) {
 	assert.Contains(t, err.Error(), "fee must be above zero")
 	assert.Error(t, run("withdraw", "lots", "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"), "amounts are checked before calling")
 
-	require.Len(t, calls, 4)
+	require.NoError(t, run("scan-from", "head-100", "--chain", "polygon"))
+	assert.Equal(t, apiCall{method: "POST", path: "/scanfrom", query: "chain=polygon", auth: "Bearer the-api-key",
+		body: map[string]interface{}{"block": "head-100"}}, calls[4])
+
+	require.Len(t, calls, 5)
 	for _, call := range calls {
 		assert.Equal(t, "Bearer the-api-key", call.auth)
 	}

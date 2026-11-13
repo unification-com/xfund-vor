@@ -25,6 +25,17 @@ type OracleChangeGranularFeeRequestModel struct {
 	Amount   int64  `json:"amount"`
 }
 
+// OracleScanFromRequestModel moves a chain's scan: Block is a block number, "head" or "head-N".
+type OracleScanFromRequestModel struct {
+	Block string `json:"block"`
+}
+
+// OracleScanFromResponseModel is where a chain's scan read next before and after a move.
+type OracleScanFromResponseModel struct {
+	From uint64 `json:"from"`
+	To   uint64 `json:"to"`
+}
+
 type OracleQueryFeesModel struct {
 	Consumer string `json:"consumer"`
 }

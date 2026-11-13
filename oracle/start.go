@@ -132,6 +132,7 @@ func start() (err error) {
 	e.GET("/analytics", chain(oracleController.Analytics))
 	e.GET("/consumers", chain(oracleController.Consumers))
 	e.GET("/tx", chain(oracleController.GetTxInfo))
+	e.POST("/scanfrom", chain(oracleController.ScanFrom))
 
 	// Stop shuts the server down, which ends Start with ErrServerClosed: a clean exit
 	if err = e.Start(fmt.Sprintf("%s:%d", config.Conf.Serve.Host, config.Conf.Serve.Port)); !errors.Is(err, http.ErrServerClosed) {

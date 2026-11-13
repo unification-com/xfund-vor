@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"math/big"
 	"math/rand"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum"
@@ -51,7 +53,8 @@ type VORCoordinatorListener struct {
 	contractAddress common.Address
 	client          *ethclient.Client
 	contractAbi     abi.ABI
-	fromBlock       uint64 // the next block to scan for events
+	fromBlock       uint64     // the next block to scan for events
+	scanMu          sync.Mutex // held by a scan, and by ScanFrom, so neither saves over the other's position
 	service         *service.Service
 	keyHash         [32]byte
 	context         context.Context
@@ -189,6 +192,8 @@ func blocksSince(current, past uint64) uint64 {
 // accept, saving progress after each range. A range is only passed once all its events are recorded, so an
 // error means it is scanned again next time rather than skipped.
 func (d *VORCoordinatorListener) ProcessIncommingEvents() error {
+	d.scanMu.Lock()
+	defer d.scanMu.Unlock()
 	head, err := d.client.BlockNumber(d.context)
 	if err != nil {
 		return fmt.Errorf("getting the head block: %w", err)
@@ -219,6 +224,57 @@ func (d *VORCoordinatorListener) ProcessIncommingEvents() error {
 		d.log("ProcessIncommingEvents").WithFields(logrus.Fields{"from_block": ranges[0].from, "to_block": d.fromBlock - 1, "head": head}).Info("scanned")
 	}
 	return nil
+}
+
+// ScanFrom moves where the chain's scan reads next: a block number, "head", or "head-N". Moving back scans
+// blocks again (requests already recorded aren't recorded twice); moving forward skips a backlog, such as
+// blocks an RPC no longer serves logs for. It waits for a scan in progress, which would otherwise save its own
+// position over the new one.
+func (d *VORCoordinatorListener) ScanFrom(target string) (from, to uint64, err error) {
+	head, err := d.client.BlockNumber(d.context)
+	if err != nil {
+		return 0, 0, fmt.Errorf("getting the head block: %w", err)
+	}
+	if to, err = scanTarget(target, head); err != nil {
+		return 0, 0, err
+	}
+	d.scanMu.Lock()
+	defer d.scanMu.Unlock()
+	if err = d.service.Store.Db.SetNextBlock(to); err != nil {
+		return 0, 0, fmt.Errorf("saving the scan position: %w", err)
+	}
+	from, d.fromBlock = d.fromBlock, to
+	d.log("ScanFrom").WithFields(logrus.Fields{"old_next_block": from, "next_block": to, "head": head}).Warn("scan position moved")
+	return from, to, nil
+}
+
+// scanTarget resolves a scan position against the chain's head: a block number, "head", or "head-N". It is
+// at least 1 (0 means no position saved) and at most the block after head.
+func scanTarget(target string, head uint64) (uint64, error) {
+	invalid := func() (uint64, error) {
+		return 0, fmt.Errorf("%q (the head is %d): %w", target, head, service.ErrInvalidScanTarget)
+	}
+	var block uint64
+	switch {
+	case target == "head":
+		block = head
+	case strings.HasPrefix(target, "head-"):
+		back, err := strconv.ParseUint(strings.TrimPrefix(target, "head-"), 10, 64)
+		if err != nil || back >= head {
+			return invalid()
+		}
+		block = head - back
+	default:
+		n, err := strconv.ParseUint(target, 10, 64)
+		if err != nil {
+			return invalid()
+		}
+		block = n
+	}
+	if block == 0 || block > head+1 {
+		return invalid()
+	}
+	return block, nil
 }
 
 func (d *VORCoordinatorListener) processLog(vLog types.Log) error {
